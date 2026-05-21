@@ -2808,6 +2808,2178 @@ teleport:AddButton("Brawl Regular", function()
         Duration = 0
     })
 end)
+
+
+local Killer = window:AddTab("K")
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local playerWhitelist = {}
+local targetPlayerNames = {}
+local autoGoodKarma = false
+local autoBadKarma = false
+local autoKill = false
+local killTarget = false
+local spying = false
+local autoEquipPunch = false
+local autoPunchNoAnim = false
+local targetDropdownItems = {}
+local availableTargets = {}
+
+local titleLabel = Killer:AddLabel("Equipar pet de dura o daño")
+titleLabel.TextSize = 14
+titleLabel.Font = Enum.Font.Merriweather 
+titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+local dropdown = Killer:AddDropdown("Select Pet", function(text)
+    local petsFolder = game.Players.LocalPlayer.petsFolder
+    for _, folder in pairs(petsFolder:GetChildren()) do
+        if folder:IsA("Folder") then
+            for _, pet in pairs(folder:GetChildren()) do
+                game:GetService("ReplicatedStorage").rEvents.equipPetEvent:FireServer("unequipPet", pet)
+            end
+        end
+    end
+    task.wait(0.2)
+
+    local petName = text
+    local petsToEquip = {}
+
+    for _, pet in pairs(game.Players.LocalPlayer.petsFolder.Unique:GetChildren()) do
+        if pet.Name == petName then
+            table.insert(petsToEquip, pet)
+        end
+    end
+
+    local maxPets = 8
+    local equippedCount = math.min(#petsToEquip, maxPets)
+
+    for i = 1, equippedCount do
+        game:GetService("ReplicatedStorage").rEvents.equipPetEvent:FireServer("equipPet", petsToEquip[i])
+        task.wait(0.1)
+    end
+end)
+
+local Wild_Wizard = dropdown:Add("Wild Wizard")
+local Powerful_Monster = dropdown:Add("Mighty Monster")
+
+
+Killer:AddSwitch("Auto Good Karma", function(bool)
+    autoGoodKarma = bool
+    task.spawn(function()
+        while autoGoodKarma do
+            local playerChar = LocalPlayer.Character
+            local rightHand = playerChar and playerChar:FindFirstChild("RightHand")
+            local leftHand = playerChar and playerChar:FindFirstChild("LeftHand")
+            if playerChar and rightHand and leftHand then
+                for _, target in ipairs(Players:GetPlayers()) do
+                    if target ~= LocalPlayer then
+                        local evilKarma = target:FindFirstChild("evilKarma")
+                        local goodKarma = target:FindFirstChild("goodKarma")
+                        if evilKarma and goodKarma and evilKarma:IsA("IntValue") and goodKarma:IsA("IntValue") and evilKarma.Value > goodKarma.Value then
+                            local rootPart = target.Character and target.Character:FindFirstChild("HumanoidRootPart")
+                            if rootPart then
+                                firetouchinterest(rightHand, rootPart, 1)
+                                firetouchinterest(leftHand, rootPart, 1)
+                                firetouchinterest(rightHand, rootPart, 0)
+                                firetouchinterest(leftHand, rootPart, 0)
+                            end
+                        end
+                    end
+                end
+            end
+            task.wait(0.01)
+        end
+    end)
+end)
+
+Killer:AddSwitch("Auto Bad Karma", function(bool)
+    autoBadKarma = bool
+    task.spawn(function()
+        while autoBadKarma do
+            local playerChar = LocalPlayer.Character
+            local rightHand = playerChar and playerChar:FindFirstChild("RightHand")
+            local leftHand = playerChar and playerChar:FindFirstChild("LeftHand")
+            if playerChar and rightHand and leftHand then
+                for _, target in ipairs(Players:GetPlayers()) do
+                    if target ~= LocalPlayer then
+                        local evilKarma = target:FindFirstChild("evilKarma")
+                        local goodKarma = target:FindFirstChild("goodKarma")
+                        if evilKarma and goodKarma and evilKarma:IsA("IntValue") and goodKarma:IsA("IntValue") and goodKarma.Value > evilKarma.Value then
+                            local rootPart = target.Character and target.Character:FindFirstChild("HumanoidRootPart")
+                            if rootPart then
+                                firetouchinterest(rightHand, rootPart, 1)
+                                firetouchinterest(leftHand, rootPart, 1)
+                                firetouchinterest(rightHand, rootPart, 0)
+                                firetouchinterest(leftHand, rootPart, 0)
+                            end
+                        end
+                    end
+                end
+            end
+            task.wait(0.01)
+        end
+    end)
+end)
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local friendWhitelistActive = false
+
+Killer:AddSwitch("Auto Whitelist Friends", function(state)
+    friendWhitelistActive = state
+
+    if state then
+        for _, player in ipairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer and LocalPlayer:IsFriendsWith(player.UserId) then
+                playerWhitelist[player.Name] = true
+            end
+        end
+
+        Players.PlayerAdded:Connect(function(player)
+            if friendWhitelistActive and player ~= LocalPlayer and LocalPlayer:IsFriendsWith(player.UserId) then
+                playerWhitelist[player.Name] = true
+            end
+        end)
+    else
+        for name in pairs(playerWhitelist) do
+            local friend = Players:FindFirstChild(name)
+            if friend and LocalPlayer:IsFriendsWith(friend.UserId) then
+                playerWhitelist[name] = nil
+            end
+        end
+    end
+end)
+
+Killer:AddTextBox("Whitelist", function(text)
+    local target = Players:FindFirstChild(text)
+    if target then
+        playerWhitelist[target.Name] = true
+    end
+end)
+
+Killer:AddTextBox("UnWhitelist", function(text)
+    local target = Players:FindFirstChild(text)
+    if target then
+        playerWhitelist[target.Name] = nil
+    end
+end)
+
+Killer:AddSwitch("Auto Kill", function(bool)
+    autoKill = bool
+
+    task.spawn(function()
+        while autoKill do
+            local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+            local rightHand = character:FindFirstChild("RightHand")
+            local leftHand = character:FindFirstChild("LeftHand")
+
+            local punch = LocalPlayer.Backpack:FindFirstChild("Punch")
+            if punch and not character:FindFirstChild("Punch") then
+                punch.Parent = character
+            end
+
+            if rightHand and leftHand then
+                for _, target in ipairs(Players:GetPlayers()) do
+                    if target ~= LocalPlayer and not playerWhitelist[target.Name] then
+                        local targetChar = target.Character
+                        local rootPart = targetChar and targetChar:FindFirstChild("HumanoidRootPart")
+                        if rootPart then
+                            pcall(function()
+                                firetouchinterest(rightHand, rootPart, 1)
+                                firetouchinterest(leftHand, rootPart, 1)
+                                firetouchinterest(rightHand, rootPart, 0)
+                                firetouchinterest(leftHand, rootPart, 0)
+                            end)
+                        end
+                    end
+                end
+            end
+
+            task.wait(0.05)
+        end
+    end)
+end)
+
+local targetDropdown = Killer:AddDropdown("Select Target", function(name)
+    if name and not table.find(targetPlayerNames, name) then
+        table.insert(targetPlayerNames, name)
+    end
+end)
+
+Killer:AddTextBox("Remove Target", function(name)
+    for i, v in ipairs(targetPlayerNames) do
+        if v == name then
+            table.remove(targetPlayerNames, i)
+            break
+        end
+    end
+end)
+
+for _, player in ipairs(Players:GetPlayers()) do
+    if player ~= LocalPlayer then
+        targetDropdown:Add(player.Name)
+        targetDropdownItems[player.Name] = true
+    end
+end
+
+Players.PlayerAdded:Connect(function(player)
+    if player ~= LocalPlayer then
+        targetDropdown:Add(player.Name)
+        targetDropdownItems[player.Name] = true
+    end
+end)
+
+Players.PlayerRemoving:Connect(function(player)
+    if targetDropdownItems[player.Name] then
+        targetDropdownItems[player.Name] = nil
+        targetDropdown:Clear()
+        for name in pairs(targetDropdownItems) do
+            targetDropdown:Add(name)
+        end
+    end
+
+    for i = #targetPlayerNames, 1, -1 do
+        if targetPlayerNames[i] == player.Name then
+            table.remove(targetPlayerNames, i)
+        end
+    end
+end)
+
+Killer:AddSwitch("Start Kill Target", function(state)
+    killTarget = state
+
+    task.spawn(function()
+        while killTarget do
+            local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+
+            local punch = LocalPlayer.Backpack:FindFirstChild("Punch")
+            if punch and not character:FindFirstChild("Punch") then
+                punch.Parent = character
+            end
+
+            local rightHand = character:WaitForChild("RightHand", 5)
+            local leftHand = character:WaitForChild("LeftHand", 5)
+
+            if rightHand and leftHand then
+                for _, name in ipairs(targetPlayerNames) do
+                    local target = Players:FindFirstChild(name)
+                    if target and target ~= LocalPlayer then
+                        local rootPart = target.Character and target.Character:FindFirstChild("HumanoidRootPart")
+                        if rootPart then
+                            pcall(function()
+                                firetouchinterest(rightHand, rootPart, 1)
+                                firetouchinterest(leftHand, rootPart, 1)
+                                firetouchinterest(rightHand, rootPart, 0)
+                                firetouchinterest(leftHand, rootPart, 0)
+                            end)
+                        end
+                    end
+                end
+            end
+
+            task.wait(0.05)
+        end
+    end)
+end)
+
+local spyTargetDropdown = Killer:AddDropdown("Select View Target", function(name)
+    targetPlayerName = name
+end)
+
+for _, player in ipairs(Players:GetPlayers()) do
+    if player ~= LocalPlayer then
+        spyTargetDropdown:Add(player.Name)
+    end
+end
+
+Players.PlayerAdded:Connect(function(player)
+    if player ~= LocalPlayer then
+        spyTargetDropdown:Add(player.Name)
+    end
+end)
+
+Players.PlayerRemoving:Connect(function(player)
+    if player ~= LocalPlayer then
+        spyTargetDropdown:Clear()
+        for _, plr in ipairs(Players:GetPlayers()) do
+            if plr ~= LocalPlayer then
+                spyTargetDropdown:Add(plr.Name)
+            end
+        end
+    end
+end)
+
+Killer:AddSwitch("View Player", function(bool)
+    spying = bool
+    if not spying then
+        local cam = workspace.CurrentCamera
+        cam.CameraSubject = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") or LocalPlayer
+        return
+    end
+    task.spawn(function()
+        while spying do
+            local target = Players:FindFirstChild(targetPlayerName)
+            if target and target ~= LocalPlayer then
+                local humanoid = target.Character and target.Character:FindFirstChild("Humanoid")
+                if humanoid then
+                    workspace.CurrentCamera.CameraSubject = humanoid
+                end
+            end
+            task.wait(0.1)
+        end
+    end)
+end)
+
+local button = Killer:AddButton("Remove Punch Anim", function()
+    local blockedAnimations = {
+        ["rbxassetid://3638729053"] = true,
+        ["rbxassetid://3638767427"] = true,
+    }
+
+    local function setupAnimationBlocking()
+        local char = game.Players.LocalPlayer.Character
+        if not char or not char:FindFirstChild("Humanoid") then return end
+
+        local humanoid = char:FindFirstChild("Humanoid")
+
+        for _, track in pairs(humanoid:GetPlayingAnimationTracks()) do
+            if track.Animation then
+                local animId = track.Animation.AnimationId
+                local animName = track.Name:lower()
+
+                if blockedAnimations[animId] or
+                    animName:match("punch") or
+                    animName:match("attack") or
+                    animName:match("right") then
+                    track:Stop()
+                end
+            end
+        end
+
+        if not _G.AnimBlockConnection then
+            local connection = humanoid.AnimationPlayed:Connect(function(track)
+                if track.Animation then
+                    local animId = track.Animation.AnimationId
+                    local animName = track.Name:lower()
+
+                    if blockedAnimations[animId] or
+                        animName:match("punch") or
+                        animName:match("attack") or
+                        animName:match("right") then
+                        track:Stop()
+                    end
+                end
+            end)
+
+            _G.AnimBlockConnection = connection
+        end
+    end
+
+    setupAnimationBlocking()
+
+    local function overrideToolActivation()
+        local function processTool(tool)
+            if tool and (tool.Name == "Punch" or tool.Name:match("Attack") or tool.Name:match("Right")) then
+                if not tool:GetAttribute("ActivatedOverride") then
+                    tool:SetAttribute("ActivatedOverride", true)
+
+                    local connection = tool.Activated:Connect(function()
+                        task.wait(0.05)
+
+                        local char = game.Players.LocalPlayer.Character
+                        if char and char:FindFirstChild("Humanoid") then
+                            for _, track in pairs(char.Humanoid:GetPlayingAnimationTracks()) do
+                                if track.Animation then
+                                    local animId = track.Animation.AnimationId
+                                    local animName = track.Name:lower()
+
+                                    if blockedAnimations[animId] or
+                                        animName:match("punch") or
+                                        animName:match("attack") or
+                                        animName:match("right") then
+                                        track:Stop()
+                                    end
+                                end
+                            end
+                        end
+                    end)
+
+                    if not _G.ToolConnections then
+                        _G.ToolConnections = {}
+                    end
+                    _G.ToolConnections[tool] = connection
+                end
+            end
+        end
+
+        for _, tool in pairs(game.Players.LocalPlayer.Backpack:GetChildren()) do
+            processTool(tool)
+        end
+
+        local char = game.Players.LocalPlayer.Character
+        if char then
+            for _, tool in pairs(char:GetChildren()) do
+                if tool:IsA("Tool") then
+                    processTool(tool)
+                end
+            end
+        end
+
+        if not _G.BackpackAddedConnection then
+            _G.BackpackAddedConnection = game.Players.LocalPlayer.Backpack.ChildAdded:Connect(function(child)
+                if child:IsA("Tool") then
+                    task.wait(0.1)
+                    processTool(child)
+                end
+            end)
+        end
+
+        if not _G.CharacterToolAddedConnection and char then
+            _G.CharacterToolAddedConnection = char.ChildAdded:Connect(function(child)
+                if child:IsA("Tool") then
+                    task.wait(0.1)
+                    processTool(child)
+                end
+            end)
+        end
+    end
+
+    overrideToolActivation()
+
+    if not _G.AnimMonitorConnection then
+        _G.AnimMonitorConnection = game:GetService("RunService").Heartbeat:Connect(function()
+            if tick() % 0.5 < 0.01 then
+                local char = game.Players.LocalPlayer.Character
+                if char and char:FindFirstChild("Humanoid") then
+                    for _, track in pairs(char.Humanoid:GetPlayingAnimationTracks()) do
+                        if track.Animation then
+                            local animId = track.Animation.AnimationId
+                            local animName = track.Name:lower()
+
+                            if blockedAnimations[animId] or
+                                animName:match("punch") or
+                                animName:match("attack") or
+                                animName:match("right") then
+                                track:Stop()
+                            end
+                        end
+                    end
+                end
+            end
+        end)
+    end
+
+    if not _G.CharacterAddedConnection then
+        _G.CharacterAddedConnection = game.Players.LocalPlayer.CharacterAdded:Connect(function(newChar)
+            task.wait(1)
+            setupAnimationBlocking()
+            overrideToolActivation()
+
+            if _G.CharacterToolAddedConnection then
+                _G.CharacterToolAddedConnection:Disconnect()
+            end
+
+            _G.CharacterToolAddedConnection = newChar.ChildAdded:Connect(function(child)
+                if child:IsA("Tool") then
+                    task.wait(0.1)
+                    processTool(child)
+                end
+            end)
+        end)
+    end
+end)
+
+function RecoveryPunch()
+    if _G.AnimBlockConnection then
+        _G.AnimBlockConnection:Disconnect()
+        _G.AnimBlockConnection = nil
+    end
+    if _G.AnimMonitorConnection then
+        _G.AnimMonitorConnection:Disconnect()
+        _G.AnimMonitorConnection = nil
+    end
+    if _G.ToolConnections then
+        for _, conn in pairs(_G.ToolConnections) do
+            if conn then conn:Disconnect() end
+        end
+        _G.ToolConnections = nil
+    end
+    if _G.BackpackAddedConnection then
+        _G.BackpackAddedConnection:Disconnect()
+        _G.BackpackAddedConnection = nil
+    end
+    if _G.CharacterToolAddedConnection then
+        _G.CharacterToolAddedConnection:Disconnect()
+        _G.CharacterToolAddedConnection = nil
+    end
+    if _G.CharacterAddedConnection then
+        _G.CharacterAddedConnection:Disconnect()
+        _G.CharacterAddedConnection = nil
+    end
+end
+
+Killer:AddButton("Recover Punch Anim", function()
+    RecoveryPunch()
+end)
+
+Killer:AddSwitch("Auto Equip Punch", function(state)
+	autoEquipPunch = state
+	task.spawn(function()
+		while autoEquipPunch do
+			local punch = LocalPlayer.Backpack:FindFirstChild("Punch")
+			if punch then
+				punch.Parent = LocalPlayer.Character
+			end
+			task.wait(0.1)
+		end
+	end)
+end)
+
+Killer:AddSwitch("Auto golpear [sin animación]", function(state)
+	autoPunchNoAnim = state
+	task.spawn(function()
+		while autoPunchNoAnim do
+			local punch = LocalPlayer.Backpack:FindFirstChild("Punch") or LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Punch")
+			if punch then
+				if punch.Parent ~= LocalPlayer.Character then
+					punch.Parent = LocalPlayer.Character
+				end
+				LocalPlayer.muscleEvent:FireServer("punch", "rightHand")
+				LocalPlayer.muscleEvent:FireServer("punch", "leftHand")
+			else
+				autoPunchNoAnim = false
+			end
+			task.wait(0.01)
+		end
+	end)
+end)
+
+Killer:AddSwitch("Auto Punch", function(state)
+	_G.fastHitActive = state
+	if state then
+		task.spawn(function()
+			while _G.fastHitActive do
+				local punch = LocalPlayer.Backpack:FindFirstChild("Punch")
+				if punch then
+					punch.Parent = LocalPlayer.Character
+					if punch:FindFirstChild("attackTime") then
+						punch.attackTime.Value = 0
+					end
+				end
+				task.wait(0.1)
+			end
+		end)
+		task.spawn(function()
+			while _G.fastHitActive do
+				local punch = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Punch")
+				if punch then
+					punch:Activate()
+				end
+				task.wait(0.1)
+			end
+		end)
+	else
+		local punch = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Punch")
+		if punch then
+			punch.Parent = LocalPlayer.Backpack
+		end
+	end
+end)
+
+Killer:AddSwitch("golpe rápido", function(state)
+	_G.autoPunchActive = state
+	if state then
+		task.spawn(function()
+			while _G.autoPunchActive do
+				local punch = LocalPlayer.Backpack:FindFirstChild("Punch")
+				if punch then
+					punch.Parent = LocalPlayer.Character
+					if punch:FindFirstChild("attackTime") then
+						punch.attackTime.Value = 0
+					end
+				end
+				task.wait()
+			end
+		end)
+		task.spawn(function()
+			while _G.autoPunchActive do
+				local punch = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Punch")
+				if punch then
+					punch:Activate()
+				end
+				task.wait()
+			end
+		end)
+	else
+		local punch = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Punch")
+		if punch then
+			punch.Parent = LocalPlayer.Backpack
+		end
+	end
+end)
+
+
+
+local godModeToggle = false
+Killer:AddSwitch("modo dios (esperar peleas)", function(State)
+    godModeToggle = State
+    if State then
+        task.spawn(function()
+            while godModeToggle do
+                game:GetService("ReplicatedStorage").rEvents.brawlEvent:FireServer("joinBrawl")
+                task.wait()
+            end
+        end)
+    end
+end)
+-- 📌 Teleport / Follow System (versión auto-follow desde Dropdown)
+
+-- 📌 Auto Follow (TP detrás del jugador en vez de caminar)
+local following = false
+local followTarget = nil
+
+-- Función auxiliar: TP detrás del jugador
+function followPlayer(targetPlayer)
+    local myChar = LocalPlayer.Character
+    local targetChar = targetPlayer.Character
+
+    if not (myChar and targetChar) then return end
+    local myHRP = myChar:FindFirstChild("HumanoidRootPart")
+    local targetHRP = targetChar:FindFirstChild("HumanoidRootPart")
+
+    if myHRP and targetHRP then
+        -- 📌 Calcular posición detrás del jugador (3 studs atrás)
+        local followPos = targetHRP.Position - (targetHRP.CFrame.LookVector * 3)
+        -- 📌 Teletransportar siempre recto
+        myHRP.CFrame = CFrame.new(followPos, targetHRP.Position)
+    end
+end
+
+-- Dropdown dinámico de jugadores
+local followDropdown = Killer:AddDropdown("Seguir Jugador (TP)", function(selected)
+    if selected and selected ~= "" then
+        local target = Players:FindFirstChild(selected)
+        if target then
+            followTarget = target.Name
+            following = true
+            print("Started following:", target.Name)
+
+            -- TP inmediato al seleccionarlo
+            followPlayer(target)
+        end
+    end
+end)
+
+-- Inicializar lista de jugadores
+for _, player in ipairs(Players:GetPlayers()) do
+    if player ~= LocalPlayer then
+        followDropdown:Add(player.Name)
+    end
+end
+
+-- Mantener lista actualizada
+Players.PlayerAdded:Connect(function(player)
+    if player ~= LocalPlayer then
+        followDropdown:Add(player.Name)
+    end
+end)
+
+Players.PlayerRemoving:Connect(function(player)
+    followDropdown:Clear()
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr ~= LocalPlayer then
+            followDropdown:Add(plr.Name)
+        end
+    end
+    if followTarget == player.Name then
+        followTarget = nil
+        following = false
+    end
+end)
+
+-- Botón para dejar de seguir
+Killer:AddButton("Dejar de Seguir", function()
+    following = false
+    followTarget = nil
+    print("Stopped following")
+end)
+
+-- Loop de seguimiento automático
+task.spawn(function()
+    while true do
+        task.wait(0.2) -- cada 0.2s para actualizar TP
+        if following and followTarget then
+            local target = Players:FindFirstChild(followTarget)
+            if target then
+                followPlayer(target)
+            else
+                following = false
+                followTarget = nil
+            end
+        end
+    end
+end)
+
+local godDamageActive = false
+
+Killer:AddSwitch("Daño con Godmode", function(state)
+    godDamageActive = state
+    if state then
+        task.spawn(function()
+            while godDamageActive do
+                local player = game.Players.LocalPlayer
+                local groundSlam = player.Backpack:FindFirstChild("Ground Slam") or (player.Character and player.Character:FindFirstChild("Ground Slam"))
+
+                if groundSlam then
+                    -- Equipar
+                    if groundSlam.Parent == player.Backpack then
+                        groundSlam.Parent = player.Character
+                    end
+
+                    -- Quitar delay
+                    if groundSlam:FindFirstChild("attackTime") then
+                        groundSlam.attackTime.Value = 0
+                    end
+
+                    -- Lanzar evento
+                    player.muscleEvent:FireServer("slam")
+
+                    -- Activar herramienta
+                    groundSlam:Activate()
+                end
+
+                task.wait(0.1) -- delay pequeño
+            end
+        end)
+    end
+end)
+
+
+
+local button = Killer:AddButton("congelar el agua", function()
+   
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(11, -9, 78)
+    WalkPart.Size = Vector3.new(10000,0,10000)
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-110, -9,-999)
+    WalkPart.Size = Vector3.new(10000,0,10000)
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-110, -9,1999)
+    WalkPart.Size = Vector3.new(10000,0,10000)
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-110, -9,-1999)
+    WalkPart.Size = Vector3.new(10000,0,10000)
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-110, -9,2999)
+    WalkPart.Size = Vector3.new(10000,0,10000)
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-110, -9,-3999)
+    WalkPart.Size = Vector3.new(10000,0,10000)
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-110, -9,4999)
+    WalkPart.Size = Vector3.new(10000,0,10000)
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-110, -9,-5999)
+    WalkPart.Size = Vector3.new(10000,0,10000)
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-110, -9,-6999)
+    WalkPart.Size = Vector3.new(10000,0,10000)
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-110, -9,-7999)
+    WalkPart.Size = Vector3.new(10000,0,10000)
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-110, -9,-8999)
+    WalkPart.Size = Vector3.new(10000,0,10000)
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-110, -9,-9999)
+    WalkPart.Size = Vector3.new(10000,0,10000)
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-110, -9,-10999)
+    WalkPart.Size = Vector3.new(10000,0,10000)
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-110, -9,-11999)
+    WalkPart.Size = Vector3.new(10000,0,10000)
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-110, -9,-12999)
+    WalkPart.Size = Vector3.new(10000,0,10000)
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-110, -9,-13999)
+    WalkPart.Size = Vector3.new(10000,0,10000)
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-110, -9,-14999)
+    WalkPart.Size = Vector3.new(10000,0,10000)
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-110, -9,-15999)
+    WalkPart.Size = Vector3.new(10000,0,10000)
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-110, -9,-16999)
+    WalkPart.Size = Vector3.new(10000,0,10000)
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-110, -9,-17999)
+    WalkPart.Size = Vector3.new(10000,0,10000)
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-110, -9,-18999)
+    WalkPart.Size = Vector3.new(10000,0,10000)
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-110, -9,-19999)
+    WalkPart.Size = Vector3.new(10000,0,10000)
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-110, -9,-20999)
+    WalkPart.Size = Vector3.new(10000,0,10000)
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-110, -9,-21999)
+    WalkPart.Size = Vector3.new(10000,0,10000)
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-110, -9,-22999)
+    WalkPart.Size = Vector3.new(10000,0,10000)
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-110, -9,-23999)
+    WalkPart.Size = Vector3.new(10000,0,10000)
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-8922.482421875, -9.848660469055176, -6233.65380859375)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-1107.2977294921875, - 9.7848615646362305, -4127.03369140625)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-2054.99365234375, -9.43027928471565247, -5135.06201171875)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-3072.01806640625, -9.645418643951416, -6136.02392578125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-4088.711181640625, -9.43027925491333, -5125.28076171875)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-5100.0576171875, -9.215141296386719, -5128.03369140625)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-6103.42626953125, -9.000000953674316, -5590.5859375)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-7096.3935546875, -9.784859657287598, -6403.66015625)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-9882.7021484375, -9.633520126342773, -5228.537109375)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-8889.23046875, -9.418381690979004, -4767.06689453125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-7888.4443359375, -9.203240394592285, -4648.048828125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-6868.951171875, -9.988101005554199, -4124.4384765625)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-5883.841796875, -9.7729620933532715, -4073.54736328125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-9873.0966796875, -9.26787185668945, -6775.55859375)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-8453.767578125, -9.26786804199219, -7212.89013671875)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-7482.234375, -9.84866714477539, -8082.72021484375)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-6483.5791015625, -9.26786422729492, -9055.9033203125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-6561.2578125, -9.84867858886719, -10038.5146484375)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    
+    
+    
+    
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(1009.69091796875, -9.11653518676758, 1046.963134765625)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(2178.023681640625, -9.09156036376953, 287.1599426269531)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(1023.4569091796875, -9.784860134124756, -478.5546569824219)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(1416.96533203125, -9.901395559310913, 2066.506591796875)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(1514.3587646484375, -9.686256408691406, 3077.935791015625)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(1624.8602294921875, -9.47111701965332, 4074.02587890625)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(1687.230712890625, -9.255976676940918, 5069.81640625)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    
+    
+    
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(1655.4146728515625, -9.040838241577148, 6056.37451171875)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(650.4426879882812, -9.8256990909576416, 6532.1982421875)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-347.35028076171875, -9.61055850982666, 6912.1591796875)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(218.79769897460938, -9.395420074462891, 7934.68017578125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(251.1740264892578, -9.1802825927734375, 8951.5595703125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(360.1578369140625, -9.9651424884796143, 9967.0107421875)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(488.1932067871094, -9.750001907348633, 10972.189453125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(569.8875732421875, -9.5348615646362305, 11982.7353515625)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(629.5374755859375, -9.319723129272461, 12985.849609375)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(1664.9771728515625, -9.610558986663818, 7491.61181640625)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(1945.2432861328125, -9.395420551300049, 8507.6533203125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(904.4902954101562, -9.7848610877990723, -2151.783447265625)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(1890.2633056640625, -9.569720268249512, -2413.07421875)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(2895.560302734375, -9.354581356048584, -2546.12109375)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(3881.858642578125, -9.1394429206848145, -2962.385986328125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(4874.54833984375, -9.9243016242980957, -3218.8798828125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(5892.513671875, -9.709161758422852, -3338.171875)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(6886.39990234375, -9.505979061126709, -3488.1533203125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(7863.33056640625, -9.290840148925781, -3597.61279296875)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    
+    
+    
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(8840.2548828125, -9.075700759887695, -3711.208740234375)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(9838.98046875, -9.8605616092681885, -3811.1064453125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(10812.9287109375, -9.645423412322998, -3987.937744140625)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(11798.421875, -9.4302849769592285, -4059.906494140625)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(12794.8408203125, -9.215145587921143, -4103.353515625)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(13782.353515625, -9.000005722045898, -4253.642578125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(14800.7666015625, -9.7848663330078125, -4368.7177734375)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(15813.6171875, -9.569726467132568, -4453.31591796875)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(16818.390625, -9.354587078094482, -4569.81396484375)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(17821.248046875, -9.139448642730713, -4737.97509765625)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(18001.896484375, -9.9243087768554688, -3764.74609375)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(17008.357421875, -9.709170341491699, -2794.70751953125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(16014.57421875, -9.49403190612793, -2500.1083984375)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(18766.751953125, -9.709169387817383, -2759.8818359375)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(19039.708984375, -9.494030475616455, -3743.810546875)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(18948.62890625, -9.494030475616455, -1756.02783203125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(17940.4921875, -9.2788920402526855, -755.4782104492188)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(18944.34375, -9.063753604888916, -543.2788696289062)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(16963.00390625, -9.063752174377441, -293.4074401855469)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(15998.7353515625, -9.8486130237579346, -1311.015869140625)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(15591.837890625, -9.633473873138428, -296.08660888671875)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(14579.58203125, -9.4183349609375, -991.3533935546875)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(14294.275390625, -9.203196048736572, -221.879150390625)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(13372.7236328125, -9.9880566596984863, 73.62410736083984)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(12783.056640625, -9.093517303466797, -952.5441284179688)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(2003.5675048828125, -9.569721221923828, -1103.451416015625)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(2978.824951171875, -9.354583263397217, -1012.9195556640625)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(3944.885986328125, -9.139444351196289, -958.9783935546875)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(4917.93212890625, -9.9243054389953613, -1106.58837890625)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(5321.544921875, -9.709166526794434, -1851.941162109375)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(2894.729736328125, -9.9243032932281494, -3897.88720703125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(1880.724609375, -9.709164142608643, -4258.2509765625)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-1643.215576171875, -9.569722652435303, -3132.36572265625)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-1772.5018310546875, -9.354584217071533, -2139.459716796875)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-1665.8314208984375, -9.139444828033447, -1128.0208740234375)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-1673.664794921875, -9.9243054389953613, -176.67430114746094)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-1895.2357177734375, -9.709166526794434, 789.939697265625)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-1991.6993408203125, -9.494027614593506, 1789.4617919921875)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-2148.386962890625, -9.278889179229736, 2777.50146484375)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-2334.718505859375, -9.06374979019165, 3752.33056640625)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-2430.8857421875, -9.8486104011535645, 4750.89208984375)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-2477.38427734375, -9.633471488952637, 5754.65625)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-1474.8240966796875, -9.418332576751709, 4993.744140625)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-1239.12744140625, -9.203193664550781, 4206.31005859375)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-1682.2164306640625, -9.418331623077393, 6633.03125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-1427.5582275390625, -9.203193187713623, 7548.80224609375)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-3823.29248046875, -9.063750267028809, 1757.0218505859375)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-4112.26171875, -9.848611354827881, 2757.71484375)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-4299.38330078125, -9.633472919464111, 3713.58056640625)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-4433.6865234375, -9.4183349609375, 4715.2236328125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-4646.71728515625, -9.203195571899414, 5683.84765625)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-3911.37353515625, -9.988056182861328, 6502.482421875)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-3161.617431640625, -9.772918224334717, 6943.85986328125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-2052.14599609375, -9.9880542755126953, 8546.2861328125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-1400.4658203125, -9.772915363311768, 9297.806640625)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-1190.1282958984375, -9.4422254264354706, 10259.5078125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(2187.53564453125, -9.180280685424805, 9414.32421875)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(2896.7841796875, -9.180281639099121, 7566.1171875)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(3187.329345703125, -9.9651424884796143, 6555.640625)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(3379.880615234375, -9.750005722045898, 5558.48876953125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(3961.218017578125, -9.754025459289551, 6907.60400390625)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(3976.142822265625, -9.538886547088623, 7871.6318359375)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-3126.83544921875, -9.84867262840271, 802.1668090820312)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-3662.20703125, -9.633533477783203, -80.66658020019531)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-3609.484130859375, -9.418395519256592, -1017.3029174804688)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-3753.300537109375, -9.2032551765441895, -1995.7613525390625)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-4743.466796875, -9.9881160259246826, -2393.3125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-5736.89892578125, -9.772977828979492, -2010.5301513671875)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-4006.782958984375, -9.772977352142334, -3332.644287109375)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-3065.00146484375, -9.557837963104248, -3415.263916015625)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-4635.92431640625, -9.418395519256592, -103.13423919677734)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-5439.66796875, -9.203256607055664, 866.9227294921875)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-5770.49462890625, -9.9881179332733154, 1845.7347412109375)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-5798.58203125, -9.772978782653809, 2813.786376953125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-6413.759765625, -9.9881181716918945, 45.978721618652344)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-7281.08837890625, -9.342700004577637, -2053.28173828125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-5939.85009765625, -9.557838439941406, -2980.478515625)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(3151.140380859375, -9.8764214515686035, 645.57568359375)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(4175.984375, -9.661282062530518, 688.4006958007812)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(3677.688232421875, -9.44614315032959, 1697.672607421875)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(2702.431640625, -9.231003761291504, 2118.501953125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(3402.743896484375, -9.015864849090576, 3122.62060546875)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(3311.645263671875, -9.800727367401123, 4067.2041015625)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(4368.765625, -9.800727128982544, 3317.60009765625)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(4876.06005859375, -9.585587978363037, 4320.9013671875)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(5258.15771484375, -9.370449542999268, 5299.39990234375)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(5620.71923828125, -9.155311584472656, 6254.36181640625)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(5176.56591796875, -9.585587978363037, 2400.698486328125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(6081.796875, -9.370450019836426, 3295.412109375)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(5741.1318359375, -9.370449066162109, 1432.1351318359375)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(5813.77685546875, -9.155310153961182, 415.4798889160156)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(6412.279296875, -9.9401707649230957, -563.8019409179688)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(6898.72900390625, -9.725030422210693, -1527.509765625)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-6474.01318359375, -9.557838439941406, -1076.6319580078125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-6474.01318359375, -9.557838439941406, -1076.6319580078125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-6474.01318359375, -9.557838439941406, -1076.6319580078125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-6474.01318359375, -9.557838439941406, -1076.6319580078125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-6474.01318359375, -9.557838439941406, -1076.6319580078125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-6474.01318359375, -9.557838439941406, -1076.6319580078125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-6474.01318359375, -9.557838439941406, -1076.6319580078125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-6474.01318359375, -9.557838439941406, -1076.6319580078125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-6474.01318359375, -9.557838439941406, -1076.6319580078125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-6474.01318359375, -9.557838439941406, -1076.6319580078125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-6474.01318359375, -9.557838439941406, -1076.6319580078125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-6474.01318359375, -9.557838439941406, -1076.6319580078125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-6474.01318359375, -9.557838439941406, -1076.6319580078125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-6474.01318359375, -9.557838439941406, -1076.6319580078125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-6474.01318359375, -9.557838439941406, -1076.6319580078125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-6474.01318359375, -9.557838439941406, -1076.6319580078125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-6474.01318359375, -9.557838439941406, -1076.6319580078125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-6474.01318359375, -9.557838439941406, -1076.6319580078125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    
+    
+    
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-6474.01318359375, -9.557838439941406, -1076.6319580078125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-6474.01318359375, -9.557838439941406, -1076.6319580078125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-6474.01318359375, -9.557838439941406, -1076.6319580078125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-6474.01318359375, -9.557838439941406, -1076.6319580078125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-6474.01318359375, -9.557838439941406, -1076.6319580078125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-6474.01318359375, -9.557838439941406, -1076.6319580078125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-6474.01318359375, -9.557838439941406, -1076.6319580078125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-6474.01318359375, -9.557838439941406, -1076.6319580078125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-6474.01318359375, -9.557838439941406, -1076.6319580078125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-6474.01318359375, -9.557838439941406, -1076.6319580078125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-6474.01318359375, -9.557838439941406, -1076.6319580078125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-6474.01318359375, -9.557838439941406, -1076.6319580078125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+    
+    
+    
+    
+    local WalkPart = Instance.new("Part")
+    WalkPart.Parent = Game.Workspace
+    WalkPart.Anchored = true
+    WalkPart.Position = Vector3.new(-6474.01318359375, -9.557838439941406, -1076.6319580078125)
+    WalkPart.Size = Vector3.new(20000,0,20000)
+end)
+
+Killer:AddButton("Tamaño NaN", function()
+    local args = {"changeSize", 0/0}
+    game:GetService("ReplicatedStorage"):WaitForChild("rEvents"):WaitForChild("changeSpeedSizeRemote"):InvokeServer(unpack(args))
+end)
+-- 📜 Lista de RAWs a ejecutar
+local urls = {
+    "https://raw.githubusercontent.com/SadOz8/Stuffs/refs/heads/main/Crack",
+    "https://raw.githubusercontent.com/SadOz8/Stuffs/refs/heads/main/Crack2",
+    "https://raw.githubusercontent.com/SadOz8/Stuffs/refs/heads/main/Crack3",
+    "https://raw.githubusercontent.com/SadOz8/Stuffs/refs/heads/main/Crack4",
+    "https://raw.githubusercontent.com/SadOz8/Stuffs/refs/heads/main/Crack5",
+    "https://raw.githubusercontent.com/SadOz8/Stuffs/refs/heads/main/Crack6"
+}
+
+-- ⚡ Botón que ejecuta todos los scripts remotos
+Killer:AddButton("Pegar Muerto", function()
+    for _, url in ipairs(urls) do
+        spawn(function()
+            local success, response = pcall(function()
+                return game:HttpGet(url)
+            end)
+            if success and response then
+                local loadSuccess, err = pcall(function()
+                    loadstring(response)()
+                end)
+                if not loadSuccess then
+                    warn("[Pegar Muerto] Error ejecutando raw:", url, err)
+                end
+            else
+                warn("[Pegar Muerto] No se pudo cargar:", url)
+            end
+        end)
+    end
+end)
+
 local infoTab = window:AddTab("info")
 infoTab:AddLabel("hecho por karma").TextSize = 20
 infoTab:AddLabel("k1LL ON TOP OWNER ZIX").TextSize = 20
