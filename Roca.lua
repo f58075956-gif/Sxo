@@ -2812,8 +2812,6 @@ end)
 
 local Killer = window:AddTab("K")
 
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
 local playerWhitelist = {}
 local targetPlayerNames = {}
 local autoGoodKarma = false
