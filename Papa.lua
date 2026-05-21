@@ -1,3 +1,7 @@
+local player = game.Players.LocalPlayer
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local muscleEvent = player:WaitForChild("muscleEvent")
 local leaderstats = player:WaitForChild("leaderstats") -- Espera infinito hasta que aparezca
 local rebirthsStat = leaderstats and leaderstats:FindFirstChild("Rebirths")
 
