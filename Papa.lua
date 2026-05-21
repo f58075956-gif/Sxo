@@ -1,3 +1,24 @@
+local leaderstats = player:WaitForChild("leaderstats") -- Espera infinito hasta que aparezca
+local rebirthsStat = leaderstats and leaderstats:FindFirstChild("Rebirths")
+
+-- Si no encuentra leaderstats, el script no debe seguir intentando cargar las stats
+if not leaderstats then 
+    warn("Error: No se encontró leaderstats. El script se detendrá.")
+    return -- Detiene el script aquí
+end
+local Players = game:GetService("Players")
+local player = game.Players.LocalPlayer
+
+local title = ("ZIX")
+
+
+local library = loadstring(game:HttpGet("https://pastebin.com/raw/wqJ8PvkW", true))()
+
+local window = library:AddWindow(title, {
+    main_color = Color3.fromRGB(0, 0, 0),
+    min_size = Vector2.new(800, 870),
+    can_resize = true,
+})
 local farmTab = window:AddTab("Rock")
 local FolderROCK2 = farmTab:AddFolder("ROCK-V2")
 
