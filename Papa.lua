@@ -28,132 +28,141 @@ local window = library:AddWindow(title, {
     can_resize = true,
 })
 local farmTab = window:AddTab("Rock")
-local FolderROCK2 = farmTab:AddFolder("ROCK-V2")
+farmTab:AddLabel("Rock Farming OP")
 
+getgenv().autoFarm = false
 
-
+local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 
 local LP = Players.LocalPlayer
 
-getgenv().RockFarm = false
-getgenv().SelectedRock = nil
-
-local muscleEvent = LP:WaitForChild("muscleEvent")
-
---// TP
-local function tp(cf)
-
+-- ⚡ EQUIP TOOL
+local function equipTool()
     local char = LP.Character
+    local bp = LP.Backpack
 
-    if char and char:FindFirstChild("HumanoidRootPart") then
-        char.HumanoidRootPart.CFrame = cf + Vector3.new(0,3,0)
+    if not char then
+        return nil
     end
+
+    local tool = char:FindFirstChildOfClass("Tool")
+        or bp:FindFirstChildOfClass("Tool")
+
+    if tool and tool.Parent ~= char then
+        tool.Parent = char
+    end
+
+    return tool
 end
 
---// GET ROCK
-local function getRock(target)
+-- 🔥 PUNCH SPAM
+local function spamPunch()
+    local remote = LP:FindFirstChild("muscleEvent")
 
-    for _,v in ipairs(workspace.machinesFolder:GetChildren()) do
-
-        local durability = v:FindFirstChild("neededDurability")
-        local rock = v:FindFirstChild("Rock")
-
-        if durability and rock then
-
-            if durability.Value == target then
-                return rock
-            end
+    if remote then
+        for i = 1, 50 do
+            remote:FireServer("punch", "rightHand")
+            remote:FireServer("punch", "leftHand")
         end
     end
 end
 
---// MAIN FARM
-task.spawn(function()
+-- 💀 TOUCH BOOST
+local function touchRock(rock, right, left)
+    for i = 1, 5000 do
+        firetouchinterest(right, rock, 0)
+        firetouchinterest(right, rock, 1)
 
-    while RunService.Heartbeat:Wait() do
+        firetouchinterest(left, rock, 0)
+        firetouchinterest(left, rock, 1)
+    end
+end
 
-        if getgenv().RockFarm and getgenv().SelectedRock then
-
+-- ⚡ MAIN FARM
+local function farmRock(targetDurability)
+    spawn(function()
+        while getgenv().autoFarm do
             local char = LP.Character
 
             if char
-            and char:FindFirstChild("RightHand")
-            and char:FindFirstChild("LeftHand") then
-
+                and char:FindFirstChild("HumanoidRootPart")
+                and char:FindFirstChild("RightHand")
+                and char:FindFirstChild("LeftHand")
+            then
+                local hrp = char.HumanoidRootPart
                 local right = char.RightHand
                 local left = char.LeftHand
 
-                local rock = getRock(getgenv().SelectedRock)
+                equipTool()
 
-                if rock then
+                for _, v in ipairs(workspace.machinesFolder:GetDescendants()) do
+                    if v.Name == "neededDurability"
+                        and tonumber(v.Value) == tonumber(targetDurability)
+                    then
+                        local rock = v.Parent:FindFirstChild("Rock")
 
-                    tp(rock.Position)
+                        if rock and rock:IsA("BasePart") then
+                            -- 📍 TP directo al rock
+                            hrp.CFrame = rock.CFrame + Vector3.new(0, 3, 0)
 
-                    -- PUNCH REMOTE
-                    for i = 1,10 do
-                        muscleEvent:FireServer("punch","rightHand")
-                        muscleEvent:FireServer("punch","leftHand")
-                    end
+                            -- 💀 pegar siempre
+                            touchRock(rock, right, left)
 
-                    -- TOUCH
-                    for i = 1,50 do
-
-                        firetouchinterest(right, rock, 0)
-                        firetouchinterest(right, rock, 1)
-
-                        firetouchinterest(left, rock, 0)
-                        firetouchinterest(left, rock, 1)
-
+                            -- 🔥 spam remoto
+                            spamPunch()
+                        end
                     end
                 end
             end
+
+            RunService.Heartbeat:Wait()
         end
-    end
+    end)
+end
+
+-- 🔘 SWITCHES
+farmTab:AddSwitch("Tiny Island Rock", function(bool)
+    getgenv().autoFarm = bool
+    if bool then farmRock(0) end
 end)
 
---// SWITCHES
-FolderROCK2:AddSwitch("Tiny Island Rock", function(v)
-    getgenv().RockFarm = v
-    getgenv().SelectedRock = 0
+farmTab:AddSwitch("Starter Island Rock", function(bool)
+    getgenv().autoFarm = bool
+    if bool then farmRock(100) end
 end)
 
-FolderROCK2:AddSwitch("Starter Island Rock", function(v)
-    getgenv().RockFarm = v
-    getgenv().SelectedRock = 100
+farmTab:AddSwitch("Legend Beach Rock", function(bool)
+    getgenv().autoFarm = bool
+    if bool then farmRock(5000) end
 end)
 
-FolderROCK2:AddSwitch("Legend Beach Rock", function(v)
-    getgenv().RockFarm = v
-    getgenv().SelectedRock = 5000
+farmTab:AddSwitch("Frost Gym Rock", function(bool)
+    getgenv().autoFarm = bool
+    if bool then farmRock(150000) end
 end)
 
-FolderROCK2:AddSwitch("Frost Gym Rock", function(v)
-    getgenv().RockFarm = v
-    getgenv().SelectedRock = 150000
+farmTab:AddSwitch("Mythical Gym Rock", function(bool)
+    getgenv().autoFarm = bool
+    if bool then farmRock(400000) end
 end)
 
-FolderROCK2:AddSwitch("Mythical Gym Rock", function(v)
-    getgenv().RockFarm = v
-    getgenv().SelectedRock = 400000
+farmTab:AddSwitch("Eternal Gym Rock", function(bool)
+    getgenv().autoFarm = bool
+    if bool then farmRock(750000) end
 end)
 
-FolderROCK2:AddSwitch("Eternal Gym Rock", function(v)
-    getgenv().RockFarm = v
-    getgenv().SelectedRock = 750000
+farmTab:AddSwitch("Legend Gym Rock", function(bool)
+    getgenv().autoFarm = bool
+    if bool then farmRock(1000000) end
 end)
 
-FolderROCK2:AddSwitch("Legend Gym Rock", function(v)
-    getgenv().RockFarm = v
-    getgenv().SelectedRock = 1000000
+farmTab:AddSwitch("Muscle King Gym Rock", function(bool)
+    getgenv().autoFarm = bool
+    if bool then farmRock(5000000) end
 end)
 
-FolderROCK2:AddSwitch("Muscle King Gym Rock", function(v)
-    getgenv().RockFarm = v
-    getgenv().SelectedRock = 5000000
-end)
-
-FolderROCK2:AddSwitch("Ancient Jungle Rock", function(v)
-    getgenv().RockFarm = v
-    getgenv().SelectedRock = 10000000
+farmTab:AddSwitch("Ancient Jungle Rock", function(bool)
+    getgenv().autoFarm = bool
+    if bool then farmRock(10000000) end
 end)
