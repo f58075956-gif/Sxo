@@ -27,142 +27,165 @@ local window = library:AddWindow(title, {
     min_size = Vector2.new(800, 870),
     can_resize = true,
 })
-local farmTab = window:AddTab("Rock")
-farmTab:AddLabel("Rock Farming OP")
-
-getgenv().autoFarm = false
-
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-
-local LP = Players.LocalPlayer
-
--- ⚡ EQUIP TOOL
-local function equipTool()
-    local char = LP.Character
-    local bp = LP.Backpack
-
-    if not char then
-        return nil
-    end
-
-    local tool = char:FindFirstChildOfClass("Tool")
-        or bp:FindFirstChildOfClass("Tool")
-
-    if tool and tool.Parent ~= char then
-        tool.Parent = char
-    end
-
-    return tool
+Skip to content
+f58075956-gif
+Sxo
+Repository navigation
+Code
+Issues
+Pull requests
+Actions
+Projects
+Wiki
+Security and quality
+Insights
+Settings
+Sxo
+/Papa.lua
+Go to file
+t
+T
+f58075956-gif
+f58075
+local leaderstats = player:WaitForChild("leaderstats") -- Espera infinito hasta que aparezca
+local rebirthsStat = leaderstats and leaderstats:FindFirstChild("Rebirths")
+-- Si no encuentra leaderstats, el script no debe seguir intentando cargar las stats
+if not leaderstats then 
+    warn("Error: No se encontró leaderstats. El script se detendrá.")
+    return -- Detiene el script aquí
 end
+local Players = game:GetService("Players")
+local player = game.Players.LocalPlayer
+local title = ("ZIX")
+local library = loadstring(game:HttpGet("https://pastebin.com/raw/wqJ8PvkW", true))()
+local window = library:AddWindow(title, {
+    main_color = Color3.fromRGB(0, 0, 0),
+    min_size = Vector2.new(800, 870),
+    can_resize = true,
+})
+yesterday
 
--- 🔥 PUNCH SPAM
-local function spamPunch()
-    local remote = LP:FindFirstChild("muscleEvent")
-
-    if remote then
-        for i = 1, 50 do
-            remote:FireServer("punch", "rightHand")
-            remote:FireServer("punch", "leftHand")
+Create Papa.lua
+local farmTab = window:AddTab("Rock")
+local FolderROCK2 = farmTab:AddFolder("ROCK-V2")
+local Players = game:GetService("Players")
+local LP = Players.LocalPlayer
+getgenv().autoFarm = false
+getgenv().autoPunch = false
+--// CACHE
+local muscleEvent = LP:WaitForChild("muscleEvent")
+--// TP
+local function tpToRock(rock)
+    local char = LP.Character
+    if char and char:FindFirstChild("HumanoidRootPart") then
+        char.HumanoidRootPart.CFrame = rock.CFrame + Vector3.new(0,3,0)
+    end
+end
+--// FAST PUNCH
+task.spawn(function()
+    while task.wait() do
+        if getgenv().autoPunch then
+            for i = 1, 15 do
+                muscleEvent:FireServer("punch","rightHand")
+                muscleEvent:FireServer("punch","leftHand")
+            end
+        end
+    end
+end)
+--// GET ROCK
+local function getRockByDurability(targetDurability)
+    for _, v in ipairs(workspace.machinesFolder:GetDescendants()) do
+        if v.Name == "neededDurability"
+        and v:IsA("NumberValue")
+        and v.Value == targetDurability then
+            local rock = v.Parent:FindFirstChild("Rock")
+            if rock then
+                return rock
+            end
         end
     end
 end
-
--- 💀 TOUCH BOOST
-local function touchRock(rock, right, left)
-    for i = 1, 5000 do
-        firetouchinterest(right, rock, 0)
-        firetouchinterest(right, rock, 1)
-
-        firetouchinterest(left, rock, 0)
-        firetouchinterest(left, rock, 1)
-    end
-end
-
--- ⚡ MAIN FARM
+--// FARM
 local function farmRock(targetDurability)
-    spawn(function()
+    task.spawn(function()
+        getgenv().autoPunch = true
+        local rock = getRockByDurability(targetDurability)
+        if not rock then
+            warn("Rock not found:", targetDurability)
+            return
+        end
         while getgenv().autoFarm do
             local char = LP.Character
-
             if char
-                and char:FindFirstChild("HumanoidRootPart")
-                and char:FindFirstChild("RightHand")
-                and char:FindFirstChild("LeftHand")
-            then
-                local hrp = char.HumanoidRootPart
+            and char:FindFirstChild("RightHand")
+            and char:FindFirstChild("LeftHand") then
                 local right = char.RightHand
                 local left = char.LeftHand
-
-                equipTool()
-
-                for _, v in ipairs(workspace.machinesFolder:GetDescendants()) do
-                    if v.Name == "neededDurability"
-                        and tonumber(v.Value) == tonumber(targetDurability)
-                    then
-                        local rock = v.Parent:FindFirstChild("Rock")
-
-                        if rock and rock:IsA("BasePart") then
-                            -- 📍 TP directo al rock
-                            hrp.CFrame = rock.CFrame + Vector3.new(0, 3, 0)
-
-                            -- 💀 pegar siempre
-                            touchRock(rock, right, left)
-
-                            -- 🔥 spam remoto
-                            spamPunch()
-                        end
-                    end
+                tpToRock(rock)
+                for i = 1, 150 do
+                    firetouchinterest(rock, right, 0)
+                    firetouchinterest(rock, right, 1)
+                    firetouchinterest(rock, left, 0)
+                    firetouchinterest(rock, left, 1)
                 end
             end
-
-            RunService.Heartbeat:Wait()
+            task.wait()
         end
+        getgenv().autoPunch = false
     end)
 end
-
--- 🔘 SWITCHES
-farmTab:AddSwitch("Tiny Island Rock", function(bool)
+--// ROCKS
+FolderROCK2:AddSwitch("Tiny Island Rock", function(bool)
     getgenv().autoFarm = bool
-    if bool then farmRock(0) end
+    if bool then
+        farmRock(0)
+    end
 end)
-
-farmTab:AddSwitch("Starter Island Rock", function(bool)
+FolderROCK2:AddSwitch("Starter Island Rock", function(bool)
     getgenv().autoFarm = bool
-    if bool then farmRock(100) end
+    if bool then
+        farmRock(100)
+    end
 end)
-
-farmTab:AddSwitch("Legend Beach Rock", function(bool)
+FolderROCK2:AddSwitch("Legend Beach Rock", function(bool)
     getgenv().autoFarm = bool
-    if bool then farmRock(5000) end
+    if bool then
+        farmRock(5000)
+    end
 end)
-
-farmTab:AddSwitch("Frost Gym Rock", function(bool)
+FolderROCK2:AddSwitch("Frost Gym Rock", function(bool)
     getgenv().autoFarm = bool
-    if bool then farmRock(150000) end
+    if bool then
+        farmRock(150000)
+    end
 end)
-
-farmTab:AddSwitch("Mythical Gym Rock", function(bool)
+FolderROCK2:AddSwitch("Mythical Gym Rock", function(bool)
     getgenv().autoFarm = bool
-    if bool then farmRock(400000) end
+    if bool then
+        farmRock(400000)
+    end
 end)
-
-farmTab:AddSwitch("Eternal Gym Rock", function(bool)
+FolderROCK2:AddSwitch("Eternal Gym Rock", function(bool)
     getgenv().autoFarm = bool
-    if bool then farmRock(750000) end
+    if bool then
+        farmRock(750000)
+    end
 end)
-
-farmTab:AddSwitch("Legend Gym Rock", function(bool)
+FolderROCK2:AddSwitch("Legend Gym Rock", function(bool)
     getgenv().autoFarm = bool
-    if bool then farmRock(1000000) end
+    if bool then
+        farmRock(1000000)
+    end
 end)
-
-farmTab:AddSwitch("Muscle King Gym Rock", function(bool)
+FolderROCK2:AddSwitch("Muscle King Gym Rock", function(bool)
     getgenv().autoFarm = bool
-    if bool then farmRock(5000000) end
+    if bool then
+        farmRock(5000000)
+    end
 end)
-
-farmTab:AddSwitch("Ancient Jungle Rock", function(bool)
+FolderROCK2:AddSwitch("Ancient Jungle Rock", function(bool)
     getgenv().autoFarm = bool
-    if bool then farmRock(10000000) end
+    if bool then
+        farmRock(10000000)
+    end
 end)
