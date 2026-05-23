@@ -14,7 +14,7 @@ local window = library:AddWindow(title, {
     min_size = Vector2.new(800, 870),
     can_resize = true,
 })
-yesterday
+
 
 Create Papa.lua
 local farmTab = window:AddTab("Rock")
