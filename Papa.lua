@@ -92,55 +92,45 @@ end
 --// ROCKS
 FolderROCK2:AddSwitch("Tiny Island Rock", function(bool)
     getgenv().autoFarm = bool
-    if bool then
-        farmRock(0)
-    end
+    if bool then farmRock(0) end
 end)
+
 FolderROCK2:AddSwitch("Starter Island Rock", function(bool)
     getgenv().autoFarm = bool
-    if bool then
-        farmRock(100)
-    end
+    if bool then farmRock(100) end
 end)
+
 FolderROCK2:AddSwitch("Legend Beach Rock", function(bool)
     getgenv().autoFarm = bool
-    if bool then
-        farmRock(5000)
-    end
+    if bool then farmRock(5000) end
 end)
+
 FolderROCK2:AddSwitch("Frost Gym Rock", function(bool)
     getgenv().autoFarm = bool
-    if bool then
-        farmRock(150000)
-    end
+    if bool then farmRock(150000) end
 end)
+
 FolderROCK2:AddSwitch("Mythical Gym Rock", function(bool)
     getgenv().autoFarm = bool
-    if bool then
-        farmRock(400000)
-    end
+    if bool then farmRock(400000) end
 end)
+
 FolderROCK2:AddSwitch("Eternal Gym Rock", function(bool)
     getgenv().autoFarm = bool
-    if bool then
-        farmRock(750000)
-    end
+    if bool then farmRock(750000) end
 end)
+
 FolderROCK2:AddSwitch("Legend Gym Rock", function(bool)
     getgenv().autoFarm = bool
-    if bool then
-        farmRock(1000000)
-    end
+    if bool then farmRock(1000000) end
 end)
+
 FolderROCK2:AddSwitch("Muscle King Gym Rock", function(bool)
     getgenv().autoFarm = bool
-    if bool then
-        farmRock(5000000)
-    end
+    if bool then farmRock(5000000) end
 end)
+
 FolderROCK2:AddSwitch("Ancient Jungle Rock", function(bool)
     getgenv().autoFarm = bool
-    if bool then
-        farmRock(10000000)
-    end
+    if bool then farmRock(10000000) end
 end)
