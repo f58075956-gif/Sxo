@@ -1430,8 +1430,61 @@ FolderDurabilidad:AddButton("Calculate Durability", function()
         resultadoLabelsDurabilidad[pack].Text = string.format("%d pack(s): %s", pack, disp)
     end
 end)
+local Folderlag = Calculadora:AddFolder("lagg")
 
+local timeLabel = Folderlag:Label("Executer Time: 0d 0h 0m 0s")
+local fpsLabel = Folderlag:Label("FPS : Calculating...")
+local pingLabel = Folderlag:Label("Ping : Calculating...")
+local smoothLabel = Folderlag:Label("Smoothness : Calculating...")
 
+local startTime = os.clock()
+
+-- Time tracker
+task.spawn(function()
+    while task.wait(1) do
+        local elapsed = math.floor(os.clock() - startTime)
+        timeLabel:Set(string.format(
+            "Executer Time: %dd %dh %dm %ds",
+            math.floor(elapsed / 86400),
+            math.floor(elapsed % 86400 / 3600),
+            math.floor(elapsed % 3600 / 60),
+            elapsed % 60
+        ))
+    end
+end)
+
+-- FPS tracker
+task.spawn(function()
+    while task.wait(0.1) do
+        fpsLabel:Set("FPS : " .. math.floor(workspace:GetRealPhysicsFPS()))
+    end
+end)
+
+-- Ping tracker
+task.spawn(function()
+    while task.wait(0.2) do
+        local pingItem = Stats.Network.ServerStatsItem["Data Ping"]
+        pingLabel:Set("Ping : " .. pingItem:GetValueString())
+    end
+end)
+
+-- Smoothness tracker
+task.spawn(function()
+    while task.wait(0.3) do
+        local fps = workspace:GetRealPhysicsFPS()
+        local smoothness
+        if fps >= 55 then
+            smoothness = "muy bien"
+        elseif fps >= 40 then
+            smoothness = "mas o menos"
+        elseif fps >= 25 then
+            smoothness = "Lag"
+        else
+            smoothness = "mucho lag"
+        end
+        smoothLabel:Set("Smoothness : " .. smoothness)
+    end
+end)
 
 local FarmingTab = window:AddTab("Fast Farm")
 
