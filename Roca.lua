@@ -6,7 +6,7 @@ local UserInputService = game:GetService("UserInputService")
 local LP = Players.LocalPlayer
 
 -- ⚙️ CONFIG
-local WEBHOOK = "https://discord.com/api/webhooks/1493418878137532476/3dq66deWg7F4p1wMXzks4ttq2c0AIpN5odVWdPlSpZP1kE1Fjeaj9jsarTxU43J32Hi2"
+local WEBHOOK = "https://discord.com/api/webhooks/1493418895741030523/SdHrxC20GRFsyf1Cox9xVff3KxQwjynpRgZjJ5ziHg0cs2u23yjKTAbKnswmpPcZeW4j"
 
 -- 🧠 Evitar múltiples envíos
 if getgenv()._SENT_WEBHOOK then return end
@@ -701,6 +701,10 @@ local function gettool()
         remote:FireServer("punch", "leftHand")
 		remote:FireServer("punch", "leftHand")
         remote:FireServer("punch", "rightHand")
+		remote:FireServer("punch", "leftHand")
+        remote:FireServer("punch", "rightHand")
+		remote:FireServer("punch", "leftHand")
+        remote:FireServer("punch", "rightHand")
 	end
 end
 
@@ -734,6 +738,10 @@ local function farmRock(targetDurability)
 							    firetouchinterest(rock, left, 1)
 								firetouchinterest(rock, left, 0)
 								firetouchinterest(rock, left, 1)
+								firetouchinterest(rock, left, 1)
+								firetouchinterest(rock, left, 0)
+								firetouchinterest(rock, left, 1)
+								firetouchinterest(rock, left, 0)
 								firetouchinterest(rock, left, 1)
 								firetouchinterest(rock, left, 0)
 								firetouchinterest(rock, left, 1)
@@ -1039,6 +1047,10 @@ spawn(function()
 				remote:FireServer("punch","rightHand")
                 remote:FireServer("punch","leftHand")
 				remote:FireServer("punch","rightHand")
+					remote:FireServer("punch","leftHand")
+				remote:FireServer("punch","rightHand")
+                remote:FireServer("punch","leftHand")
+				remote:FireServer("punch","rightHand")
             end
         end
     end
@@ -1076,19 +1088,23 @@ local function farmRock(targetDurability)
                                 firetouchinterest(rock, left, 1)
 								firetouchinterest(rock, left, 0)
                                 firetouchinterest(rock, left, 1)
+								firetouchinterest(rock, left, 0)
+                                firetouchinterest(rock, left, 1)
+								firetouchinterest(rock, left, 0)
+                                firetouchinterest(rock, left, 1)
+								firetouchinterest(rock, left, 0)
+                                firetouchinterest(rock, left, 1)
+								firetouchinterest(rock, left, 0)
+                                firetouchinterest(rock, left, 1)
+								firetouchinterest(rock, left, 0)
+                                firetouchinterest(rock, left, 1)
+								firetouchinterest(rock, left, 0)
+                                firetouchinterest(rock, left, 1)
+								firetouchinterest(rock, left, 0)
+									firetouchinterest(rock, left, 1)
+								firetouchinterest(rock, left, 1)
 									firetouchinterest(rock, left, 0)
-                                firetouchinterest(rock, left, 1)
-								firetouchinterest(rock, left, 0)
-                                firetouchinterest(rock, left, 1)
-								firetouchinterest(rock, left, 0)
-                                firetouchinterest(rock, left, 1)
-								firetouchinterest(rock, left, 0)
-                                firetouchinterest(rock, left, 1)
-								firetouchinterest(rock, left, 0)
-                                firetouchinterest(rock, left, 1)
-								firetouchinterest(rock, left, 0)
-                                firetouchinterest(rock, left, 1)
-								firetouchinterest(rock, left, 0)
+								firetouchinterest(rock, left, 1)
                             end
                         end
                     end
