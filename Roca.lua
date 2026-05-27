@@ -1484,7 +1484,7 @@ task.spawn(function()
         end
         smoothLabel:Set("Smoothness : " .. smoothness)
     end
-end)
+end
 
 local FarmingTab = window:AddTab("Fast Farm")
 
