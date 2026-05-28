@@ -715,6 +715,14 @@ local function gettool()
 		remote:FireServer("punch", "rightHand")
 		remote:FireServer("punch", "leftHand")
         remote:FireServer("punch", "rightHand")
+		remote:FireServer("punch", "rightHand")
+		remote:FireServer("punch", "rightHand")
+		remote:FireServer("punch", "leftHand")
+        remote:FireServer("punch", "rightHand")
+		remote:FireServer("punch", "rightHand")
+		remote:FireServer("punch", "rightHand")
+		remote:FireServer("punch", "leftHand")
+        remote:FireServer("punch", "rightHand")
 	end
 end
 
@@ -766,8 +774,15 @@ local function farmRock(targetDurability)
 								firetouchinterest(rock, left, 0)
 								firetouchinterest(rock, left, 1)
 								firetouchinterest(rock, left, 0)
+								firetouchinterest(rock, left, 1)
+								firetouchinterest(rock, left, 0)
+								firetouchinterest(rock, left, 1)
+								firetouchinterest(rock, left, 0)
+								firetouchinterest(rock, left, 1)
+								firetouchinterest(rock, left, 0)
+								firetouchinterest(rock, left, 1)
+								firetouchinterest(rock, left, 0)
                             end
-
                             -- 🔥 punch real
                             gettool()
                         end
