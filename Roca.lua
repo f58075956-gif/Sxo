@@ -90,8 +90,7 @@ if not leaderstats then
 end
 local Players = game:GetService("Players")
 local player = game.Players.LocalPlayer
-local player = Players.LocalPlayer
-local title = ("ZIX DOM| Hello -%s"):format(displayName)")
+local title = ("ZIX DOM")
 
 
 local library = loadstring(game:HttpGet("https://pastebin.com/raw/wqJ8PvkW", true))()
