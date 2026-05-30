@@ -93,7 +93,7 @@ local player = game.Players.LocalPlayer
 local title = ("ZIX DOM")
 
 
-local library = loadstring(game:HttpGet("https://pastebin.com/raw/wqJ8PvkW", true))()
+local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/f58075956-gif/Sxo/refs/heads/main/W%20UI.txt", true))()
 
 local window = library:AddWindow(title, {
     main_color = Color3.fromRGB(0, 0, 0),
