@@ -3574,7 +3574,7 @@ local locationDropdown = FarmingTab:AddDropdown("Gym", function(location)
         machineDropdown:Add("Boulder")
     end
 end)
-local rebirthtab= window:AddTab("rebirths sin packs")
+local rebirthtab = window:AddTab("rebirths sin packs")
 
 rebirthtab:AddTextBox("Rebirth Target", function(text)
     local newValue = tonumber(text)
@@ -3595,8 +3595,6 @@ rebirthtab:AddTextBox("Rebirth Target", function(text)
         })
     end
 end)
-
-local infiniteSwitch
 
 local targetSwitch = rebirthtab:AddSwitch("Auto Rebirth Target", function(bool)
     _G.targetRebirthActive = bool
