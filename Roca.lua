@@ -3335,6 +3335,245 @@ FarmingTab:AddSwitch("Fast Rep", function(state)
         runFastRep = false
     end
 end)
+FarmingTab:AddLabel("Tools:").TextSize = 22
+
+local SelectedTool = nil
+local AutoFarm = false
+
+local toolDropdown = FarmingTab:AddDropdown("Select Tool", function(selection)
+    SelectedTool = selection
+end)
+toolDropdown:Add("Weight")
+toolDropdown:Add("Pushups")
+toolDropdown:Add("Situps")
+toolDropdown:Add("Handstands")
+toolDropdown:Add("Fast Punch")
+toolDropdown:Add("Stomp")
+toolDropdown:Add("Ground Slam")
+
+local autoFarmSwitch = FarmingTab:AddSwitch("Start", function(enabled)
+    AutoFarm = enabled
+
+    if enabled then
+        task.spawn(function()
+            while AutoFarm do
+                local player = game:GetService("Players").LocalPlayer
+
+                if SelectedTool == "Weight" then
+                    if not player.Character:FindFirstChild("Weight") then
+                        local weightTool = player.Backpack:FindFirstChild("Weight")
+                        if weightTool then
+                            player.Character.Humanoid:EquipTool(weightTool)
+                        end
+                    end
+                    player.muscleEvent:FireServer("rep")
+
+                elseif SelectedTool == "Pushups" then
+                    if not player.Character:FindFirstChild("Pushups") then
+                        local pushupsTool = player.Backpack:FindFirstChild("Pushups")
+                        if pushupsTool then
+                            player.Character.Humanoid:EquipTool(pushupsTool)
+                        end
+                    end
+                    player.muscleEvent:FireServer("rep")
+
+                elseif SelectedTool == "Situps" then
+                    if not player.Character:FindFirstChild("Situps") then
+                        local situpsTool = player.Backpack:FindFirstChild("Situps")
+                        if situpsTool then
+                            player.Character.Humanoid:EquipTool(situpsTool)
+                        end
+                    end
+                    player.muscleEvent:FireServer("rep")
+
+                elseif SelectedTool == "Handstands" then
+                    if not player.Character:FindFirstChild("Handstands") then
+                        local handstandsTool = player.Backpack:FindFirstChild("Handstands")
+                        if handstandsTool then
+                            player.Character.Humanoid:EquipTool(handstandsTool)
+                        end
+                    end
+                    player.muscleEvent:FireServer("rep")
+
+                elseif SelectedTool == "Fast Punch" then
+                    local punch = player.Backpack:FindFirstChild("Punch")
+                    if punch then
+                        punch.Parent = player.Character
+                        if punch:FindFirstChild("attackTime") then
+                            punch.attackTime.Value = 0
+                        end
+                    end
+                    player.muscleEvent:FireServer("punch", "rightHand")
+                    player.muscleEvent:FireServer("punch", "leftHand")
+
+                    if player.Character:FindFirstChild("Punch") then
+                        player.Character.Punch:Activate()
+                    end
+
+                elseif SelectedTool == "Stomp" then
+                    local stomp = player.Backpack:FindFirstChild("Stomp")
+                    if stomp then
+                        stomp.Parent = player.Character
+                        if stomp:FindFirstChild("attackTime") then
+                            stomp.attackTime.Value = 0
+                        end
+                    end
+                    player.muscleEvent:FireServer("stomp")
+
+                    if player.Character:FindFirstChild("Stomp") then
+                        player.Character.Stomp:Activate()
+                    end
+
+                    if tick() % 6 < 0.1 then
+                        local virtualUser = game:GetService("VirtualUser")
+                        virtualUser:CaptureController()
+                        virtualUser:ClickButton1(Vector2.new(500, 500))
+                    end
+
+                elseif SelectedTool == "Ground Slam" then
+                    local groundSlam = player.Backpack:FindFirstChild("Ground Slam")
+                    if groundSlam then
+                        groundSlam.Parent = player.Character
+                        if groundSlam:FindFirstChild("attackTime") then
+                            groundSlam.attackTime.Value = 0
+                        end
+                    end
+                    player.muscleEvent:FireServer("slam")
+
+                    if player.Character:FindFirstChild("Ground Slam") then
+                        player.Character["Ground Slam"]:Activate()
+                    end
+
+                    if tick() % 6 < 0.1 then
+                        local virtualUser = game:GetService("VirtualUser")
+                        virtualUser:CaptureController()
+                        virtualUser:ClickButton1(Vector2.new(500, 500))
+                    end
+                end
+
+                task.wait()
+            end
+        end)
+    else
+        local player = game:GetService("Players").LocalPlayer
+        if SelectedTool and player.Character:FindFirstChild(SelectedTool) then
+            player.Character:FindFirstChild(SelectedTool).Parent = player.Backpack
+        end
+    end
+end)
+FarmingTab:AddLabel("Machines:").TextSize = 22
+
+local selectedLocation = nil
+local selectedWorkout = nil
+local working = false
+local workoutTypeDropdown
+local machineDropdown
+local repTask = nil
+
+local function pressE()
+    local vim = game:GetService("VirtualInputManager")
+    vim:SendKeyEvent(true, "E", false, game)
+    task.wait(0.1)
+    vim:SendKeyEvent(false, "E", false, game)
+end
+
+local function autoLift()
+    while working and task.wait() do
+        game:GetService("Players").LocalPlayer.muscleEvent:FireServer("rep")
+    end
+end
+
+local function stopAutoLift()
+    if repTask then
+        repTask:Cancel()  
+        repTask = nil
+    end
+end
+
+local function teleportAndStart(machineName, position)
+    local char = game.Players.LocalPlayer.Character
+    if char and char:FindFirstChild("HumanoidRootPart") then
+        char.HumanoidRootPart.CFrame = position
+        task.wait(0.5)
+        pressE()
+        if working then
+            repTask = task.spawn(autoLift)
+        end
+    end
+end
+
+local workoutPositions = {
+    ["Bench Press"] = {
+        ["Jungle Gym"] = CFrame.new(-8173, 64, 1898),
+        ["Muscle King Gym"] = CFrame.new(-8590.06152, 46.0167427, -6043.34717),
+        ["Legend Gym"] = CFrame.new(4111.91748, 1020.46674, -3799.97217)
+    },
+    ["Squat"] = {
+        ["Jungle Gym"] = CFrame.new(-8352, 34, 2878),
+        ["Muscle King Gym"] = CFrame.new(-8940.12402, 13.1642084, -5699.13477),
+        ["Legend Gym"] = CFrame.new(4304.99023, 987.829956, -4124.2334)
+    },
+    ["Pull Up"] = {
+        ["Jungle Gym"] = CFrame.new(-8666, 34, 2070),
+        ["Muscle King Gym"] = CFrame.new(-8940.12402, 13.1642084, -5699.13477),
+        ["Legend Gym"] = CFrame.new(4304.99023, 987.829956, -4124.2334)
+    },
+    ["Boulder"] = {
+        ["Jungle Gym"] = CFrame.new(-8621, 34, 2684),
+        ["Muscle King Gym"] = CFrame.new(-8940.12402, 13.1642084, -5699.13477),
+        ["Legend Gym"] = CFrame.new(4304.99023, 987.829956, -4124.2334)
+    }
+}
+
+local workoutLocations = {
+    "Jungle Gym", "Muscle King Gym", "Legend Gym"
+}
+
+FarmingTab:AddSwitch("Start", function(enabled)
+    working = enabled
+
+    if enabled then
+        if selectedLocation and selectedWorkout and workoutPositions[selectedWorkout][selectedLocation] then
+            teleportAndStart(selectedWorkout, workoutPositions[selectedWorkout][selectedLocation])
+        end
+    else
+        stopAutoLift()
+    end
+end)
+
+local locationDropdown = FarmingTab:AddDropdown("Gym", function(location)
+    selectedLocation = location
+
+    if machineDropdown then
+        machineDropdown:Clear()
+    end
+
+    if location == "Jungle Gym" then
+        machineDropdown = FarmingTab:AddDropdown("Machine", function(machine)
+            selectedWorkout = machine
+        end)
+        machineDropdown:Add("Bench Press")
+        machineDropdown:Add("Squat")
+        machineDropdown:Add("Pull Up")
+        machineDropdown:Add("Boulder")
+    elseif location == "Muscle King Gym" then
+        machineDropdown = FarmingTab:AddDropdown("Machine", function(machine)
+            selectedWorkout = machine
+        end)
+        machineDropdown:Add("Bench Press")
+        machineDropdown:Add("Squat")
+        machineDropdown:Add("Pull Up")
+        machineDropdown:Add("Boulder")
+    elseif location == "Legend Gym" then
+        machineDropdown = FarmingTab:AddDropdown("Machine", function(machine)
+            selectedWorkout = machine
+        end)
+        machineDropdown:Add("Bench Press")
+        machineDropdown:Add("Squat")
+        machineDropdown:Add("Pull Up")
+        machineDropdown:Add("Boulder")
+    end
+end)
 local rebirthtab= window:AddTab("rebirths sin packs")
 
 rebirthtab:AddTextBox("Rebirth Target", function(text)
