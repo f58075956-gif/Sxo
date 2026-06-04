@@ -3474,16 +3474,7 @@ end)
 
 local autoToolsProFolder = FarmingTab:AddFolder("Auto Equip tools")
 
-autoToolsProFolder:AddButton("unlock Gamepass AutoLift", function()
-    local gamepassFolder = game:GetService("ReplicatedStorage").gamepassIds
-    local player = game:GetService("Players").LocalPlayer
-    for _, gamepass in pairs(gamepassFolder:GetChildren()) do
-        local value = Instance.new("IntValue")
-        value.Name = gamepass.Name
-        value.Value = gamepass.Value
-        value.Parent = player.ownedGamepasses
-    end
-end)
+
 
 -- FunciÃ³n para crear switches de auto-equip
 local function createAutoToolSwitch(toolName, globalVar)
