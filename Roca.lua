@@ -3335,16 +3335,16 @@ FarmingTab:AddSwitch("Fast Rep", function(state)
         runFastRep = false
     end
 end)
+local FolderautoTools= FarmingTab:AddFolder("Rock + Tools")
 
-local autoToolsFolder = FarmingTab:AddFolder("Rock + Tools")
 
 
 local SelectedTool = nil
 local AutoFarmActive = false
 local selectedRock = nil
-autoToolsFolder:AddLabel("Select the tool you will use:").TextSize = 22
+FolderautoTools:AddLabel("Select the tool you will use:").TextSize = 22
 
-local toolDropdown = autoToolsFolder:AddDropdown("Select Tool", function(selection)
+local toolDropdown = FolderautoTools:AddDropdown("Select Tool", function(selection)
     SelectedTool = selection
 end)
 toolDropdown:Add("Weight")
@@ -3360,7 +3360,7 @@ local rockData = {
     ["Jungle Rock"] = 10000000
 }
 
-local rockDropdown = autoToolsFolder:AddDropdown("Select Rock", function(selection)
+local rockDropdown = FolderautoTools:AddDropdown("Select Rock", function(selection)
     selectedRock = selection
 end)
 for rockName in pairs(rockData) do
@@ -3459,7 +3459,7 @@ local function startFarming()
     end)
 end
 
-autoToolsFolder:AddSwitch("Start", function(enabled)
+FolderautoTools:AddSwitch("Start", function(enabled)
     AutoFarmActive = enabled
     if enabled then
         startFarming()
@@ -3472,13 +3472,13 @@ autoToolsFolder:AddSwitch("Start", function(enabled)
     end
 end)
 
-local autoToolsProFolder = FarmingTab:AddFolder("Auto Equip tools")
+local FolderautoToolsPro = FarmingTab:AddFolder("Auto Equip tools")
 
 
 
 -- FunciÃ³n para crear switches de auto-equip
 local function createAutoToolSwitch(toolName, globalVar)
-    autoToolsProFolder:AddSwitch("Auto " .. toolName, function(Value)
+    FolderautoToolsPro:AddSwitch("Auto " .. toolName, function(Value)
         _G[globalVar] = Value
 
         local LocalPlayer = game:GetService("Players").LocalPlayer
@@ -3513,7 +3513,7 @@ createAutoToolSwitch("Handstands", "AutoHandstandsPro")
 createAutoToolSwitch("Situps", "AutoSitupsPro")
 
 -- Auto Punch mejorado
-autoToolsProFolder:AddSwitch("Auto Punch", function(Value)
+FolderautoToolsPro:AddSwitch("Auto Punch", function(Value)
     _G.fastHitActivePro = Value
     local LocalPlayer = game:GetService("Players").LocalPlayer
 
@@ -3559,7 +3559,7 @@ autoToolsProFolder:AddSwitch("Auto Punch", function(Value)
 end)
 
 -- Fast Tools mejorado
-autoToolsProFolder:AddSwitch("Fast Tools", function(Value)
+FolderautoToolsPro:AddSwitch("Fast Tools", function(Value)
     _G.FastToolsPro = Value
     local LocalPlayer = game:GetService("Players").LocalPlayer
 
