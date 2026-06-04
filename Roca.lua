@@ -3335,6 +3335,8 @@ FarmingTab:AddSwitch("Fast Rep", function(state)
         runFastRep = false
     end
 end)
+
+local player = game:GetService("Players").LocalPlayer
 local FolderautoTools= FarmingTab:AddFolder("Rock + Tools")
 
 
