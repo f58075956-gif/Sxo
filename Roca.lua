@@ -3336,7 +3336,6 @@ FarmingTab:AddSwitch("Fast Rep", function(state)
     end
 end)
 local  FarmEngTab= window:AddTab("ROCK + TOOLS")
-local player = game:GetService("Players").LocalPlayer
 local FolderautoTools= FarmEngTab:AddFolder("Rock + Tools")
 
 
@@ -3483,7 +3482,6 @@ local function createAutoToolSwitch(toolName, globalVar)
     FolderautoToolsPro:AddSwitch("Auto " .. toolName, function(Value)
         _G[globalVar] = Value
 
-        local LocalPlayer = game:GetService("Players").LocalPlayer
         
         if Value then
             local tool = LocalPlayer.Backpack:FindFirstChild(toolName)
@@ -3517,7 +3515,7 @@ createAutoToolSwitch("Situps", "AutoSitupsPro")
 -- Auto Punch mejorado
 FolderautoToolsPro:AddSwitch("Auto Punch", function(Value)
     _G.fastHitActivePro = Value
-    local LocalPlayer = game:GetService("Players").LocalPlayer
+    
 
     if Value then
         task.spawn(function()
@@ -3563,7 +3561,6 @@ end)
 -- Fast Tools mejorado
 FolderautoToolsPro:AddSwitch("Fast Tools", function(Value)
     _G.FastToolsPro = Value
-    local LocalPlayer = game:GetService("Players").LocalPlayer
 
     local toolSettings = {
         {"Punch", "attackTime", Value and 0 or 0.35},
