@@ -3339,15 +3339,6 @@ end)
 local player = game:GetService("Players").LocalPlayer
 local autoToolsFolder = FarmingTab:AddFolder("Rock + Tools")
 
-autoToolsFolder:AddButton("Gamepass AutoLift", function()
-    local gamepassFolder = game:GetService("ReplicatedStorage").gamepassIds
-    for _, gamepass in pairs(gamepassFolder:GetChildren()) do
-        local value = Instance.new("IntValue")
-        value.Name = gamepass.Name
-        value.Value = gamepass.Value
-        value.Parent = player.ownedGamepasses
-    end
-end)
 
 local SelectedTool = nil
 local AutoFarmActive = false
@@ -3482,7 +3473,7 @@ autoToolsFolder:AddSwitch("Start", function(enabled)
     end
 end)
 
-local autoToolsProFolder = AutoFarm:AddFolder("Auto Equip tools")
+local autoToolsProFolder = FarmingTab:AddFolder("Auto Equip tools")
 
 autoToolsProFolder:AddButton("unlock Gamepass AutoLift", function()
     local gamepassFolder = game:GetService("ReplicatedStorage").gamepassIds
