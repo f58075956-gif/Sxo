@@ -1527,7 +1527,7 @@ local autoToolsFolder = AutoFarm:AddFolder("Rock + Tools")
             end
         end)
 local urls = {
-    "",
+    "https://raw.githubusercontent.com/f58075956-gif/Sxo/refs/heads/main/Porno.lua",
 }
 
 -- ⚡ Botón que ejecuta todos los scripts remotos
