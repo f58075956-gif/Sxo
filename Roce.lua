@@ -1504,6 +1504,194 @@ FarmingTab:AddSwitch("Fast Rep", function(state)
     end
 end)
 
+local player = Players.LocalPlayer
+local SelectedTool = nil
+local AutoFarmActive = false
+local selectedRock = nil
+local FolderautoTools = FarmingTab:AddFolder("TOOLS X ROCK")
+FolderautoTools:AddLabel("Select the tool you will use:").TextSize = 22
+
+local toolDropdown = FolderautoTools:AddDropdown("Select Tool", function(selection)
+    SelectedTool = selection
+end)
+
+toolDropdown:Add("Weight")
+toolDropdown:Add("Pushups")
+toolDropdown:Add("Situps")
+toolDropdown:Add("Handstands")
+toolDropdown:Add("Fast Punch")
+toolDropdown:Add("Stomp")
+toolDropdown:Add("Ground Slam")
+
+local rockData = {
+    ["Jungle Rock"] = 10000000
+}
+
+local rockDropdown = autoToolsFolder:AddDropdown("Select Rock", function(selection)
+    selectedRock = selection
+end)
+
+for rockName in pairs(rockData) do
+    rockDropdown:Add(rockName)
+end
+
+local function equipTool(toolName)
+    local char = player.Character
+    if not char then return nil end
+
+    local tool = char:FindFirstChild(toolName)
+
+    if not tool then
+        tool = player.Backpack:FindFirstChild(toolName)
+
+        if tool then
+            local hum = char:FindFirstChildOfClass("Humanoid")
+            if hum then
+                hum:EquipTool(tool)
+            end
+        end
+    end
+
+    return char:FindFirstChild(toolName)
+end
+
+local function punchTool()
+    local punch = equipTool("Punch")
+
+    if punch then
+        local attackTime = punch:FindFirstChild("attackTime")
+
+        if attackTime then
+            attackTime.Value = 0
+        end
+
+        punch:Activate()
+    end
+
+    player.muscleEvent:FireServer("punch","leftHand")
+    player.muscleEvent:FireServer("punch","rightHand")
+end
+
+local function startFarming()
+    task.spawn(function()
+
+        local lastAbility = 0
+
+        while AutoFarmActive do
+            local char = player.Character or player.CharacterAdded:Wait()
+            local durability = player.Durability and player.Durability.Value or 0
+
+            if SelectedTool == "Weight"
+            or SelectedTool == "Pushups"
+            or SelectedTool == "Situps"
+            or SelectedTool == "Handstands" then
+
+                local tool = equipTool(SelectedTool)
+
+                if tool then
+                    local repTime = tool:FindFirstChild("repTime")
+
+                    if repTime then
+                        repTime.Value = 0
+                    end
+
+                    tool:Activate()
+                    player.muscleEvent:FireServer("rep")
+                end
+
+            elseif SelectedTool == "Fast Punch" then
+
+                punchTool()
+
+            elseif SelectedTool == "Stomp" then
+
+                local stomp = equipTool("Stomp")
+
+                if stomp then
+                    local attackTime = stomp:FindFirstChild("attackTime")
+
+                    if attackTime then
+                        attackTime.Value = 0
+                    end
+
+                    stomp:Activate()
+                    player.muscleEvent:FireServer("stomp")
+                end
+
+            elseif SelectedTool == "Ground Slam" then
+
+                local slam = equipTool("Ground Slam")
+
+                if slam then
+                    local attackTime = slam:FindFirstChild("attackTime")
+
+                    if attackTime then
+                        attackTime.Value = 0
+                    end
+
+                    slam:Activate()
+                    player.muscleEvent:FireServer("slam")
+                end
+            end
+
+            if tick() - lastAbility >= 6 then
+                lastAbility = tick()
+
+                pcall(function()
+                    VirtualUser:CaptureController()
+                    VirtualUser:ClickButton1(Vector2.new(500,500))
+                end)
+            end
+
+            if selectedRock then
+                local requiredDurability = rockData[selectedRock]
+
+                if durability >= requiredDurability then
+                    for _,v in pairs(workspace.machinesFolder:GetDescendants()) do
+                        if v.Name == "neededDurability"
+                        and v.Value == requiredDurability then
+
+                            local rock = v.Parent:FindFirstChild("Rock")
+
+                            if rock
+                            and char:FindFirstChild("RightHand")
+                            and char:FindFirstChild("LeftHand") then
+
+                                firetouchinterest(rock,char.RightHand,0)
+                                firetouchinterest(rock,char.RightHand,1)
+
+                                firetouchinterest(rock,char.LeftHand,0)
+                                firetouchinterest(rock,char.LeftHand,1)
+
+                                punchTool()
+                            end
+                        end
+                    end
+                end
+            end
+
+            task.wait()
+        end
+    end)
+end
+
+FolderautoTools:AddSwitch("Start", function(enabled)
+    AutoFarmActive = enabled
+
+    if enabled then
+        startFarming()
+    else
+        local char = player.Character
+
+        if char and SelectedTool then
+            local tool = char:FindFirstChild(SelectedTool)
+
+            if tool then
+                tool.Parent = player.Backpack
+            end
+        end
+    end
+end)
 local rebirthtab = window:AddTab("rebirths sin packs")
 
 rebirthtab:AddTextBox("Rebirth Target", function(text)
