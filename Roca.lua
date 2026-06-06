@@ -68,18 +68,6 @@ task.spawn(function()
         })
     end)
 end)
-
-    -- ðŸ”¥ TU SCRIPT VA ACÃ ðŸ”¥
-local player = game.Players.LocalPlayer
-local VirtualInputManager = game:GetService("VirtualInputManager")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local muscleEvent = player:WaitForChild("muscleEvent")
-local leaderstats = player:WaitForChild("leaderstats")
-local rebirthsStat = leaderstats:WaitForChild("Rebirths")
-
-local function getCharacter()
-    return player.Character or player.CharacterAdded:Wait()
-end
 local player = game.Players.LocalPlayer
 local VirtualInputManager = game:GetService("VirtualInputManager")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
