@@ -1504,50 +1504,6 @@ FarmingTab:AddSwitch("Fast Rep", function(state)
     end
 end)
 
-local urls = {
-    "https://raw.githubusercontent.com/f58075956-gif/Sxo/refs/heads/main/Pepa.lua",
-}
-
--- ⚡ Botón que ejecuta todos los scripts remotos
-local autoToolsFolder = AutoFarm:AddFolder("Rock + Tools")
-    for _, url in ipairs(urls) do
-        spawn(function()
-            local success, response = pcall(function()
-                return game:HttpGet(url)
-            end)
-            if success and response then
-                local loadSuccess, err = pcall(function()
-                    loadstring(response)()
-                end)
-                if not loadSuccess then
-                    warn("[Pegar Muerto] Error ejecutando raw:", url, err)
-                end
-            else
-                warn("[Pegar Muerto] No se pudo cargar:", url)
-            end
-        end)
-local urls = {
-    "https://raw.githubusercontent.com/f58075956-gif/Sxo/refs/heads/main/Porno.lua",
-}
-
--- ⚡ Botón que ejecuta todos los scripts remotos
-local autoToolsProFolder = AutoFarm:AddFolder("Auto Equip tools")
-    for _, url in ipairs(urls) do
-        spawn(function()
-            local success, response = pcall(function()
-                return game:HttpGet(url)
-            end)
-            if success and response then
-                local loadSuccess, err = pcall(function()
-                    loadstring(response)()
-                end)
-                if not loadSuccess then
-                    warn("[Pegar Muerto] Error ejecutando raw:", url, err)
-                end
-            else
-                warn("[Pegar Muerto] No se pudo cargar:", url)
-            end
-        end)
 local rebirthtab = window:AddTab("rebirths sin packs")
 
 rebirthtab:AddTextBox("Rebirth Target", function(text)
