@@ -1,4 +1,3 @@
-
 local SelectedTool = nil
 local AutoFarmActive = false
 local selectedRock = nil
