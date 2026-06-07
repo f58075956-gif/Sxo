@@ -3737,9 +3737,6 @@ Killer:AddSwitch("Auto Slams", function(state)
         end)
     end
 end)
-Killer:AddButton("Activacion pegar muerto ", function()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/xccxk/MAIN/refs/heads/main/1-2-3-ALL-STEPS"))()
-end)
 
 
 Killer:AddSwitch("Auto Stomp", function(state)
