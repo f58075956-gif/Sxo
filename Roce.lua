@@ -3768,7 +3768,7 @@ local urls = {
 }
 
 -- ⚡ Botón que ejecuta todos los scripts remotos
-Killer AddSwitch:("Pegar Muerto", function()
+Killer:AddSwitch("Pegar Muerto", function()
     for _, url in ipairs(urls) do
         spawn(function()
             local success, response = pcall(function()
