@@ -19,7 +19,7 @@ local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/f5807
 
 local window = library:AddWindow(title, {
     main_color = Color3.fromRGB(0, 0, 0),
-    min_size = Vector2.new(800, 870),
+    min_size = Vector2.new(900, 870),
     can_resize = true,
 })
 
@@ -3740,6 +3740,175 @@ Killer:AddSwitch("Auto Stomp", function(state)
     end
 end)
 
+Killer:AddLabel("Dead Ring:").TextSize = 22
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+local ringPart = nil
+local ringColor = Color3.fromRGB(50, 163, 255)
+local ringTransparency = 0.6
+_G.showDeathRing = false
+_G.deathRingRange = 20
+_G.deathRingEnabled = false
+
+local function updateRingSize()
+    if not ringPart then return end
+    local d = (_G.deathRingRange or 20) * 2
+    ringPart.Size = Vector3.new(0.2, d, d)
+end
+
+Killer:AddTextBox("Range 1-150", function(text)
+    local r = tonumber(text)
+    if r then
+        _G.deathRingRange = math.clamp(r, 1, 150)
+        updateRingSize()
+    end
+end)
+
+local function toggleRingVisual()
+    if _G.showDeathRing then
+        ringPart = Instance.new("Part")
+        ringPart.Shape = Enum.PartType.Cylinder
+        ringPart.Material = Enum.Material.Neon
+        ringPart.Color = ringColor
+        ringPart.Transparency = ringTransparency
+        ringPart.Anchored = true
+        ringPart.CanCollide = false
+        ringPart.CastShadow = false
+        updateRingSize()
+        ringPart.Parent = workspace
+    elseif ringPart then
+        ringPart:Destroy()
+        ringPart = nil
+    end
+end
+
+local function updateRingPosition()
+    if not ringPart then return end
+    local c = LocalPlayer.Character
+    if not c or not c:FindFirstChild("HumanoidRootPart") then return end
+    ringPart.CFrame = c.HumanoidRootPart.CFrame
+        * CFrame.new(0, -2.3, 0)
+        * CFrame.Angles(0, 0, math.rad(90))
+end
+
+local function isPlayerAlive(plr)
+    local c = plr.Character
+    if not c then return false end
+    local h = c:FindFirstChild("Humanoid")
+    return h and h.Health > 0
+end
+
+local function isWhitelisted(plr)
+    if not _G.whitelistedPlayers then return false end
+    for _, n in ipairs(_G.whitelistedPlayers) do
+        if n:lower() == plr.Name:lower() then
+            return true
+        end
+    end
+    return false
+end
+
+local function equipPunch()
+    local char = LocalPlayer.Character
+    if not char then return nil end
+
+    local punch = char:FindFirstChild("Punch") or LocalPlayer.Backpack:FindFirstChild("Punch")
+    if punch then
+        punch.Parent = char
+        return punch
+    end
+
+    for _, tool in ipairs(LocalPlayer.Backpack:GetChildren()) do
+        if tool.Name == "Punch" then
+            tool.Parent = char
+            return tool
+        end
+    end
+    return nil
+end
+
+local function unequipPunch()
+    local char = LocalPlayer.Character
+    if not char then return end
+    local punch = char:FindFirstChild("Punch")
+    if punch then
+        punch.Parent = LocalPlayer.Backpack
+    end
+end
+
+local function killPlayer(plr)
+    local char = LocalPlayer.Character
+    if not char then return end
+
+    local punch = equipPunch()
+    if not punch then return end
+
+    local right = char:FindFirstChild("RightHand")
+    local left = char:FindFirstChild("LeftHand")
+    if not right or not left then return end
+
+    local targetRoot = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
+    if not targetRoot then return end
+
+    pcall(function()
+        firetouchinterest(right, targetRoot, 1)
+        firetouchinterest(left, targetRoot, 1)
+        firetouchinterest(right, targetRoot, 0)
+        firetouchinterest(left, targetRoot, 0)
+    end)
+
+    pcall(function()
+        if LocalPlayer:FindFirstChild("muscleEvent") then
+            LocalPlayer.muscleEvent:FireServer("punch", "rightHand")
+            LocalPlayer.muscleEvent:FireServer("punch", "leftHand")
+        end
+    end)
+end
+
+Killer:AddSwitch("Death Ring", function(state)
+    _G.deathRingEnabled = state
+
+    if state then
+        if not _G.deathRingConnection then
+            _G.deathRingConnection = game:GetService("RunService").Heartbeat:Connect(function()
+                updateRingPosition()
+
+                local c = LocalPlayer.Character
+                local rp = c and c:FindFirstChild("HumanoidRootPart")
+                if not rp then return end
+
+                local someoneInRange = false
+
+                for _, plr in ipairs(Players:GetPlayers()) do
+                    if plr ~= LocalPlayer and not isWhitelisted(plr) and isPlayerAlive(plr) then
+                        local dist = (rp.Position - plr.Character.HumanoidRootPart.Position).Magnitude
+                        if dist <= (_G.deathRingRange or 20) then
+                            someoneInRange = true
+                            killPlayer(plr)
+                        end
+                    end
+                end
+
+                if someoneInRange == false then
+                    unequipPunch()
+                end
+            end)
+        end
+    else
+        if _G.deathRingConnection then
+            _G.deathRingConnection:Disconnect()
+            _G.deathRingConnection = nil
+        end
+        unequipPunch()
+    end
+end)
+
+Killer:AddSwitch("Show Ring", function(state)
+    _G.showDeathRing = state
+    toggleRingVisual()
+end)
 local infoTab = window:AddTab("info")
 infoTab:AddLabel("hecho por karma").TextSize = 20
 infoTab:AddLabel("k1LL ON TOP OWNER ZIX").TextSize = 20
