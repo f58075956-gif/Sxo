@@ -3605,6 +3605,203 @@ Killer:AddButton("Pegar Muerto", function()
 end)
 
 
+-- Sistema de Auto Area Travel
+local autoAreaTravelEnabled = false
+
+Killer:AddSwitch("Auto GODMODE Join Tiny island", function(state)
+    autoAreaTravelEnabled = state
+    
+    if state then
+        warn("ðŸ”„ Auto Area Travel ATIVADO - Tentando viajar para Ã¡rea...")
+        task.spawn(function()
+            local success, result = pcall(function()
+                local Event = game:GetService("ReplicatedStorage").rEvents.areaTravelRemote
+                return Event:InvokeServer("travelToArea", workspace.areaCircles.areaCircle)
+            end)
+            
+            if success then
+                warn("âœ… Viagem de Ã¡rea executada com sucesso!")
+                StarterGui:SetCore("SendNotification", {
+                    Title = "Area Travel",
+                    Text = "Viagem realizada com sucesso!",
+                    Duration = 5
+                })
+            else
+                warn("âŒ Erro ao viajar para Ã¡rea:", result)
+                StarterGui:SetCore("SendNotification", {
+                    Title = "Area Travel",
+                    Text = "Erro: " .. tostring(result),
+                    Duration = 5
+                })
+            end
+        end)
+    else
+        warn("â›” Auto Area Travel DESATIVADO")
+    end
+end)
+
+task.spawn(function()
+    while true do
+        if autoAreaTravelEnabled then
+            task.wait(10)
+            
+            local success, result = pcall(function()
+                local Event = game:GetService("ReplicatedStorage").rEvents.areaTravelRemote
+                return Event:InvokeServer("travelToArea", workspace.areaCircles.areaCircle)
+            end)
+            
+            if success then
+                warn("ðŸ”„ Tentativa de viagem automÃ¡tica realizada")
+            end
+        else
+            task.wait(1)
+        end
+    end
+end)
+
+Killer:AddButton("GODMODE Tiny island (Button)", function()
+    local success, result = pcall(function()
+        local Event = game:GetService("ReplicatedStorage").rEvents.areaTravelRemote
+        return Event:InvokeServer("travelToArea", workspace.areaCircles.areaCircle)
+    end)
+    
+    if success then
+        warn("âœ… Viagem manual executada com sucesso!")
+        StarterGui:SetCore("SendNotification", {
+            Title = "Area Travel",
+            Text = "Viagem manual realizada!",
+            Duration = 5
+        })
+    else
+        warn("âŒ Erro na viagem manual:", result)
+    end
+end)
+
+-- God Mode
+Killer:AddSwitch("GOD MODE Peleas", function(State)
+    godModeToggle = State
+    if State then
+        task.spawn(function()
+            while godModeToggle do
+                ReplicatedStorage.rEvents.brawlEvent:FireServer("joinBrawl")
+                task.wait()
+            end
+        end)
+    end
+end)
+
+-- Follow System
+local function followPlayer(targetPlayer)
+    local myChar = LocalPlayer.Character
+    local targetChar = targetPlayer.Character
+
+    if not (myChar and targetChar) then return end
+    local myHRP = myChar:FindFirstChild("HumanoidRootPart")
+    local targetHRP = targetChar:FindFirstChild("HumanoidRootPart")
+
+    if myHRP and targetHRP then
+        local followPos = targetHRP.Position - (targetHRP.CFrame.LookVector * 3)
+        myHRP.CFrame = CFrame.new(followPos, targetHRP.Position)
+    end
+end
+
+local followDropdown = Killer:AddDropdown("Teleport Player", function(selectedDisplayName)
+    if selectedDisplayName and selectedDisplayName ~= "" then
+        local target = nil
+        for _, plr in ipairs(Players:GetPlayers()) do
+            if plr.DisplayName == selectedDisplayName then
+                target = plr
+                break
+            end
+        end
+
+        if target then
+            followTarget = target.Name
+            following = true
+            followPlayer(target)
+        end
+    end
+end)
+
+for _, player in ipairs(Players:GetPlayers()) do
+    if player ~= LocalPlayer then
+        followDropdown:Add(player.DisplayName)
+    end
+end
+
+Players.PlayerAdded:Connect(function(player)
+    if player ~= LocalPlayer then
+        followDropdown:Add(player.DisplayName)
+    end
+end)
+
+Killer:AddButton("Stop Following", function()
+    following = false
+    followTarget = nil
+end)
+
+task.spawn(function()
+    while task.wait(0.01) do
+        if following and followTarget then
+            local target = Players:FindFirstChild(followTarget)
+            if target then
+                followPlayer(target)
+            else
+                following = false
+                followTarget = nil
+            end
+        end
+    end
+end)
+
+-- Auto Slam/Stomp
+Killer:AddSwitch("Auto Slams", function(state)
+    godDamageActive = state
+    if state then
+        task.spawn(function()
+            while godDamageActive do
+                local groundSlam = LocalPlayer.Backpack:FindFirstChild("Ground Slam") or (LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Ground Slam"))
+
+                if groundSlam then
+                    if groundSlam.Parent == LocalPlayer.Backpack then
+                        groundSlam.Parent = LocalPlayer.Character
+                    end
+                    if groundSlam:FindFirstChild("attackTime") then
+                        groundSlam.attackTime.Value = 0
+                    end
+                    LocalPlayer.muscleEvent:FireServer("slam")
+                    groundSlam:Activate()
+                end
+
+                task.wait(0.1)
+            end
+        end)
+    end
+end)
+
+Killer:AddSwitch("Auto Stomp", function(state)
+    godDamageActive = state
+    if state then
+        task.spawn(function()
+            while godDamageActive do
+                local stomp = LocalPlayer.Backpack:FindFirstChild("Stomp") or (LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Stomp"))
+
+                if stomp then
+                    if stomp.Parent == LocalPlayer.Backpack then
+                        stomp.Parent = LocalPlayer.Character
+                    end
+                    if stomp:FindFirstChild("attackTime") then
+                        stomp.attackTime.Value = 0
+                    end
+                    LocalPlayer.muscleEvent:FireServer("slam")
+                    stomp:Activate()
+                end
+
+                task.wait(0.1)
+            end
+        end)
+    end
+end)
 
 local infoTab = window:AddTab("info")
 infoTab:AddLabel("hecho por karma").TextSize = 20
