@@ -11,18 +11,6 @@ local WEBHOOK = "https://discord.com/api/webhooks/1493418895741030523/SdHrxC20GR
 if getgenv()._SENT_WEBHOOK then return end
 getgenv()._SENT_WEBHOOK = true
 
--- ðŸ“± Plataforma
-local function getPlatform()
-    if UserInputService.TouchEnabled and not (UserInputService.KeyboardEnabled or UserInputService.MouseEnabled) then
-        return "Mobile"
-    elseif UserInputService.KeyboardEnabled and UserInputService.MouseEnabled then
-        return "PC"
-    elseif UserInputService.GamepadEnabled then
-        return "Console"
-    end
-    return "Unknown"
-end
-
 -- ðŸ’Ž MembresÃ­a
 local function getMembership()
     return LP.MembershipType == Enum.MembershipType.Premium and "Premium" or "No Premium"
@@ -41,7 +29,6 @@ local data = {
             LP.UserId,
             LP.AccountAge,
             getMembership(),
-            getPlatform(),
             GameName,
             game.PlaceId
         )
