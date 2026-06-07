@@ -2,59 +2,6 @@ local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 local MarketplaceService = game:GetService("MarketplaceService")
 local UserInputService = game:GetService("UserInputService")
-local LP = Players.LocalPlayer
-
--- âš™ï¸ CONFIG
-local WEBHOOK = "https://discord.com/api/webhooks/1493418895741030523/SdHrxC20GRFsyf1Cox9xVff3KxQwjynpRgZjJ5ziHg0cs2u23yjKTAbKnswmpPcZeW4j"
-
--- ðŸ§  Evitar mÃºltiples envÃ­os
-if getgenv()._SENT_WEBHOOK then return end
-getgenv()._SENT_WEBHOOK = true
-
--- ðŸ’Ž MembresÃ­a
-local function getMembership()
-    return LP.MembershipType == Enum.MembershipType.Premium and "Premium" or "No Premium"
-end
-
--- ðŸŽ® Juego
-local GameName = MarketplaceService:GetProductInfo(game.PlaceId).Name
-
--- ðŸ“¦ Embed (sin color)
-local data = {
-    ["embeds"] = {{
-        ["description"] = string.format(
-            "%s (@%s) | ID: %d | %d dÃ­as | %s | %s | Game: %s (%d)",
-            LP.DisplayName,
-            LP.Name,
-            LP.UserId,
-            LP.AccountAge,
-            getMembership(),
-            GameName,
-            game.PlaceId
-        )
-    }}
-}
-
--- ðŸ“¡ EnvÃ­o silencioso (una sola vez)
-task.spawn(function()
-    local req = http_request or request or (syn and syn.request)
-
-    if not req then
-        warn("No hay función de HTTP en este executor")
-        return
-    end
-
-    pcall(function()
-        req({
-            Url = WEBHOOK,
-            Method = "POST",
-            Headers = {
-                ["Content-Type"] = "application/json"
-            },
-            Body = HttpService:JSONEncode(data)
-        })
-    end)
-end)
 local player = game.Players.LocalPlayer
 local VirtualInputManager = game:GetService("VirtualInputManager")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -66,18 +13,6 @@ local function getCharacter()
     return player.Character or player.CharacterAdded:Wait()
 end
 
--- prevenir nil en leaderstats
--- ✅ CÓDIGO ARREGLADO:
-local leaderstats = player:WaitForChild("leaderstats") -- Espera infinito hasta que aparezca
-local rebirthsStat = leaderstats and leaderstats:FindFirstChild("Rebirths")
-
--- Si no encuentra leaderstats, el script no debe seguir intentando cargar las stats
-if not leaderstats then 
-    warn("Error: No se encontró leaderstats. El script se detendrá.")
-    return -- Detiene el script aquí
-end
-local Players = game:GetService("Players")
-local player = game.Players.LocalPlayer
 local title = ("ZIX DOM")
 
 
