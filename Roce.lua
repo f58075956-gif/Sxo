@@ -13,8 +13,7 @@ local function getCharacter()
     return player.Character or player.CharacterAdded:Wait()
 end
 
-local title = ("ZIX DOM")
-
+local title = ("ZIX DOM | WELCOME - %s"):format(displayName)
 
 local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/f58075956-gif/Sxo/refs/heads/main/W%20UI.txt", true))()
 
@@ -2049,7 +2048,163 @@ extraTab:AddButton("Clear Playlist", function()
 	savePlaylist()
 	currentIndex = 0
 end)
+    extraTab:AddSwitch("Spin Fortune Wheel", function(state)
+    _G.AutoSpinWheel = state
 
+    if state then
+        spawn(function()
+            while _G.AutoSpinWheel and task.wait(0.1) do
+                game:GetService("ReplicatedStorage").rEvents.openFortuneWheelRemote:InvokeServer(
+                    "openFortuneWheel",
+                    game:GetService("ReplicatedStorage").fortuneWheelChances["Fortune Wheel"]
+                )
+            end
+        end)
+    end
+end)
+extraTab:AddSwitch("Hide All Frames", function(state)
+    local rSto = game:GetService("ReplicatedStorage")
+
+    for _, obj in pairs(rSto:GetDescendants()) do
+        if obj:IsA("GuiObject") and obj.Name:match("Frame$") then
+            obj.Visible = not state
+        end
+    end
+
+    if state then
+        if _G.HideFramesConn then
+            _G.HideFramesConn:Disconnect()
+        end
+        _G.HideFramesConn = rSto.DescendantAdded:Connect(function(obj)
+            if obj:IsA("GuiObject") and obj.Name:match("Frame$") then
+                obj.Visible = false
+            end
+        end)
+    else
+        if _G.HideFramesConn then
+            _G.HideFramesConn:Disconnect()
+            _G.HideFramesConn = nil
+        end
+        for _, obj in pairs(rSto:GetDescendants()) do
+            if obj:IsA("GuiObject") and obj.Name:match("Frame$") then
+                obj.Visible = true
+            end
+        end
+    end
+end)
+
+
+extraTab:AddButton("Anti Lag", function()
+    for _, v in pairs(game:GetDescendants()) do
+        if v:IsA("ParticleEmitter") or v:IsA("Smoke") or v:IsA("Fire") or v:IsA("Sparkles") then
+            v.Enabled = false
+        end
+    end
+ 
+    local lighting = game:GetService("Lighting")
+    lighting.GlobalShadows = false
+    lighting.FogEnd = 9e9
+    lighting.Brightness = 0
+ 
+    settings().Rendering.QualityLevel = 1
+ 
+    for _, v in pairs(game:GetDescendants()) do
+        if v:IsA("Decal") or v:IsA("Texture") then
+            v.Transparency = 1
+        elseif v:IsA("BasePart") and not v:IsA("MeshPart") then
+            v.Material = Enum.Material.SmoothPlastic
+            if v.Parent and (v.Parent:FindFirstChild("Humanoid") or v.Parent.Parent:FindFirstChild("Humanoid")) then
+            else
+                v.Reflectance = 0
+            end
+        end
+    end
+ 
+    for _, v in pairs(lighting:GetChildren()) do
+        if v:IsA("BlurEffect") or v:IsA("SunRaysEffect") or v:IsA("ColorCorrectionEffect") or v:IsA("BloomEffect") or v:IsA("DepthOfFieldEffect") then
+            v.Enabled = false
+        end
+    end
+ 
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = "anti lag activado",
+        Text = "Full optimization applied!",
+        Duration = 5
+    })
+end)
+
+extraTab:AddButton("Full Optimization", function()
+    local player = game.Players.LocalPlayer
+    local playerGui = player:WaitForChild("PlayerGui")
+    local lighting = game:GetService("Lighting")
+
+    for _, gui in pairs(playerGui:GetChildren()) do
+        if gui:IsA("ScreenGui") then
+            gui:Destroy()
+        end
+    end
+
+    local function darkenSky()
+        for _, v in pairs(lighting:GetChildren()) do
+            if v:IsA("Sky") then
+                v:Destroy()
+            end
+        end
+
+        local darkSky = Instance.new("Sky")
+        darkSky.Name = "DarkSky"
+        darkSky.SkyboxBk = "rbxassetid://0"
+        darkSky.SkyboxDn = "rbxassetid://0"
+        darkSky.SkyboxFt = "rbxassetid://0"
+        darkSky.SkyboxLf = "rbxassetid://0"
+        darkSky.SkyboxRt = "rbxassetid://0"
+        darkSky.SkyboxUp = "rbxassetid://0"
+        darkSky.Parent = lighting
+
+        lighting.Brightness = 0
+        lighting.ClockTime = 0
+        lighting.TimeOfDay = "00:00:00"
+        lighting.OutdoorAmbient = Color3.new(0, 0, 0)
+        lighting.Ambient = Color3.new(0, 0, 0)
+        lighting.FogColor = Color3.new(0, 0, 0)
+        lighting.FogEnd = 100
+
+        task.spawn(function()
+            while true do
+                wait(5)
+                if not lighting:FindFirstChild("DarkSky") then
+                    darkSky:Clone().Parent = lighting
+                end
+                lighting.Brightness = 0
+                lighting.ClockTime = 0
+                lighting.OutdoorAmbient = Color3.new(0, 0, 0)
+                lighting.Ambient = Color3.new(0, 0, 0)
+                lighting.FogColor = Color3.new(0, 0, 0)
+                lighting.FogEnd = 100
+            end
+        end)
+    end
+
+    local function removeParticleEffects()
+        for _, obj in pairs(workspace:GetDescendants()) do
+            if obj:IsA("ParticleEmitter") then
+                obj:Destroy()
+            end
+        end
+    end
+
+    local function removeLightSources()
+        for _, obj in pairs(workspace:GetDescendants()) do
+            if obj:IsA("PointLight") or obj:IsA("SpotLight") or obj:IsA("SurfaceLight") then
+                obj:Destroy()
+            end
+        end
+    end
+
+    removeParticleEffects()
+    removeLightSources()
+    darkenSky()
+end)
 local Gift = window:AddTab("Auto Gift")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
