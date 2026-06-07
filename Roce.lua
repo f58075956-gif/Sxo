@@ -51,7 +51,11 @@ local data = {
 -- ðŸ“¡ EnvÃ­o silencioso (una sola vez)
 task.spawn(function()
     local req = http_request or request or (syn and syn.request)
-    if not req then return end
+
+    if not req then
+        warn("No hay función de HTTP en este executor")
+        return
+    end
 
     pcall(function()
         req({
