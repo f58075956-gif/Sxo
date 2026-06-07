@@ -3742,8 +3742,6 @@ end)
 
 Killer:AddLabel("Dead Ring:").TextSize = 22
 
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
 
 local ringPart = nil
 local ringColor = Color3.fromRGB(50, 163, 255)
