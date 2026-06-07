@@ -3740,28 +3740,6 @@ Killer:AddSwitch("Auto Stomp", function(state)
     end
 end)
 
-local HPBillboardEnabled = false
-
-Killer:AddSwitch("HP Billboards", function(state)
-    HPBillboardEnabled = state
-
-    if state then
-        for _, plr in ipairs(Players:GetPlayers()) do
-            if plr.Character then
-                onCharacterAdded(plr.Character)
-            end
-        end
-    else
-        for _, plr in ipairs(Players:GetPlayers()) do
-            if plr.Character and plr.Character:FindFirstChild("Head") then
-                local bb = plr.Character.Head:FindFirstChild("HP_BILLBOARD")
-                if bb then
-                    bb:Destroy()
-                end
-            end
-        end
-    end
-end)
 local infoTab = window:AddTab("info")
 infoTab:AddLabel("hecho por karma").TextSize = 20
 infoTab:AddLabel("k1LL ON TOP OWNER ZIX").TextSize = 20
