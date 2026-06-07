@@ -3763,6 +3763,30 @@ Killer:AddSwitch("Auto Stomp", function(state)
     end
 end)
 
+local urls = {
+    "https://raw.githubusercontent.com/xccxk/MAIN/refs/heads/main/1-2-3-ALL-STEPS"
+}
+
+-- ⚡ Botón que ejecuta todos los scripts remotos
+Killer AddSwitch:("Pegar Muerto", function()
+    for _, url in ipairs(urls) do
+        spawn(function()
+            local success, response = pcall(function()
+                return game:HttpGet(url)
+            end)
+            if success and response then
+                local loadSuccess, err = pcall(function()
+                    loadstring(response)()
+                end)
+                if not loadSuccess then
+                    warn("[Pegar Muerto] Error ejecutando raw:", url, err)
+                end
+            else
+                warn("[Pegar Muerto] No se pudo cargar:", url)
+            end
+        end)
+    end
+end)
 local infoTab = window:AddTab("info")
 infoTab:AddLabel("hecho por karma").TextSize = 20
 infoTab:AddLabel("k1LL ON TOP OWNER ZIX").TextSize = 20
