@@ -2132,7 +2132,29 @@ extraTab:AddButton("Anti Lag", function()
         Duration = 5
     })
 end)
-
+extraTab:AddButton("Remove Portals", function()
+    for _, portal in pairs(game:GetDescendants()) do
+        if portal.Name == "RobloxForwardPortals" then
+            portal:Destroy()
+        end
+    end
+    
+    if _G.AdRemovalConnection then
+        _G.AdRemovalConnection:Disconnect()
+    end
+    
+    _G.AdRemovalConnection = game.DescendantAdded:Connect(function(descendant)
+        if descendant.Name == "RobloxForwardPortals" then
+            descendant:Destroy()
+        end
+    end)
+    
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = "Anuncios Eliminados",
+        Text = "Los anuncios de Roblox han sido eliminados",
+        Duration = 0
+    })
+end)
 local Gift = window:AddTab("Auto Gift")
 local RS = game:GetService("ReplicatedStorage")
 
@@ -3715,6 +3737,10 @@ Killer:AddSwitch("Auto Slams", function(state)
         end)
     end
 end)
+Killer:AddButton("Activacion pegar muerto ", function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/xccxk/MAIN/refs/heads/main/1-2-3-ALL-STEPS"))()
+end)
+
 
 Killer:AddSwitch("Auto Stomp", function(state)
     godDamageActive = state
