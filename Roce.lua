@@ -13,7 +13,7 @@ local function getCharacter()
     return player.Character or player.CharacterAdded:Wait()
 end
 
-local title = ("ZIX DOM | WELCOME - %s"):format(displayName)
+local title = ("ZIX DOM | WELCOME")
 
 local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/f58075956-gif/Sxo/refs/heads/main/W%20UI.txt", true))()
 
@@ -2076,7 +2076,7 @@ extraTab:AddSwitch("Hide All Frames", function(state)
             _G.HideFramesConn:Disconnect()
         end
         _G.HideFramesConn = rSto.DescendantAdded:Connect(function(obj)
-            if obj:IsA("GuiObject") and obj.Name:match("Frame$") then
+            if obj:IsA("GuiObject") and obj.Name:match("Frames") then
                 obj.Visible = false
             end
         end)
@@ -2086,7 +2086,7 @@ extraTab:AddSwitch("Hide All Frames", function(state)
             _G.HideFramesConn = nil
         end
         for _, obj in pairs(rSto:GetDescendants()) do
-            if obj:IsA("GuiObject") and obj.Name:match("Frame$") then
+            if obj:IsA("GuiObject") and obj.Name:match("Frames") then
                 obj.Visible = true
             end
         end
@@ -2134,8 +2134,6 @@ extraTab:AddButton("Anti Lag", function()
 end)
 
 local Gift = window:AddTab("Auto Gift")
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
 local RS = game:GetService("ReplicatedStorage")
 
 
