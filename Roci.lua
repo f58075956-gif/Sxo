@@ -13,7 +13,7 @@ local function getCharacter()
     return player.Character or player.CharacterAdded:Wait()
 end
 
-local title = ("CRONOS | WELCOME " .. player.DisplayName)
+local title = ("CRONOS | WELCOME " .. player.DisplayName .. " (@" .. player.Name .. ")")
 local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/f58075956-gif/Sxo/refs/heads/main/W%20UI.txt", true))()
 
 local window = library:AddWindow(title, {
