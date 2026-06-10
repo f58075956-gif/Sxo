@@ -12,8 +12,12 @@ local rebirthsStat = leaderstats:WaitForChild("Rebirths")
 local function getCharacter()
     return player.Character or player.CharacterAdded:Wait()
 end
+local displayName = player.DisplayName
+if not displayName or displayName == "" then
+    displayName = player.Name
+end
+local title = ("epic | Hello %s"):format(displayName)
 
-local title = ("CRONOS | WELCOME ")
 local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/f58075956-gif/Sxo/refs/heads/main/W%20UI.txt", true))()
 
 local window = library:AddWindow(title, {
