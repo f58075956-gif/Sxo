@@ -13,7 +13,7 @@ local function getCharacter()
     return player.Character or player.CharacterAdded:Wait()
 end
 
-local title = ("ZIX DOM | WELCOME ")
+local title = "CRONOS | WELCOME " .. Player.DisplayName .. " (@" .. Player.Name .. ")"
 
 local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/f58075956-gif/Sxo/refs/heads/main/W%20UI.txt", true))()
 
