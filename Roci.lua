@@ -12,11 +12,8 @@ local rebirthsStat = leaderstats:WaitForChild("Rebirths")
 local function getCharacter()
     return player.Character or player.CharacterAdded:Wait()
 end
-local displayName = player.DisplayName
-if not displayName or displayName == "" then
-    displayName = player.Name
-end
-local title = ("epic | Hello %s"):format(displayName)
+
+local title = ("epic script | Hello ")
 
 local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/f58075956-gif/Sxo/refs/heads/main/W%20UI.txt", true))()
 
@@ -3792,8 +3789,8 @@ Killer:AddSwitch("Pegar Muerto", function()
 end)
 local infoTab = window:AddTab("info")
 infoTab:AddLabel("hecho por karma").TextSize = 20
-infoTab:AddLabel("k1LL ON TOP OWNER ZIX").TextSize = 20
-infoTab:AddLabel("https://discord.gg/FYqJrqeeG9").TextSize = 20
+infoTab:AddLabel("op script").TextSize = 20
+infoTab:AddLabel("").TextSize = 20
 
 infoTab:AddButton("Copy Invite", function()
     local link = "https://discord.gg/FYqJrqeeG9"
