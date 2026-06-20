@@ -866,7 +866,7 @@ farmTab:AddSwitch("Ancient Jungle Rock", function(bool)
     if bool then farmRock(10000000) end
 end) 
 local urls = {
-    "https://raw.githubusercontent.com/f58075956-gif/Antiafk/refs/heads/main/A.lua",
+    "https://raw.githubusercontent.com/f58075956-gif/Antiafk/refs/heads/main/Anti%20afk.lua",
 }
 
 -- ⚡ Botón que ejecuta todos los scripts remotos
