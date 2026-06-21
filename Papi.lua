@@ -2626,163 +2626,65 @@ local player = Players.LocalPlayer
 
 local papuTab = window:AddTab("Farm renas")
 
---// FAST REBIRTH
-local AutoFarming = false
-local startTime = 0
-
-local strengthPet = "Swift Samurai"
-local rebirthPet = "Tribal Overlord"
-
---// UNEQUIP PETS
-local function unequipAllPets()
-
-    local petsFolder = player:FindFirstChild("petsFolder")
-
-    if not petsFolder then
-        return
-    end
-
-    for _, folder in pairs(petsFolder:GetChildren()) do
-        if folder:IsA("Folder") then
-
-            for _, pet in pairs(folder:GetChildren()) do
-
-                ReplicatedStorage.rEvents.equipPetEvent:FireServer(
-                    "unequipPet",
-                    pet
-                )
-            end
-        end
-    end
-
-    task.wait(0.1)
-end
-
---// EQUIP PET
-local function equipPetByName(petName)
-
-    local petsFolder = player:FindFirstChild("petsFolder")
-
-    if not petsFolder then
-        return
-    end
-
-    for _, folder in pairs(petsFolder:GetChildren()) do
-        if folder:IsA("Folder") then
-
-            for _, pet in pairs(folder:GetChildren()) do
-
-                if pet.Name == petName then
-
-                    ReplicatedStorage.rEvents.equipPetEvent:FireServer(
-                        "equipPet",
-                        pet
-                    )
-                end
-            end
-        end
-    end
-end
-
---// GOLDEN REBIRTH
-local function getGoldenRebirth()
-
-    local ultimates = player:FindFirstChild("ultimatesFolder")
-
-    if ultimates and ultimates:FindFirstChild("Golden Rebirth") then
-        return ultimates["Golden Rebirth"].Value
-    end
-
-    return 0
-end
-
---// NEEDED STRENGTH
-local function getNeededStrength()
-
-    local rebirths = player.leaderstats.Rebirths.Value
-    local golden = getGoldenRebirth()
-
-    local needed = 10000 + (5000 * rebirths)
-
-    if golden >= 1 and golden <= 5 then
-        needed = needed * (1 - (golden * 0.1))
-    end
-
-    return math.floor(needed)
-end
-
---// START FAST REBIRTH
-local function startFastRebirth()
-
-    if AutoFarming then
-        return
-    end
-
-    AutoFarming = true
-    startTime = tick()
-
-    warn("⚡ Fast Rebirth ACTIVADO")
+papuTab:AddSwitch("FAST REBIRTH", function(state)
+    omegaFarmLegends = state
+    if not state then return end
 
     task.spawn(function()
+        local ReplicatedStorage = game:GetService("ReplicatedStorage")
+        local globalFunctions = require(ReplicatedStorage:WaitForChild("globalFunctions"))
 
-        while AutoFarming do
+        local leaderstats = LocalPlayer:WaitForChild("leaderstats")
+        local Strength = leaderstats:WaitForChild("Strength")
+        local Rebirths = leaderstats:WaitForChild("Rebirths")
 
-            local neededStrength = getNeededStrength()
+        local rebirthRemote = ReplicatedStorage.rEvents.rebirthRemote
+        local equipPetEvent = ReplicatedStorage.rEvents.equipPetEvent
 
-            print("Necesario:", neededStrength)
-
-            -- Strength Pets
-            unequipAllPets()
-            equipPetByName(strengthPet)
-
-            -- Farm
-            while AutoFarming and
-                player.leaderstats.Strength.Value < neededStrength do
-
-                for i = 1, 10 do
-                    player.muscleEvent:FireServer("rep")
+        local function unequipAllPets()
+            local f = LocalPlayer:WaitForChild("petsFolder")
+            for _, h in pairs(f:GetChildren()) do
+                if h:IsA("Folder") then
+                    for _, j in pairs(h:GetChildren()) do
+                        equipPetEvent:FireServer("unequipPet", j)
+                    end
                 end
+            end
+        end
 
+        local function equipPet(petName)
+            unequipAllPets()
+            task.wait(0.05)
+            for _, n in pairs(LocalPlayer.petsFolder.Unique:GetChildren()) do
+                if n.Name == petName then
+                    equipPetEvent:FireServer("equipPet", n)
+                end
+            end
+        end
+
+        while omegaFarmLegends do
+            local neededStrength = globalFunctions.calculateRequiredRebirthStrength(Rebirths.Value, LocalPlayer)
+            equipPet("Swift Samurai")
+
+            while Strength.Value < neededStrength and omegaFarmLegends do
+                for i = 1, 10 do
+                    LocalPlayer.muscleEvent:FireServer("rep")
+                end
                 task.wait()
             end
 
-            if not AutoFarming then
-                break
+            if omegaFarmLegends then
+                equipPet("Tribal Overlord")
+                local oldRebirths = Rebirths.Value
+                repeat
+                    rebirthRemote:InvokeServer("rebirthRequest")
+                    task.wait()
+                until Rebirths.Value > oldRebirths or not omegaFarmLegends
             end
-
-            -- Rebirth Pets
-            unequipAllPets()
-            equipPetByName(rebirthPet)
-
-            -- Rebirth
-            ReplicatedStorage.rEvents.rebirthRemote:InvokeServer(
-                "rebirthRequest"
-            )
-
-            print("✅ Rebirth realizado")
-
-            task.wait(0.2)
+            task.wait(1)
         end
-
-        warn("🛑 Fast Rebirth DESACTIVADO")
     end)
-end
-
---// STOP
-local function stopFastRebirth()
-    AutoFarming = false
-end
-
---// TOGGLE
-papuTab:AddSwitch("Fast Rebirth", false, function(v)
-
-    if v then
-        startFastRebirth()
-    else
-        stopFastRebirth()
-    end
 end)
-
 
 
 local teleport = window:AddTab("Tp")
