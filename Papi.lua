@@ -2625,6 +2625,29 @@ local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 
 local papuTab = window:AddTab("Farm renas")
+papuTab:AddTextBox("Swift Samurai Amount", function(value)
+local num = tonumber(value)
+
+if num then  
+    SwiftSamuraiAmount = math.clamp(math.floor(num), 1, 8)  
+end
+
+end, {
+placeholder = "8"
+})
+
+papuTab:AddTextBox("Tribal Overlord Amount", function(value)
+local num = tonumber(value)
+
+if num then  
+    TribalOverlordAmount = math.clamp(math.floor(num), 1, 8)  
+end
+
+end, {
+placeholder = "8"
+}) 
+local SwiftSamuraiAmount = 8
+local TribalOverlordAmount = 8
 
 papuTab:AddSwitch("FAST REBIRTH", function(state)
     omegaFarmLegends = state
@@ -2643,6 +2666,7 @@ papuTab:AddSwitch("FAST REBIRTH", function(state)
 
         local function unequipAllPets()
             local f = LocalPlayer:WaitForChild("petsFolder")
+
             for _, h in pairs(f:GetChildren()) do
                 if h:IsA("Folder") then
                     for _, j in pairs(h:GetChildren()) do
@@ -2652,40 +2676,56 @@ papuTab:AddSwitch("FAST REBIRTH", function(state)
             end
         end
 
-        local function equipPet(petName)
+        local function equipPet(petName, amount)
             unequipAllPets()
             task.wait(0.05)
-            for _, n in pairs(LocalPlayer.petsFolder.Unique:GetChildren()) do
-                if n.Name == petName then
-                    equipPetEvent:FireServer("equipPet", n)
+
+            local equipped = 0
+
+            for _, pet in pairs(LocalPlayer.petsFolder.Unique:GetChildren()) do
+                if pet.Name == petName then
+                    equipPetEvent:FireServer("equipPet", pet)
+
+                    equipped += 1
+
+                    if equipped >= amount then
+                        break
+                    end
                 end
             end
         end
 
         while omegaFarmLegends do
-            local neededStrength = globalFunctions.calculateRequiredRebirthStrength(Rebirths.Value, LocalPlayer)
-            equipPet("Swift Samurai")
+            local neededStrength = globalFunctions.calculateRequiredRebirthStrength(
+                Rebirths.Value,
+                LocalPlayer
+            )
+
+            equipPet("Swift Samurai", SwiftSamuraiAmount)
 
             while Strength.Value < neededStrength and omegaFarmLegends do
                 for i = 1, 10 do
                     LocalPlayer.muscleEvent:FireServer("rep")
                 end
+
                 task.wait()
             end
 
             if omegaFarmLegends then
-                equipPet("Tribal Overlord")
+                equipPet("Tribal Overlord", TribalOverlordAmount)
+
                 local oldRebirths = Rebirths.Value
+
                 repeat
                     rebirthRemote:InvokeServer("rebirthRequest")
                     task.wait()
                 until Rebirths.Value > oldRebirths or not omegaFarmLegends
             end
+
             task.wait(1)
         end
     end)
 end)
-
 
 local teleport = window:AddTab("Tp")
 
