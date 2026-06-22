@@ -19,7 +19,7 @@ local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/f5807
 
 local window = library:AddWindow(title, {
     main_color = Color3.fromRGB(0, 0, 0),
-    min_size = Vector2.new(900, 870),
+    min_size = Vector2.new(900, 900),
     can_resize = true,
 })
 
@@ -3825,6 +3825,81 @@ Killer:AddSwitch("Pegar Muerto", function()
         end)
     end
 end)
+Killer:AddTextBox("Tamamaño de Aura", function(text)
+    local value = tonumber(text)
+    if value then
+        currentRadius = math.clamp(value, 1, 150)
+    end
+end)
+
+-- 2. Switch del Kill Aura
+Killer:AddSwitch("Aura Kill (Combat)", function(state)
+    getgenv().killNearby = state
+    
+    -- CreaciÃ³n del cÃ­rculo visual
+    local radiusVisual = Instance.new("Part")
+    radiusVisual.Anchored = true
+    radiusVisual.CanCollide = false
+    radiusVisual.Transparency = 0.5
+    radiusVisual.Material = Enum.Material.ForceField
+    radiusVisual.Color = Color3.fromRGB(255, 0, 0) -- Rojo
+    radiusVisual.Shape = Enum.PartType.Cylinder
+    radiusVisual.Rotation = Vector3.new(0, 0, 90) -- Acostado en el suelo
+    
+    task.spawn(function()
+        while getgenv().killNearby do
+            local myChar = LocalPlayer.Character
+            local myRoot = myChar and myChar:FindFirstChild("HumanoidRootPart")
+            
+            if myRoot then
+                -- Actualizar posiciÃ³n del cÃ­rculo visual
+                radiusVisual.Parent = workspace
+                radiusVisual.Size = Vector3.new(0.1, currentRadius * 2, currentRadius * 2)
+                radiusVisual.CFrame = myRoot.CFrame * CFrame.new(0, -3, 0) * CFrame.Angles(0, 0, math.rad(90))
+                
+                -- Auto-Equipar Combat
+                local tool = LocalPlayer.Backpack:FindFirstChild("Combat") or myChar:FindFirstChild("Combat")
+                if tool and tool.Parent ~= myChar then
+                    tool.Parent = myChar
+                end
+
+                -- Buscar vÃ­ctimas dentro del rango
+                for _, player in pairs(Players:GetPlayers()) do
+                    if player ~= LocalPlayer then
+                        local char = player.Character
+                        local root = char and char:FindFirstChild("HumanoidRootPart")
+                        local hum = char and char:FindFirstChild("Humanoid")
+                        
+                        if root and hum and hum.Health > 0 then
+                            local distance = (root.Position - myRoot.Position).Magnitude
+                            
+                            if distance <= currentRadius then
+                                pcall(function()
+                                    -- Ejecutar el ataque
+                                    if tool and tool.Parent == myChar then
+                                        tool:Activate()
+                                    end
+                                    
+                                    -- DaÃ±o fÃ­sico por contacto
+                                    firetouchinterest(myRoot, root, 1)
+                                    firetouchinterest(myRoot, root, 0)
+                                    
+                                    -- Disparar Remote detectado
+                                    if globalTween then
+                                        globalTween:FireServer("dmgLabel", root.CFrame, 50000)
+                                    end
+                                end)
+                            end
+                        end
+                    end
+                end
+            end
+            task.wait(0.1) -- Velocidad de escaneo
+        end
+        radiusVisual:Destroy()
+    end)
+end)
+
 local infoTab = window:AddTab("info")
 infoTab:AddLabel("hecho por karma").TextSize = 20
 infoTab:AddLabel("op script").TextSize = 20
