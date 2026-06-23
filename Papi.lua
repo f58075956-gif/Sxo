@@ -1659,6 +1659,348 @@ FolderautoTools:AddSwitch("Start", function(enabled)
     end
 end)
 
+local Folder_AutoGym = FarmingTab:AddFolder(' Auto Gym')
+
+Folder_AutoGym:AddLabel('King Gym')
+Folder_AutoGym:AddSwitch('Auto Muscle King Lift', function(p36)
+    if p36 then
+        _G.automlking = true
+
+        while true do
+            local v37 = {
+                'useMachine',
+                workspace.machinesFolder:FindFirstChild('Muscle King Lift').interactSeat,
+            }
+
+            game:GetService('ReplicatedStorage').rEvents.machineInteractRemote:InvokeServer(unpack(v37))
+
+            local _Character = game.Players.LocalPlayer.Character
+            local v39 = Vector3.new(-8773, 17, -5669)
+
+            if _Character then
+                _Character.HumanoidRootPart.CFrame = CFrame.new(v39)
+            end
+
+            wait()
+
+            local v40 = {
+                'rep',
+                workspace.machinesFolder:FindFirstChild('Muscle King Lift').interactSeat,
+            }
+
+            game:GetService('Players').LocalPlayer.muscleEvent:FireServer(unpack(v40))
+            game:GetService('RunService').RenderStepped:Wait()
+
+            if not _G.automlking then
+            end
+        end
+    else
+        _G.automlking = false
+
+        return
+    end
+end)
+Folder_AutoGym:AddSwitch('Auto Muscle King Bench', function(p41)
+    if p41 then
+        _G.automlking = true
+
+        while true do
+            local v42 = {
+                'useMachine',
+                workspace.machinesFolder:FindFirstChild('Muscle King Bench').interactSeat,
+            }
+
+            game:GetService('ReplicatedStorage').rEvents.machineInteractRemote:InvokeServer(unpack(v42))
+
+            local _Character2 = game.Players.LocalPlayer.Character
+            local v44 = Vector3.new(-8593.6884765625, 22.231548309326172, -6061.2900390625)
+
+            if _Character2 then
+                _Character2.HumanoidRootPart.CFrame = CFrame.new(v44)
+            end
+
+            wait()
+
+            local v45 = {
+                'rep',
+                workspace.machinesFolder:FindFirstChild('Muscle King Bench').interactSeat,
+            }
+
+            game:GetService('Players').LocalPlayer.muscleEvent:FireServer(unpack(v45))
+            game:GetService('RunService').RenderStepped:Wait()
+
+            if not _G.automlking then
+            end
+        end
+    else
+        _G.automlking = false
+
+        return
+    end
+end)
+Folder_AutoGym:AddSwitch('Auto Muscle King Squat', function(p46)
+    if p46 then
+        _G.automlking = true
+
+        while true do
+            local v47 = {
+                'useMachine',
+                workspace.machinesFolder:FindFirstChild('Muscle King Squat').interactSeat,
+            }
+
+            game:GetService('ReplicatedStorage').rEvents.machineInteractRemote:InvokeServer(unpack(v47))
+
+            local _Character3 = game.Players.LocalPlayer.Character
+            local v49 = Vector3.new(-8752, 24, -6051)
+
+            if _Character3 then
+                _Character3.HumanoidRootPart.CFrame = CFrame.new(v49)
+            end
+
+            wait()
+
+            local v50 = {
+                'rep',
+                workspace.machinesFolder:FindFirstChild('Muscle King Squat').interactSeat,
+            }
+
+            game:GetService('Players').LocalPlayer.muscleEvent:FireServer(unpack(v50))
+            game:GetService('RunService').RenderStepped:Wait()
+
+            if not _G.automlking then
+            end
+        end
+    else
+        _G.automlking = false
+
+        return
+    end
+end)
+Folder_AutoGym:AddSwitch('Auto Muscle King Boulder', function(p51)
+    if p51 then
+        _G.automlking = true
+
+        while true do
+            local v52 = {
+                'useMachine',
+                workspace.machinesFolder:FindFirstChild('King Boulder').interactSeat,
+            }
+
+            game:GetService('ReplicatedStorage').rEvents.machineInteractRemote:InvokeServer(unpack(v52))
+
+            local _Character4 = game.Players.LocalPlayer.Character
+            local v54 = Vector3.new(-8944, 24, -5684)
+
+            if _Character4 then
+                _Character4.HumanoidRootPart.CFrame = CFrame.new(v54)
+            end
+
+            wait()
+
+            local v55 = {
+                'rep',
+                workspace.machinesFolder:FindFirstChild('King Boulder').interactSeat,
+            }
+
+            game:GetService('Players').LocalPlayer.muscleEvent:FireServer(unpack(v55))
+            game:GetService('RunService').RenderStepped:Wait()
+
+            if not _G.automlking then
+            end
+        end
+    else
+        _G.automlking = false
+
+        return
+    end
+end)
+Folder_AutoGym:AddLabel('Legends Gym')
+Folder_AutoGym:AddSwitch('Auto Legends Press', function(p56)
+    if p56 then
+        _G.autolegends = true
+
+        while true do
+            local v57 = {
+                'useMachine',
+                workspace.machinesFolder:FindFirstChild('Legends Press').interactSeat,
+            }
+
+            game:GetService('ReplicatedStorage').rEvents.machineInteractRemote:InvokeServer(unpack(v57))
+
+            local _Character5 = game.Players.LocalPlayer.Character
+            local v59 = Vector3.new(4097.8427734375, 996.5140380859375, -3787.60791015625)
+
+            if _Character5 then
+                _Character5.HumanoidRootPart.CFrame = CFrame.new(v59)
+            end
+
+            wait()
+
+            local v60 = {
+                'rep',
+                workspace.machinesFolder:FindFirstChild('Legends Press').interactSeat,
+            }
+
+            game:GetService('Players').LocalPlayer.muscleEvent:FireServer(unpack(v60))
+            game:GetService('RunService').RenderStepped:Wait()
+
+            if not _G.autolegends then
+            end
+        end
+    else
+        _G.autolegends = false
+
+        return
+    end
+end)
+Folder_AutoGym:AddSwitch('Auto Legends Throw', function(p61)
+    if p61 then
+        _G.autolegends = true
+
+        local v62 = {
+            'useMachine',
+            workspace.machinesFolder:FindFirstChild('Legends Throw').interactSeat,
+        }
+
+        game:GetService('ReplicatedStorage').rEvents.machineInteractRemote:InvokeServer(unpack(v62))
+
+        local _Character6 = game.Players.LocalPlayer.Character
+        local v64 = Vector3.new(4196.248046875, 991.5355224609375, -3905.087158203125)
+
+        if _Character6 then
+            _Character6.HumanoidRootPart.CFrame = CFrame.new(v64)
+        end
+
+        wait()
+
+        local v65 = {
+            'rep',
+            workspace.machinesFolder:FindFirstChild('Legends Throw').interactSeat,
+        }
+
+        game:GetService('Players').LocalPlayer.muscleEvent:FireServer(unpack(v65))
+        game:GetService('RunService').RenderStepped:Wait()
+
+        if not _G.autolegends then
+        end
+    end
+
+    _G.autolegends = false
+end)
+Folder_AutoGym:AddSwitch('Auto Legends Pullup', function(p66)
+    if p66 then
+        _G.autolegends = true
+
+        while true do
+            local v67 = {
+                'useMachine',
+                workspace.machinesFolder:FindFirstChild('Legends Pullup').interactSeat,
+            }
+
+            game:GetService('ReplicatedStorage').rEvents.machineInteractRemote:InvokeServer(unpack(v67))
+
+            local _Character7 = game.Players.LocalPlayer.Character
+            local v69 = Vector3.new(4308, 998, -4121)
+
+            if _Character7 then
+                _Character7.HumanoidRootPart.CFrame = CFrame.new(v69)
+            end
+
+            wait()
+
+            local v70 = {
+                'rep',
+                workspace.machinesFolder:FindFirstChild('Legends Pullup').interactSeat,
+            }
+
+            game:GetService('Players').LocalPlayer.muscleEvent:FireServer(unpack(v70))
+            game:GetService('RunService').RenderStepped:Wait()
+
+            if not _G.autolegends then
+            end
+        end
+    else
+        _G.autolegends = false
+
+        return
+    end
+end)
+Folder_AutoGym:AddSwitch('Auto Legends Squat', function(p71)
+    if p71 then
+        _G.autolegends = true
+
+        while true do
+            local v72 = {
+                'useMachine',
+                workspace.machinesFolder:FindFirstChild('Legends Squat').interactSeat,
+            }
+
+            game:GetService('ReplicatedStorage').rEvents.machineInteractRemote:InvokeServer(unpack(v72))
+
+            local _Character8 = game.Players.LocalPlayer.Character
+            local v74 = Vector3.new(4446, 998, -4069)
+
+            if _Character8 then
+                _Character8.HumanoidRootPart.CFrame = CFrame.new(v74)
+            end
+
+            wait()
+
+            local v75 = {
+                'rep',
+                workspace.machinesFolder:FindFirstChild('Legends Squat').interactSeat,
+            }
+
+            game:GetService('Players').LocalPlayer.muscleEvent:FireServer(unpack(v75))
+            game:GetService('RunService').RenderStepped:Wait()
+
+            if not _G.autolegends then
+            end
+        end
+    else
+        _G.autolegends = false
+
+        return
+    end
+end)
+Folder_AutoGym:AddSwitch('Auto Legends Lift', function(p76)
+    if p76 then
+        _G.autolegends = true
+
+        while true do
+            local v77 = {
+                'useMachine',
+                workspace.machinesFolder:FindFirstChild('Legends Lift').interactSeat,
+            }
+
+            game:GetService('ReplicatedStorage').rEvents.machineInteractRemote:InvokeServer(unpack(v77))
+
+            local _Character9 = game.Players.LocalPlayer.Character
+            local v79 = Vector3.new(4527.3583984375, 991.4735717773438, -4001.750732421875)
+
+            if _Character9 then
+                _Character9.HumanoidRootPart.CFrame = CFrame.new(v79)
+            end
+
+            wait()
+
+            local v80 = {
+                'rep',
+                workspace.machinesFolder:FindFirstChild('Legends Lift').interactSeat,
+            }
+
+            game:GetService('Players').LocalPlayer.muscleEvent:FireServer(unpack(v80))
+            game:GetService('RunService').RenderStepped:Wait()
+
+            if not _G.autolegends then
+            end
+        end
+    else
+        _G.autolegends = false
+
+        return
+    end
+end)
 local rebirthtab = window:AddTab("rebirths sin packs")
 
 rebirthtab:AddTextBox("Rebirth Target", function(text)
