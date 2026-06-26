@@ -576,7 +576,7 @@ Players.PlayerAdded:Connect(function(plr)
 	end
 end)
 local farmTab = window:AddTab("Rock")
-local Folderanal = pets:AddFolder("FARM-ROCK-V1")
+local Folderanal = farmTab:AddFolder("FARM-ROCK-V1")
 Folderanal:AddLabel("Rock Farming")
 
 getgenv().autoFarm = false
