@@ -319,7 +319,7 @@ Foldersexo:AddSwitch("Auto buy Aura", function(bool)
     end
 end)
 
-Foldersexo:Show()
+pets:Show()
 
 Foldersexo:AddLabel("=== buy ultimates ===")
 
