@@ -24,9 +24,9 @@ local window = library:AddWindow(title, {
 })
 
 
-local pets = window:AddTab("Crystals")
+local pets = window:AddTab("pets")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
+local Foldersexo = pets:AddFolder("crystals")
 -- Crystal data structure with exact names from your original code
 local crystalData = {
     ["Blue Crystal"] = {
@@ -160,10 +160,10 @@ local selectedAura = ""
 -- Get all pets and auras
 local allPets, allAuras = getAllPetsAndAuras()
 
-pets:AddLabel("--- Buy pets and auras ---")
+Foldersexo:AddLabel("--- Buy pets and auras ---")
 
 -- Pet dropdown
-local petDropdown = pets:AddDropdown("Select pet", function(text)
+local petDropdown = Foldersexo:AddDropdown("Select pet", function(text)
     selectedPet = text
     local crystal = findCrystalForItem(text)
     print("Pet selected: " .. text .. " (Found in: " .. (crystal or "Unknown") .. ")")
@@ -217,7 +217,7 @@ petDropdown:Add("Muscle Sensei (Unique)")
 petDropdown:Add("Neon Guardian (Unique)")
 
 -- Aura dropdown
-local auraDropdown = pets:AddDropdown("Select Aura", function(text)
+local auraDropdown = Foldersexo:AddDropdown("Select Aura", function(text)
     selectedAura = text
     local crystal = findCrystalForItem(text)
     print("Aura selected: " .. text .. " (Found in: " .. (crystal or "Unknown") .. ")")
@@ -237,10 +237,10 @@ auraDropdown:Add("Muscle King (Unique)")
 auraDropdown:Add("Entropic Blast (Unique)")
 auraDropdown:Add("Eternal Megastrike (Unique)")
 
-pets:AddLabel("--- System to buys---")
+Foldersexo:AddLabel("--- System to buys---")
 
 -- Auto buy pet toggle
-pets:AddSwitch("Auto Buy Pet", function(bool)
+Foldersexo:AddSwitch("Auto Buy Pet", function(bool)
     _G.AutoBuyPet = bool
     
     if bool then
@@ -280,7 +280,7 @@ pets:AddSwitch("Auto Buy Pet", function(bool)
 end)
 
 -- Auto buy aura toggle
-pets:AddSwitch("Auto buy Aura", function(bool)
+Foldersexo:AddSwitch("Auto buy Aura", function(bool)
     _G.AutoBuyAura = bool
     
     if bool then
@@ -319,16 +319,15 @@ pets:AddSwitch("Auto buy Aura", function(bool)
     end
 end)
 
--- Show the pets tab
-pets:Show()
+Foldersexo:Show()
 
-pets:AddLabel("=== buy ultimates ===")
+Foldersexo:AddLabel("=== buy ultimates ===")
 
 -- Ultimate options
 local ultimateOptions = {
     "+1 Daily Spin",
-    "+1 Pet Slot",
-    "+10 Item Capacity",
+    "+1 Pet Slot", 
+	"+10 Item Capacity",
     "+5% Rep Speed",
     "Demon Damage",
     "Galaxy Gains",
@@ -343,7 +342,7 @@ local ultimateOptions = {
 local selectedUltimate = ""
 
 -- Ultimate dropdown
-local ultimateDropdown = pets:AddDropdown("Select ultimate", function(text)
+local ultimateDropdown = Foldersexo:AddDropdown("Select ultimate", function(text)
     selectedUltimate = text
     print("Ultimate selected: " .. text)
 end)
@@ -354,7 +353,7 @@ for _, ultimate in ipairs(ultimateOptions) do
 end
 
 -- Auto upgrade ultimate toggle
-pets:AddSwitch("Auto Buy Ultimates", function(bool)
+Foldersexo:AddSwitch("Auto Buy Ultimates", function(bool)
     _G.AutoUpgradeUltimate = bool
     
     if bool then
@@ -362,8 +361,7 @@ pets:AddSwitch("Auto Buy Ultimates", function(bool)
             print("Please select an ultimate first!")
             return
         end
-        
-        print("Auto upgrade ultimate started for: " .. selectedUltimate)
+			print("Auto upgrade ultimate started for: " .. selectedUltimate)
         spawn(function()
             while _G.AutoUpgradeUltimate and selectedUltimate ~= "" do
                 game:GetService("ReplicatedStorage").rEvents.ultimatesRemote:InvokeServer(
@@ -441,8 +439,7 @@ pets:AddSwitch("Auto Evolve Pets", function(state)
 		print("Auto evolve OFF")
 	end
 end)
-local TradeTab = window:AddTab("Auto Trade")
-
+local FolderTrade = pets:AddFolder("trade")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local player = Players.LocalPlayer
@@ -492,7 +489,7 @@ local selectedRarity = nil
 local autoTrading = false
 local tradeAll = false
 
-local playerDropdown = TradeTab:AddDropdown("Choose Player", function(value)
+local playerDropdown = FolderTrade:AddDropdown("Choose Player", function(value)
 	selectedPlayer = value
 end)
 
@@ -509,7 +506,7 @@ Players.PlayerRemoving:Connect(function(plr)
 	playerDropdown:Remove(plr.Name)
 end)
 
-local petDropdown = TradeTab:AddDropdown("Choose Pet", function(value)
+local petDropdown = FolderTrade:AddDropdown("Choose Pet", function(value)
 	selectedPet = value
 	selectedRarity = petList[value]
 end)
@@ -546,7 +543,7 @@ local function doTrade(target)
 	ReplicatedStorage.rEvents.tradingEvent:FireServer(unpack(args3))
 end
 
-TradeTab:AddSwitch("Start Auto Trade", function(state)
+FolderTrade:AddSwitch("Start Auto Trade", function(state)
 	autoTrading = state
 	if state and selectedPlayer and selectedPet then
 		task.spawn(function()
@@ -555,7 +552,7 @@ TradeTab:AddSwitch("Start Auto Trade", function(state)
 	end
 end)
 
-TradeTab:AddSwitch("Trade All Players", function(state)
+FolderTrade:AddSwitch("Trade All Players", function(state)
 	tradeAll = state
 	if state and selectedPet then
 		task.spawn(function()
@@ -1332,6 +1329,8 @@ end)
 
 local FarmingTab = window:AddTab("Fast Farm")
 
+local Folderfarming = FarmingTab:AddFolder("Pack Damage Calculator")
+
 local strengthStat = leaderstats:WaitForChild("Strength")
 local durabilityStat = player:WaitForChild("Durability")
 
@@ -1353,7 +1352,7 @@ local function formatNumber(number)
     end
 end
 
-FarmingTab:AddLabel("Time:").TextSize = 20
+Folderfarming:AddLabel("Time:").TextSize = 20
 local stopwatchLabel = FarmingTab:AddLabel("0d 0h 0m 0s - Fast Rep Inactive")
 stopwatchLabel.TextSize = 17
 stopwatchLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
@@ -1367,7 +1366,7 @@ averageStrengthLabel.TextSize = 17
 local averageDurabilityLabel = FarmingTab:AddLabel("[Average Durability Pace: 0 /Hour | 0 /Day | 0 /Week]")
 averageDurabilityLabel.TextSize = 17
 
-FarmingTab:AddLabel("").TextSize = 10
+Folderfarming:AddLabel("").TextSize = 10
 local statsLabel = FarmingTab:AddLabel("Stats:")
 statsLabel.TextSize = 20
 local strengthLabel = FarmingTab:AddLabel("Strength: 0 | Gained: 0")
@@ -1481,8 +1480,8 @@ task.spawn(function()
     end
 end)
 
-FarmingTab:AddLabel("")
-FarmingTab:AddLabel("Fast Farm (Recommended Speed: 20)").TextSize = 20
+Folderfarming:AddLabel("")
+Folderfarming:AddLabel("Fast Farm (Recommended Speed: 20)").TextSize = 20
 
 local repsPerTick = 1
 
@@ -1492,7 +1491,7 @@ local function getPing()
     return pingStat and pingStat:GetValue() or 0
 end
 
-FarmingTab:AddTextBox("Rep Speed", function(value)
+Folderfarming:AddTextBox("Rep Speed", function(value)
     local num = tonumber(value)
     if num and num > 0 then
         repsPerTick = math.floor(num)
@@ -1516,7 +1515,7 @@ local function fastRepLoop()
     end
 end
 
-FarmingTab:AddSwitch("Fast Rep", function(state)
+Folderfarming:AddSwitch("Fast Rep", function(state)
     if state and not runFastRep then
         runFastRep = true
         task.spawn(fastRepLoop)
@@ -2001,9 +2000,9 @@ Folder_AutoGym:AddSwitch('Auto Legends Lift', function(p76)
         return
     end
 end)
-local rebirthtab = window:AddTab("rebirths sin packs")
 
-rebirthtab:AddTextBox("Rebirth Target", function(text)
+local Folder_rebirth = FarmingTab:AddFolder("sin packs")
+Folder_rebirth:AddTextBox("Rebirth Target", function(text)
     local newValue = tonumber(text)
     if newValue and newValue > 0 then
         targetRebirthValue = newValue
@@ -2023,7 +2022,7 @@ rebirthtab:AddTextBox("Rebirth Target", function(text)
     end
 end)
 
-local targetSwitch = rebirthtab:AddSwitch("Auto Rebirth Target", function(bool)
+local targetSwitch = Folder_rebirth:AddSwitch("Auto Rebirth Target", function(bool)
     _G.targetRebirthActive = bool
     
     if bool then
@@ -2055,7 +2054,7 @@ local targetSwitch = rebirthtab:AddSwitch("Auto Rebirth Target", function(bool)
     end
 end, "automatic rebirth until reaching the goal")
 
-infiniteSwitch = rebirthtab:AddSwitch("Auto Rebirth (Infinitely)", function(bool)
+infiniteSwitch = Folder_rebirth:AddSwitch("Auto Rebirth (Infinitely)", function(bool)
     _G.infiniteRebirthActive = bool
     
     if bool then
@@ -2072,7 +2071,7 @@ infiniteSwitch = rebirthtab:AddSwitch("Auto Rebirth (Infinitely)", function(bool
     end
 end, "rebirth infinitely")
 
-local sizeSwitch = rebirthtab:AddSwitch("Auto Size 2", function(bool)
+local sizeSwitch = Folder_rebirth:AddSwitch("Auto Size 2", function(bool)
     _G.autoSizeActive = bool
     
     if bool then
@@ -2084,7 +2083,7 @@ local sizeSwitch = rebirthtab:AddSwitch("Auto Size 2", function(bool)
     end
 end, "Size 2")
 
-local teleportSwitch = rebirthtab:AddSwitch("Auto Teleport to Muscle King", function(bool)
+local teleportSwitch = Folder_rebirth:AddSwitch("Auto Teleport to Muscle King", function(bool)
     _G.teleportActive = bool
     
     if bool then
@@ -2504,7 +2503,7 @@ extraTab:AddSwitch("Hide All Frames", function(state)
     local rSto = game:GetService("ReplicatedStorage")
 
     for _, obj in pairs(rSto:GetDescendants()) do
-        if obj:IsA("GuiObject") and obj.Name:match("Frame$") then
+        if obj:IsA("GuiObject") and obj.Name:match("Frames") then
             obj.Visible = not state
         end
     end
