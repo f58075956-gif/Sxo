@@ -1329,7 +1329,7 @@ end)
 
 local FarmingTab = window:AddTab("Fast Farm")
 
-local Folderfarming = FarmingTab:AddFolder("Pack Damage Calculator")
+local Folderfarming = FarmingTab:AddFolder("farm")
 
 local strengthStat = leaderstats:WaitForChild("Strength")
 local durabilityStat = player:WaitForChild("Durability")
@@ -1357,21 +1357,21 @@ local stopwatchLabel = FarmingTab:AddLabel("0d 0h 0m 0s - Fast Rep Inactive")
 stopwatchLabel.TextSize = 17
 stopwatchLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
 
-local projectedStrengthLabel = FarmingTab:AddLabel("[Strength Pace: 0 /Hour | 0 /Day | 0 /Week]")
+local projectedStrengthLabel = Folderfarming:AddLabel("[Strength Pace: 0 /Hour | 0 /Day | 0 /Week]")
 projectedStrengthLabel.TextSize = 17
-local projectedDurabilityLabel = FarmingTab:AddLabel("[Durability Pace: 0 /Hour | 0 /Day | 0 /Week]")
+local projectedDurabilityLabel = Folderfarming:AddLabel("[Durability Pace: 0 /Hour | 0 /Day | 0 /Week]")
 projectedDurabilityLabel.TextSize = 17
-local averageStrengthLabel = FarmingTab:AddLabel("[Average Strength Pace: 0 /Hour | 0 /Day | 0 /Week]")
+local averageStrengthLabel = Folderfarming:AddLabel("[Average Strength Pace: 0 /Hour | 0 /Day | 0 /Week]")
 averageStrengthLabel.TextSize = 17
-local averageDurabilityLabel = FarmingTab:AddLabel("[Average Durability Pace: 0 /Hour | 0 /Day | 0 /Week]")
+local averageDurabilityLabel = Folderfarming:AddLabel("[Average Durability Pace: 0 /Hour | 0 /Day | 0 /Week]")
 averageDurabilityLabel.TextSize = 17
 
 Folderfarming:AddLabel("").TextSize = 10
-local statsLabel = FarmingTab:AddLabel("Stats:")
+local statsLabel = Folderfarming:AddLabel("Stats:")
 statsLabel.TextSize = 20
-local strengthLabel = FarmingTab:AddLabel("Strength: 0 | Gained: 0")
+local strengthLabel = Folderfarming:AddLabel("Strength: 0 | Gained: 0")
 strengthLabel.TextSize = 17
-local durabilityLabel = FarmingTab:AddLabel("Durability: 0 | Gained: 0")
+local durabilityLabel = Folderfarming:AddLabel("Durability: 0 | Gained: 0")
 durabilityLabel.TextSize = 17
 
 local startTime = 0
