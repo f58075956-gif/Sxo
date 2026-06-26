@@ -576,7 +576,8 @@ Players.PlayerAdded:Connect(function(plr)
 	end
 end)
 local farmTab = window:AddTab("Rock")
-farmTab:AddLabel("Rock Farming")
+local Folderanal = pets:AddFolder("FARM-ROCK-V1")
+Folderanal:AddLabel("Rock Farming")
 
 getgenv().autoFarm = false
 
@@ -818,47 +819,47 @@ local function farmRock(targetDurability)
 end
 
 -- 🔘 SWITCHES (todos arreglados)
-farmTab:AddSwitch("Tiny Island Rock", function(bool)
+Folderanal:AddSwitch("Tiny Island Rock", function(bool)
     getgenv().autoFarm = bool
     if bool then farmRock(0) end
 end)
 
-farmTab:AddSwitch("Starter Island Rock", function(bool)
+Folderanal:AddSwitch("Starter Island Rock", function(bool)
     getgenv().autoFarm = bool
     if bool then farmRock(100) end
 end)
 
-farmTab:AddSwitch("Legend Beach Rock", function(bool)
+Folderanal:AddSwitch("Legend Beach Rock", function(bool)
     getgenv().autoFarm = bool
     if bool then farmRock(5000) end
 end)
 
-farmTab:AddSwitch("Frost Gym Rock", function(bool)
+Folderanal:AddSwitch("Frost Gym Rock", function(bool)
     getgenv().autoFarm = bool
     if bool then farmRock(150000) end
 end)
 
-farmTab:AddSwitch("Mythical Gym Rock", function(bool)
+Folderanal:AddSwitch("Mythical Gym Rock", function(bool)
     getgenv().autoFarm = bool
     if bool then farmRock(400000) end
 end)
 
-farmTab:AddSwitch("Eternal Gym Rock", function(bool)
+Folderanal:AddSwitch("Eternal Gym Rock", function(bool)
     getgenv().autoFarm = bool
     if bool then farmRock(750000) end
 end)
 
-farmTab:AddSwitch("Legend Gym Rock", function(bool)
+Folderanal:AddSwitch("Legend Gym Rock", function(bool)
     getgenv().autoFarm = bool
     if bool then farmRock(1000000) end
 end)
 
-farmTab:AddSwitch("Muscle King Gym Rock", function(bool)
+Folderanal:AddSwitch("Muscle King Gym Rock", function(bool)
     getgenv().autoFarm = bool
     if bool then farmRock(5000000) end
 end)
 
-farmTab:AddSwitch("Ancient Jungle Rock", function(bool)
+Folderanal:AddSwitch("Ancient Jungle Rock", function(bool)
     getgenv().autoFarm = bool
     if bool then farmRock(10000000) end
 end) 
