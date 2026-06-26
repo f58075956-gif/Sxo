@@ -19,7 +19,7 @@ local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/f5807
 
 local window = library:AddWindow(title, {
     main_color = Color3.fromRGB(0, 0, 0),
-    min_size = Vector2.new(870, 870),
+    min_size = Vector2.new(760, 760),
     can_resize = true,
 })
 
