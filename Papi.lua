@@ -4245,10 +4245,10 @@ end)
 local infoTab = window:AddTab("info")
 infoTab:AddLabel("hecho por karma").TextSize = 20
 infoTab:AddLabel("op script").TextSize = 20
-infoTab:AddLabel("").TextSize = 20
+infoTab:AddLabel("epic").TextSize = 20
 
 infoTab:AddButton("Copy Invite", function()
-    local link = "https://discord.gg/FYqJrqeeG9"
+    local link = "https://discord.gg/v5nw66wcEQ"
 
     if setclipboard then
         setclipboard(link)
