@@ -2715,6 +2715,21 @@ extraTab:AddSwitch("Hide All Frames", function(state)
 end)
 
 
+extraTab:AddButton("Gamepass AutoLift", function()
+
+    local gamepassIds = ReplicatedStorage:WaitForChild("gamepassIds")
+
+    for _, gamepass in ipairs(gamepassIds:GetChildren()) do
+        local owned = Instance.new("IntValue")
+        owned.Name = gamepass.Name
+        owned.Value = gamepass.Value
+        owned.Parent = player:WaitForChild("ownedGamepasses")
+    end
+
+    print("[Gamepass AutoLift] Todos los gamepasses fueron agregados localmente.")
+
+end)
+
 extraTab:AddButton("Anti Lag", function()
     for _, v in pairs(game:GetDescendants()) do
         if v:IsA("ParticleEmitter") or v:IsA("Smoke") or v:IsA("Fire") or v:IsA("Sparkles") then
