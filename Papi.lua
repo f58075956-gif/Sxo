@@ -2910,66 +2910,45 @@ playerNameLabel.TextSize = 20
 
 local playerUsernameLabel = SpecsTab:AddLabel("Username: N/A")
 playerUsernameLabel.TextSize = 20
---//========================--
---//       MY STATS        //
---//========================--
 local function CreateMyStats()
-SpecsTab:AddLabel("━━━━━━━━ MY STATS ━━━━━━━━").TextSize = 22
 
-local myPlayer = Players.LocalPlayer
-local myLeaderstats = myPlayer:WaitForChild("leaderstats")
+    -- ===== PARTE 1 =====
+    SpecsTab:AddLabel("━━━━━━━━ MY STATS ━━━━━━━━").TextSize = 22
 
-local myStrengthStat = myLeaderstats:WaitForChild("Strength")
-local myRebirthStat = myLeaderstats:WaitForChild("Rebirths")
-local myKillsStat = myLeaderstats:WaitForChild("Kills")
+    local myPlayer = Players.LocalPlayer
+    local myLeaderstats = myPlayer:WaitForChild("leaderstats")
 
-local myDurabilityStat = myPlayer:WaitForChild("Durability")
-local myEvilStat = myPlayer:WaitForChild("evilKarma")
-local myGoodStat = myPlayer:WaitForChild("goodKarma")
+    local myStrengthStat = myLeaderstats:WaitForChild("Strength")
+    local myRebirthStat = myLeaderstats:WaitForChild("Rebirths")
+    local myKillsStat = myLeaderstats:WaitForChild("Kills")
 
-local SessionLabel = SpecsTab:AddLabel("⏱️ Session: 0d 0h 0m 0s")
-SessionLabel.TextSize = 20
+    local myDurabilityStat = myPlayer:WaitForChild("Durability")
+    local myEvilStat = myPlayer:WaitForChild("evilKarma")
+    local myGoodStat = myPlayer:WaitForChild("goodKarma")
 
-SpecsTab:AddLabel("").TextSize = 6
+    local SessionLabel = SpecsTab:AddLabel("⏱️ Session: 0d 0h 0m 0s")
+    local MyStrength = SpecsTab:AddLabel("💪 Strength: 0")
+    local MyDurability = SpecsTab:AddLabel("🛡️ Durability: 0")
+    local MyRebirths = SpecsTab:AddLabel("🔄 Rebirths: 0")
+    local MyKills = SpecsTab:AddLabel("⚔️ Kills: 0")
+    local MyEvil = SpecsTab:AddLabel("😈 Evil Karma: 0")
+    local MyGood = SpecsTab:AddLabel("😇 Good Karma: 0")
+    local MyStrengthRate = SpecsTab:AddLabel("💪 Str/hr: Warming up...")
+    local MyDurabilityRate = SpecsTab:AddLabel("🛡️ Dur/hr: Warming up...")
 
-local MyStrength = SpecsTab:AddLabel("💪 Strength: 0 (+0)")
-MyStrength.TextSize = 18
+    local sessionStart = tick()
 
-local MyDurability = SpecsTab:AddLabel("🛡️ Durability: 0 (+0)")
-MyDurability.TextSize = 18
+    local strengthStart = myStrengthStat.Value
+    local durabilityStart = myDurabilityStat.Value
+    local rebirthStart = myRebirthStat.Value
+    local killsStart = myKillsStat.Value
 
-local MyRebirths = SpecsTab:AddLabel("🔄 Rebirths: 0 (+0)")
-MyRebirths.TextSize = 18
+    local strengthHistory = {}
+    local durabilityHistory = {}
 
-local MyKills = SpecsTab:AddLabel("⚔️ Kills: 0 (+0)")
-MyKills.TextSize = 18
-
-local MyEvil = SpecsTab:AddLabel("😈 Evil Karma: 0")
-MyEvil.TextSize = 18
-
-local MyGood = SpecsTab:AddLabel("😇 Good Karma: 0")
-MyGood.TextSize = 18
-
-SpecsTab:AddLabel("").TextSize = 6
-
-local MyStrengthRate = SpecsTab:AddLabel("💪 Strength/hr: Warming up...")
-MyStrengthRate.TextSize = 18
-
-local MyDurabilityRate = SpecsTab:AddLabel("🛡️ Durability/hr: Warming up...")
-MyDurabilityRate.TextSize = 18
-
-local sessionStart = tick()
-
-local strengthStart = myStrengthStat.Value
-local durabilityStart = myDurabilityStat.Value
-local rebirthStart = myRebirthStat.Value
-local killsStart = myKillsStat.Value
-
-local strengthHistory = {}
-local durabilityHistory = {}
-task.spawn(function()
-	while task.wait(0.5) do
-
+    -- ===== PARTE 2 + 3 =====
+    task.spawn(function()
+        while task.wait(0.5) do
 		local elapsed = tick() - sessionStart
 
 		local days = math.floor(elapsed / 86400)
@@ -3039,33 +3018,24 @@ task.spawn(function()
 
 		while #durabilityHistory > 0 and now - durabilityHistory[1].t > 30 do
 			table.remove(durabilityHistory,1)
-		end
-					if #strengthHistory >= 2 then
-			local gain =
-				(strengthHistory[#strengthHistory].v - strengthHistory[1].v) /
-				(strengthHistory[#strengthHistory].t - strengthHistory[1].t)
+							end
+						        if #durabilityHistory >= 2 then
+            local gain =
+                (durabilityHistory[#durabilityHistory].v - durabilityHistory[1].v) /
+                (durabilityHistory[#durabilityHistory].t - durabilityHistory[1].t)
 
-			MyStrengthRate.Text =
-				"💪 Strength/hr: " ..
-				formatNumber(math.floor(gain * 3600))
-		else
-			MyStrengthRate.Text = "💪 Strength/hr: Warming up..."
-		end
+            MyDurabilityRate.Text =
+                "🛡️ Durability/hr: " ..
+                formatNumber(math.floor(gain * 3600))
+        else
+            MyDurabilityRate.Text = "🛡️ Durability/hr: Warming up..."
+        end
 
-		if #durabilityHistory >= 2 then
-			local gain =
-				(durabilityHistory[#durabilityHistory].v - durabilityHistory[1].v) /
-				(durabilityHistory[#durabilityHistory].t - durabilityHistory[1].t)
-
-			MyDurabilityRate.Text =
-				"🛡️ Durability/hr: " ..
-				formatNumber(math.floor(gain * 3600))
-		else
-			MyDurabilityRate.Text = "🛡️ Durability/hr: Warming up..."
-		end
-
-	end
+    end
 end)
+
+end
+
 CreateMyStats()
 	
 local statLabels = {}
