@@ -1528,6 +1528,42 @@ local player = game.Players.LocalPlayer
 local SelectedTool = nil
 local AutoFarmActive = false
 local selectedRock = nil
+local player = game.Players.LocalPlayer
+
+Folderfarming:AddSwitch("Fast Tools", function(state)
+    _G.FastTools = state
+
+    local toolSettings = {
+        {"Punch",       "attackTime", state and 0 or 0.01},
+        {"Ground Slam", "attackTime", state and 0 or 6},
+        {"Stomp",       "attackTime", state and 0 or 7},
+        {"Handstands",  "repTime",    state and 0 or 1},
+        {"Pushups",     "repTime",    state and 0 or 1},
+        {"Weight",      "repTime",    state and 0 or 1},
+        {"Situps",      "repTime",    state and 0 or 1},
+    }
+
+    local function applyTool(tool)
+        -- Backpack
+        local backpackTool = player.Backpack:FindFirstChild(tool[1])
+        if backpackTool and backpackTool:FindFirstChild(tool[2]) then
+            backpackTool[tool[2]].Value = tool[3]
+        end
+
+        -- Character
+        local character = player.Character
+        if character then
+            local equippedTool = character:FindFirstChild(tool[1])
+            if equippedTool and equippedTool:FindFirstChild(tool[2]) then
+                equippedTool[tool[2]].Value = tool[3]
+            end
+        end
+    end
+
+    for _, tool in ipairs(toolSettings) do
+        applyTool(tool)
+    end
+end)
 local FolderautoTools = FarmingTab:AddFolder("TOOLS X ROCK")
 FolderautoTools:AddLabel("Select the tool you will use:").TextSize = 22
 
@@ -2200,7 +2236,50 @@ Folderpapu:AddSwitch("FAST REBIRTH", function(state)
         end
     end)
 end)
+local AutoEggEnabled = false
 
+local function ConsumeProteinEgg()
+    local player = game.Players.LocalPlayer
+
+    player:WaitForChild("Backpack")
+
+    local character = player.Character or player.CharacterAdded:Wait()
+
+    local egg = player.Backpack:FindFirstChild("Protein Egg")
+
+    if egg then
+        egg.Parent = character
+
+        pcall(function()
+            egg:Activate()
+        end)
+
+        print("[AutoEgg] Protein Egg consumido.")
+    else
+        warn("[AutoEgg] No se encontró Protein Egg en el Backpack.")
+    end
+end
+
+task.spawn(function()
+    while true do
+        if AutoEggEnabled then
+            ConsumeProteinEgg()
+            task.wait(1800) -- 30 minutos
+        else
+            task.wait(1)
+        end
+    end
+end)
+
+Folderpapu:AddSwitch("Eat Egg (30 Min)", function(state)
+    AutoEggEnabled = state
+
+    if state then
+        print("[AutoEgg] Activado.")
+    else
+        print("[AutoEgg] Desactivado.")
+    end
+end)
 local RunService = game:GetService("RunService")
 local Lighting = game:GetService("Lighting")
 local UIS = game:GetService("UserInputService")
