@@ -2913,7 +2913,7 @@ playerUsernameLabel.TextSize = 20
 --//========================--
 --//       MY STATS        //
 --//========================--
-
+local function CreateMyStats()
 SpecsTab:AddLabel("━━━━━━━━ MY STATS ━━━━━━━━").TextSize = 22
 
 local myPlayer = Players.LocalPlayer
@@ -3066,6 +3066,8 @@ task.spawn(function()
 
 	end
 end)
+CreateMyStats()
+	
 local statLabels = {}
 for _, info in ipairs(statDefinitions) do
 	statLabels[info.name] =
