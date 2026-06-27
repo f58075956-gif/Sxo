@@ -3067,12 +3067,7 @@ local brawlsActive = false
 
 local Folder_stats = SpecsTab:AddFolder('my stats')
 statsTab:AddLabel("━━━━━━━ ⏱️ SESSION TIMER ━━━━━━━")
-local Players    = game:GetService("Players")
-local RS         = game:GetService("ReplicatedStorage")
-local RunSvc     = game:GetService("RunService")
-local SG         = game:GetService("StarterGui")
-local LP         = Players.LocalPlayer
-repeat task.wait() until LP and LP.Character
+
 
 local ss = os.time()
 local timeLbl = statsTab:AddLabel("⏱️ 0d 0h 0m 0s")
@@ -3098,9 +3093,9 @@ local strS = ls and ls:FindFirstChild("Strength")
 local rebS = ls and ls:FindFirstChild("Rebirths")
 local killS = ls and ls:FindFirstChild("Kills")
 
-local durS = LP:FindFirstChild("Durability")
-local evilS = LP:FindFirstChild("evilKarma")
-local goodS = LP:FindFirstChild("goodKarma")
+local durS = Players.LocalPlayer:FindFirstChild("Durability")
+local evilS = Players.LocalPlayer:FindFirstChild("evilKarma")
+local goodS = Players.LocalPlayer:FindFirstChild("goodKarma")
 
 local iStr = strS and strS.Value or 0
 local iDur = durS and durS.Value or 0
@@ -3145,9 +3140,8 @@ task.spawn(function()
 end)
 
 Folder_stats:AddLabel("━━━━━━━ 📉 GAIN RATE / HR ━━━━━━━")
-
-local RSL = Folder_stats:AddLabel("💪 Str/hr: Warming up...")
-local RDL = Folder_stats:AddLabel("🛡️ Dur/hr: Warming up...")
+local StrengthRateLabel = Folder_stats:AddLabel("💪 Str/hr: Warming up...")
+local DurabilityRateLabel = Folder_stats:AddLabel("🛡️ Dur/hr: Warming up...")
 
 local sH = {}
 local dH = {}
