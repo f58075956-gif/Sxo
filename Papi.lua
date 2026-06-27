@@ -3067,6 +3067,12 @@ local brawlsActive = false
 
 local Folder_stats = SpecsTab:AddFolder('my stats')
 statsTab:AddLabel("━━━━━━━ ⏱️ SESSION TIMER ━━━━━━━")
+local Players    = game:GetService("Players")
+local RS         = game:GetService("ReplicatedStorage")
+local RunSvc     = game:GetService("RunService")
+local SG         = game:GetService("StarterGui")
+local LP         = Players.LocalPlayer
+repeat task.wait() until LP and LP.Character
 
 local ss = os.time()
 local timeLbl = statsTab:AddLabel("⏱️ 0d 0h 0m 0s")
