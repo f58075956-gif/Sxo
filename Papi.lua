@@ -3065,7 +3065,6 @@ local rebirthsActive = false
 local killsActive = false
 local brawlsActive = false
 -- SESSION TIMER
-local SessionLabel = spy:AddLabel("stats gained")
 local sessionStart = os.time()
 local SessionLabel = spy:AddLabel("⏱️ Session: 0d 0h 0m 0s")
 
