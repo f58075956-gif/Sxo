@@ -2910,7 +2910,162 @@ playerNameLabel.TextSize = 20
 
 local playerUsernameLabel = SpecsTab:AddLabel("Username: N/A")
 playerUsernameLabel.TextSize = 20
+--//========================--
+--//       MY STATS        //
+--//========================--
 
+SpecsTab:AddLabel("━━━━━━━━ MY STATS ━━━━━━━━").TextSize = 22
+
+local myPlayer = Players.LocalPlayer
+local myLeaderstats = myPlayer:WaitForChild("leaderstats")
+
+local myStrengthStat = myLeaderstats:WaitForChild("Strength")
+local myRebirthStat = myLeaderstats:WaitForChild("Rebirths")
+local myKillsStat = myLeaderstats:WaitForChild("Kills")
+
+local myDurabilityStat = myPlayer:WaitForChild("Durability")
+local myEvilStat = myPlayer:WaitForChild("evilKarma")
+local myGoodStat = myPlayer:WaitForChild("goodKarma")
+
+local SessionLabel = SpecsTab:AddLabel("⏱️ Session: 0d 0h 0m 0s")
+SessionLabel.TextSize = 20
+
+SpecsTab:AddLabel("").TextSize = 6
+
+local MyStrength = SpecsTab:AddLabel("💪 Strength: 0 (+0)")
+MyStrength.TextSize = 18
+
+local MyDurability = SpecsTab:AddLabel("🛡️ Durability: 0 (+0)")
+MyDurability.TextSize = 18
+
+local MyRebirths = SpecsTab:AddLabel("🔄 Rebirths: 0 (+0)")
+MyRebirths.TextSize = 18
+
+local MyKills = SpecsTab:AddLabel("⚔️ Kills: 0 (+0)")
+MyKills.TextSize = 18
+
+local MyEvil = SpecsTab:AddLabel("😈 Evil Karma: 0")
+MyEvil.TextSize = 18
+
+local MyGood = SpecsTab:AddLabel("😇 Good Karma: 0")
+MyGood.TextSize = 18
+
+SpecsTab:AddLabel("").TextSize = 6
+
+local MyStrengthRate = SpecsTab:AddLabel("💪 Strength/hr: Warming up...")
+MyStrengthRate.TextSize = 18
+
+local MyDurabilityRate = SpecsTab:AddLabel("🛡️ Durability/hr: Warming up...")
+MyDurabilityRate.TextSize = 18
+
+local sessionStart = tick()
+
+local strengthStart = myStrengthStat.Value
+local durabilityStart = myDurabilityStat.Value
+local rebirthStart = myRebirthStat.Value
+local killsStart = myKillsStat.Value
+
+local strengthHistory = {}
+local durabilityHistory = {}
+task.spawn(function()
+	while task.wait(0.5) do
+
+		local elapsed = tick() - sessionStart
+
+		local days = math.floor(elapsed / 86400)
+		local hours = math.floor((elapsed % 86400) / 3600)
+		local minutes = math.floor((elapsed % 3600) / 60)
+		local seconds = math.floor(elapsed % 60)
+
+		SessionLabel.Text = string.format(
+			"⏱️ Session: %dd %dh %dm %ds",
+			days,
+			hours,
+			minutes,
+			seconds
+		)
+
+		MyStrength.Text =
+			"💪 Strength: " ..
+			formatNumber(myStrengthStat.Value) ..
+			" (+" ..
+			formatNumber(myStrengthStat.Value - strengthStart) ..
+			")"
+
+		MyDurability.Text =
+			"🛡️ Durability: " ..
+			formatNumber(myDurabilityStat.Value) ..
+			" (+" ..
+			formatNumber(myDurabilityStat.Value - durabilityStart) ..
+			")"
+
+		MyRebirths.Text =
+			"🔄 Rebirths: " ..
+			formatNumber(myRebirthStat.Value) ..
+			" (+" ..
+			formatNumber(myRebirthStat.Value - rebirthStart) ..
+			")"
+
+		MyKills.Text =
+			"⚔️ Kills: " ..
+			formatNumber(myKillsStat.Value) ..
+			" (+" ..
+			formatNumber(myKillsStat.Value - killsStart) ..
+			")"
+
+		MyEvil.Text =
+			"😈 Evil Karma: " ..
+			formatNumber(myEvilStat.Value)
+
+		MyGood.Text =
+			"😇 Good Karma: " ..
+			formatNumber(myGoodStat.Value)
+
+		local now = tick()
+
+		table.insert(strengthHistory,{
+			t = now,
+			v = myStrengthStat.Value
+		})
+
+		table.insert(durabilityHistory,{
+			t = now,
+			v = myDurabilityStat.Value
+		})
+
+		while #strengthHistory > 0 and now - strengthHistory[1].t > 30 do
+			table.remove(strengthHistory,1)
+		end
+
+		while #durabilityHistory > 0 and now - durabilityHistory[1].t > 30 do
+			table.remove(durabilityHistory,1)
+		end
+					if #strengthHistory >= 2 then
+			local gain =
+				(strengthHistory[#strengthHistory].v - strengthHistory[1].v) /
+				(strengthHistory[#strengthHistory].t - strengthHistory[1].t)
+
+			MyStrengthRate.Text =
+				"💪 Strength/hr: " ..
+				formatNumber(math.floor(gain * 3600))
+		else
+			MyStrengthRate.Text = "💪 Strength/hr: Warming up..."
+		end
+
+		if #durabilityHistory >= 2 then
+			local gain =
+				(durabilityHistory[#durabilityHistory].v - durabilityHistory[1].v) /
+				(durabilityHistory[#durabilityHistory].t - durabilityHistory[1].t)
+
+			MyDurabilityRate.Text =
+				"🛡️ Durability/hr: " ..
+				formatNumber(math.floor(gain * 3600))
+		else
+			MyDurabilityRate.Text = "🛡️ Durability/hr: Warming up..."
+		end
+
+	end
+end)
 local statLabels = {}
 for _, info in ipairs(statDefinitions) do
 	statLabels[info.name] =
@@ -3064,93 +3219,9 @@ local durabilityActive = false
 local rebirthsActive = false
 local killsActive = false
 local brawlsActive = false
--- SESSION TIMER
-local sessionStart = os.time()
-local SessionLabel = spy:AddLabel("⏱️ Session: 0d 0h 0m 0s")
 
-task.spawn(function()
-    while task.wait(1) do
-        local e = os.time() - sessionStart
-        SessionLabel.Text = string.format(
-            "⏱️ Session: %dd %dh %dm %ds",
-            math.floor(e / 86400),
-            math.floor((e % 86400) / 3600),
-            math.floor((e % 3600) / 60),
-            e % 60
-        )
-    end
-end)
 
--- GAINED
-local StrengthGainLabel = spy:AddLabel("💪 Strength: —")
-local DurabilityGainLabel = spy:AddLabel("🛡️ Durability: —")
-local RebirthGainLabel = spy:AddLabel("🔄 Rebirths: —")
-local KillGainLabel = spy:AddLabel("⚔️ Kills: —")
-local EvilLabel = spy:AddLabel("😈 Evil Karma: —")
-local GoodLabel = spy:AddLabel("😇 Good Karma: —")
 
-local strengthStart = Strength.Value
-local durabilityStart = Durability.Value
-local rebirthStart = Rebirths.Value
-local killStart = Kills.Value
-
--- RATE
-local StrengthRateLabel = spy:AddLabel("💪 Str/hr: Warming up...")
-local DurabilityRateLabel = spy:AddLabel("🛡️ Dur/hr: Warming up...")
-
-local strengthHistory = {}
-local durabilityHistory = {}
-
-task.spawn(function()
-    while task.wait(.5) do
-        local now = tick()
-
-        table.insert(strengthHistory,{t=now,v=Strength.Value})
-        table.insert(durabilityHistory,{t=now,v=Durability.Value})
-
-        while #strengthHistory>0 and now-strengthHistory[1].t>30 do
-            table.remove(strengthHistory,1)
-        end
-
-        while #durabilityHistory>0 and now-durabilityHistory[1].t>30 do
-            table.remove(durabilityHistory,1)
-        end
-
-        StrengthGainLabel.Text =
-            "💪 Strength: "..formatNumber(Strength.Value)..
-            " (+"..formatNumber(Strength.Value-strengthStart)..")"
-
-        DurabilityGainLabel.Text =
-            "🛡️ Durability: "..formatNumber(Durability.Value)..
-            " (+"..formatNumber(Durability.Value-durabilityStart)..")"
-
-        RebirthGainLabel.Text =
-            "🔄 Rebirths: "..formatNumber(Rebirths.Value)..
-            " (+"..formatNumber(Rebirths.Value-rebirthStart)..")"
-
-        KillGainLabel.Text =
-            "⚔️ Kills: "..formatNumber(Kills.Value)..
-            " (+"..formatNumber(Kills.Value-killStart)..")"
-
-        if evilKarma then
-            EvilLabel.Text = "😈 Evil Karma: "..formatNumber(evilKarma.Value)
-        end
-
-        if goodKarma then
-            GoodLabel.Text = "😇 Good Karma: "..formatNumber(goodKarma.Value)
-        end
-
-        if #strengthHistory>=2 then
-            local rate=(strengthHistory[#strengthHistory].v-strengthHistory[1].v)/(strengthHistory[#strengthHistory].t-strengthHistory[1].t)
-            StrengthRateLabel.Text="💪 Str/hr: "..formatNumber(math.floor(rate*3600))
-        end
-
-        if #durabilityHistory>=2 then
-            local rate=(durabilityHistory[#durabilityHistory].v-durabilityHistory[1].v)/(durabilityHistory[#durabilityHistory].t-durabilityHistory[1].t)
-            DurabilityRateLabel.Text="🛡️ Dur/hr: "..formatNumber(math.floor(rate*3600))
-        end
-    end
-end)
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 
