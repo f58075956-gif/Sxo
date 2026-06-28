@@ -1,0 +1,1097 @@
+-- â•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—
+-- â•‘       NEXO CHAT UNIVERSAL â€” by Karma         â•‘
+-- â•‘  SaveManager + Rangos + Comandos + @Mencionesâ•‘
+-- â•‘  + Chat Global entre todos los juegos        â•‘
+-- â•šâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+--  CONFIGURACIÃ“N GLOBAL
+--  Cambia esta URL por la de tu servidor Railway/Render
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+local GLOBAL_SERVER_URL = "ss-production-79fc.up.railway.app"
+
+-- "ALL" = todos los juegos comparten el chat
+-- Si quieres aislar por juego, pon el nombre del juego aquÃ­, ej: "MiJuego"
+local GAME_FILTER = "ALL"
+
+-- Cada cuÃ¡ntos segundos se piden mensajes nuevos del servidor
+local POLL_INTERVAL = 3
+
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+
+local Players          = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local TweenService     = game:GetService("TweenService")
+local HttpService      = game:GetService("HttpService")
+
+local lplr      = Players.LocalPlayer
+local playerGui = lplr:WaitForChild("PlayerGui")
+
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+--  SAVE MANAGER
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+local SaveManager = {} do
+    SaveManager.Folder    = "NexoUniversalChat"
+    SaveManager.File      = SaveManager.Folder .. "/settings.json"
+    SaveManager.RanksFile = SaveManager.Folder .. "/ranks.json"
+    SaveManager.BansFile  = SaveManager.Folder .. "/bans.json"
+    SaveManager.MutesFile = SaveManager.Folder .. "/mutes.json"
+
+    SaveManager.Defaults = {
+        WindowPosX     = 10,
+        WindowPosY     = 120,
+        WindowW        = 380,
+        WindowH        = 300,
+        MaxMessages    = 80,
+        AccentColorHex = "7850FF",
+        Minimized      = false,
+    }
+
+    function SaveManager:BuildFolder()
+        if not isfolder(self.Folder) then makefolder(self.Folder) end
+    end
+    function SaveManager:SaveTable(file, data)
+        self:BuildFolder()
+        local ok, enc = pcall(HttpService.JSONEncode, HttpService, data)
+        if ok then writefile(file, enc) end
+    end
+    function SaveManager:LoadTable(file)
+        self:BuildFolder()
+        if not isfile(file) then return {} end
+        local ok, dec = pcall(HttpService.JSONDecode, HttpService, readfile(file))
+        return ok and dec or {}
+    end
+    function SaveManager:Save(data) self:SaveTable(self.File, data) end
+    function SaveManager:Load()
+        local d = self:LoadTable(self.File)
+        for k, v in pairs(self.Defaults) do
+            if d[k] == nil then d[k] = v end
+        end
+        return d
+    end
+    SaveManager:BuildFolder()
+end
+
+local cfg = SaveManager:Load()
+
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+--  OWNER HARDCODED
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+local HARDCODED_OWNER_NAME = "KARMAXJOHAN"
+
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+--  RANGOS
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+local RANK_INFO = {
+    superowner = { label = "[OWNER]",  color = Color3.fromRGB(255,215,  0), level = 4 },
+    owner      = { label = "[OWNER]",  color = Color3.fromRGB(255,215,  0), level = 3 },
+    admin      = { label = "[ADMIN]",  color = Color3.fromRGB(255, 80, 80), level = 2 },
+    mod        = { label = "[MOD]",    color = Color3.fromRGB( 80,200,120), level = 1 },
+}
+
+local ranks = SaveManager:LoadTable(SaveManager.RanksFile)
+local function saveRanks() SaveManager:SaveTable(SaveManager.RanksFile, ranks) end
+
+local function getRank(uid)
+    local p = Players:GetPlayerByUserId(tonumber(uid) or 0)
+    if p and p.Name == HARDCODED_OWNER_NAME then return "superowner" end
+    if lplr and lplr.Name == HARDCODED_OWNER_NAME and tostring(lplr.UserId) == tostring(uid) then
+        return "superowner"
+    end
+    return ranks[tostring(uid)]
+end
+local function getRankLevel(uid)
+    local r = getRank(uid)
+    return r and RANK_INFO[r] and RANK_INFO[r].level or 0
+end
+
+local function applySuperOwnerIfNeeded()
+    if lplr.Name == HARDCODED_OWNER_NAME then
+        ranks[tostring(lplr.UserId)] = "superowner"
+        saveRanks()
+    end
+end
+
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+--  BANS
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+local bans = SaveManager:LoadTable(SaveManager.BansFile)
+local function saveBans() SaveManager:SaveTable(SaveManager.BansFile, bans) end
+local function isBanned(uid)
+    local e = bans[tostring(uid)]
+    if not e then return false end
+    if e.expiry and os.time() > e.expiry then bans[tostring(uid)] = nil; saveBans(); return false end
+    return true
+end
+
+if isBanned(lplr.UserId) then lplr:Kick("No puedes usar el script."); do return end end
+
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+--  MUTES
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+local mutes = SaveManager:LoadTable(SaveManager.MutesFile)
+local function saveMutes() SaveManager:SaveTable(SaveManager.MutesFile, mutes) end
+local function isMuted(uid)
+    local e = mutes[tostring(uid)]
+    if not e then return false end
+    if e.expiry and os.time() > e.expiry then mutes[tostring(uid)] = nil; saveMutes(); return false end
+    return true
+end
+
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+--  UTILIDADES
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+local function parseDuration(str)
+    if not str then return nil end
+    str = str:lower()
+    if str == "perm" or str == "permanente" then return nil end
+    local n, unit = str:match("^(%d+)(.+)$")
+    if not n then return nil end
+    n = tonumber(n)
+    if     unit == "s"                  then return n
+    elseif unit == "min" or unit == "m" then return n * 60
+    elseif unit == "h"                  then return n * 3600
+    elseif unit == "dia" or unit == "d" then return n * 86400
+    elseif unit == "sem"                then return n * 604800
+    end
+    return nil
+end
+
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+--  USUARIOS DEL SCRIPT
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+local scriptUsers = {}
+scriptUsers[tostring(lplr.UserId)] = true
+
+local function findPlayer(query)
+    query = query:lower()
+    for _, p in ipairs(Players:GetPlayers()) do
+        if p.DisplayName:lower():find(query, 1, true)
+        or p.Name:lower():find(query, 1, true) then return p end
+    end
+    return nil
+end
+
+local function getDisplayMatches(prefix)
+    prefix = prefix:lower()
+    local out = {}
+    for _, p in ipairs(Players:GetPlayers()) do
+        if scriptUsers[tostring(p.UserId)]
+        and p.DisplayName:lower():sub(1, #prefix) == prefix then
+            table.insert(out, p.DisplayName)
+        end
+    end
+    return out
+end
+
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+--  CONFIG RUNTIME
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+local CONFIG = {
+    MaxMessages  = cfg.MaxMessages,
+    ChatKey      = Enum.KeyCode.Return,
+    WindowSize   = UDim2.new(0, cfg.WindowW,  0, cfg.WindowH),
+    WindowPos    = UDim2.new(0, cfg.WindowPosX, 0, cfg.WindowPosY),
+    BubbleColor  = Color3.fromRGB(20, 20, 28),
+    AccentColor  = Color3.fromHex(cfg.AccentColorHex),
+    SelfColor    = Color3.fromRGB(80, 60, 180),
+    TextColor    = Color3.fromRGB(235, 235, 240),
+    SubTextColor = Color3.fromRGB(140, 140, 160),
+    MentionColor = Color3.fromRGB(120, 180, 255),
+    BorderColor  = Color3.fromRGB(60, 50, 90),
+    InputBg      = Color3.fromRGB(14, 14, 20),
+    ChatTag      = "[GLOBAL]",
+}
+
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+--  GUI â€” ScreenGui + MainFrame
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name           = "NexoUniversalChat"
+ScreenGui.ResetOnSpawn   = false
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+local guiParent = (typeof(gethui) == "function" and gethui()) or playerGui
+ScreenGui.DisplayOrder  = 999
+ScreenGui.Parent        = guiParent
+
+local MainFrame = Instance.new("Frame", ScreenGui)
+MainFrame.Name             = "MainFrame"
+MainFrame.Size             = CONFIG.WindowSize
+MainFrame.Position         = CONFIG.WindowPos
+MainFrame.BackgroundColor3 = CONFIG.BubbleColor
+MainFrame.BorderSizePixel  = 0
+MainFrame.ClipsDescendants = false
+Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 12)
+local _stroke = Instance.new("UIStroke", MainFrame)
+_stroke.Color = CONFIG.BorderColor; _stroke.Thickness = 1.5
+
+-- TopBar
+local TopBar = Instance.new("Frame", MainFrame)
+TopBar.Name = "TopBar"; TopBar.Size = UDim2.new(1,0,0,32)
+TopBar.BackgroundColor3 = Color3.fromRGB(14,10,24); TopBar.BorderSizePixel = 0
+Instance.new("UICorner", TopBar).CornerRadius = UDim.new(0,12)
+local _tbfix = Instance.new("Frame", TopBar)
+_tbfix.Size = UDim2.new(1,0,0.5,0); _tbfix.Position = UDim2.new(0,0,0.5,0)
+_tbfix.BackgroundColor3 = Color3.fromRGB(14,10,24)
+_tbfix.BorderSizePixel = 0; _tbfix.ZIndex = 0; _tbfix.Active = false
+
+local AccentDot = Instance.new("Frame", TopBar)
+AccentDot.Size = UDim2.new(0,8,0,8); AccentDot.Position = UDim2.new(0,10,0.5,-4)
+AccentDot.BackgroundColor3 = CONFIG.AccentColor; AccentDot.BorderSizePixel = 0
+Instance.new("UICorner", AccentDot).CornerRadius = UDim.new(1,0)
+
+local TitleLabel = Instance.new("TextLabel", TopBar)
+TitleLabel.Size = UDim2.new(1,-60,1,0); TitleLabel.Position = UDim2.new(0,24,0,0)
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.Text = "Chat Global  â€¢  conectando..."
+TitleLabel.TextColor3 = CONFIG.TextColor; TitleLabel.TextSize = 12
+TitleLabel.Font = Enum.Font.GothamMedium
+TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+local function updateTitle(connected)
+    local status = connected and "â— en lÃ­nea" or "â—‹ sin conexiÃ³n"
+    TitleLabel.Text = "Chat Global  â€¢  " .. status
+end
+
+local MinBtn = Instance.new("TextButton", TopBar)
+MinBtn.Size = UDim2.new(0,26,0,18); MinBtn.Position = UDim2.new(1,-30,0.5,-9)
+MinBtn.BackgroundColor3 = Color3.fromRGB(40,30,60); MinBtn.Text = "â€”"
+MinBtn.TextColor3 = CONFIG.SubTextColor; MinBtn.TextSize = 11
+MinBtn.Font = Enum.Font.GothamBold; MinBtn.BorderSizePixel = 0
+Instance.new("UICorner", MinBtn).CornerRadius = UDim.new(0,4)
+
+-- ScrollFrame (mensajes)
+local ScrollFrame = Instance.new("ScrollingFrame", MainFrame)
+ScrollFrame.Name = "ScrollFrame"; ScrollFrame.Size = UDim2.new(1,-8,1,-80)
+ScrollFrame.Position = UDim2.new(0,4,0,36); ScrollFrame.BackgroundTransparency = 1
+ScrollFrame.BorderSizePixel = 0; ScrollFrame.ScrollBarThickness = 3
+ScrollFrame.ScrollBarImageColor3 = CONFIG.AccentColor
+ScrollFrame.CanvasSize = UDim2.new(0,0,0,0)
+ScrollFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+ScrollFrame.ScrollingDirection = Enum.ScrollingDirection.Y
+ScrollFrame.ScrollingEnabled = true; ScrollFrame.Active = true
+local ListLayout = Instance.new("UIListLayout", ScrollFrame)
+ListLayout.Padding = UDim.new(0,4); ListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+local ListPadding = Instance.new("UIPadding", ScrollFrame)
+ListPadding.PaddingLeft = UDim.new(0,4); ListPadding.PaddingRight = UDim.new(0,4)
+ListPadding.PaddingTop = UDim.new(0,4)
+
+-- InputFrame
+local InputFrame = Instance.new("Frame", MainFrame)
+InputFrame.Name = "InputFrame"; InputFrame.Size = UDim2.new(1,-12,0,36)
+InputFrame.Position = UDim2.new(0,6,1,-42)
+InputFrame.BackgroundColor3 = CONFIG.InputBg; InputFrame.BorderSizePixel = 0
+Instance.new("UICorner", InputFrame).CornerRadius = UDim.new(0,8)
+local _istroke = Instance.new("UIStroke", InputFrame)
+_istroke.Color = CONFIG.BorderColor; _istroke.Thickness = 1
+
+local ChatInput = Instance.new("TextBox", InputFrame)
+ChatInput.Size = UDim2.new(1,-50,1,0); ChatInput.Position = UDim2.new(0,8,0,0)
+ChatInput.BackgroundTransparency = 1
+ChatInput.PlaceholderText = "Escribe, @ para mencionar, /ayuda..."
+ChatInput.PlaceholderColor3 = CONFIG.SubTextColor; ChatInput.Text = ""
+ChatInput.TextColor3 = CONFIG.TextColor; ChatInput.TextSize = 13
+ChatInput.Font = Enum.Font.Gotham
+ChatInput.TextXAlignment = Enum.TextXAlignment.Left
+ChatInput.ClearTextOnFocus = false
+
+local function applyMuteState()
+    if isMuted(lplr.UserId) then
+        ChatInput.Text = ""
+        ChatInput.TextEditable = false
+        ChatInput.PlaceholderText = "EstÃ¡s muteado, no puedes escribir."
+    else
+        ChatInput.TextEditable = true
+        ChatInput.PlaceholderText = "Escribe, @ para mencionar, /ayuda..."
+    end
+end
+applyMuteState()
+
+local SendBtn = Instance.new("TextButton", InputFrame)
+SendBtn.Size = UDim2.new(0,36,0,26); SendBtn.Position = UDim2.new(1,-40,0.5,-13)
+SendBtn.BackgroundColor3 = CONFIG.AccentColor; SendBtn.Text = "â†‘"
+SendBtn.TextColor3 = Color3.fromRGB(255,255,255); SendBtn.TextSize = 16
+SendBtn.Font = Enum.Font.GothamBold; SendBtn.BorderSizePixel = 0
+Instance.new("UICorner", SendBtn).CornerRadius = UDim.new(0,6)
+
+local TagLabel = Instance.new("TextLabel", MainFrame)
+TagLabel.Size = UDim2.new(0,70,0,14); TagLabel.Position = UDim2.new(0,6,1,-14)
+TagLabel.BackgroundTransparency = 1; TagLabel.Text = CONFIG.ChatTag
+TagLabel.TextColor3 = CONFIG.AccentColor; TagLabel.TextSize = 10
+TagLabel.Font = Enum.Font.GothamBold; TagLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+local CreditsLabel = Instance.new("TextLabel", MainFrame)
+CreditsLabel.Size = UDim2.new(0,80,0,14); CreditsLabel.Position = UDim2.new(1,-86,1,-14)
+CreditsLabel.BackgroundTransparency = 1; CreditsLabel.Text = "by Karma"
+CreditsLabel.TextColor3 = CONFIG.SubTextColor; CreditsLabel.TextSize = 10
+CreditsLabel.Font = Enum.Font.GothamBold; CreditsLabel.TextXAlignment = Enum.TextXAlignment.Right
+
+-- ReplyBar
+local ReplyBar = Instance.new("Frame", MainFrame)
+ReplyBar.Name = "ReplyBar"
+ReplyBar.Size = UDim2.new(1,-12,0,30); ReplyBar.Position = UDim2.new(0,6,1,-76)
+ReplyBar.BackgroundColor3 = Color3.fromRGB(24,20,36)
+ReplyBar.BorderSizePixel = 0; ReplyBar.Visible = false; ReplyBar.ZIndex = 8
+Instance.new("UICorner", ReplyBar).CornerRadius = UDim.new(0,6)
+local _rbstroke = Instance.new("UIStroke", ReplyBar)
+_rbstroke.Color = CONFIG.BorderColor; _rbstroke.Thickness = 1
+
+local ReplyStripe = Instance.new("Frame", ReplyBar)
+ReplyStripe.Size = UDim2.new(0,3,1,-8); ReplyStripe.Position = UDim2.new(0,4,0,4)
+ReplyStripe.BackgroundColor3 = CONFIG.AccentColor; ReplyStripe.BorderSizePixel = 0; ReplyStripe.ZIndex = 8
+
+local ReplyText = Instance.new("TextLabel", ReplyBar)
+ReplyText.Size = UDim2.new(1,-44,1,0); ReplyText.Position = UDim2.new(0,14,0,0)
+ReplyText.BackgroundTransparency = 1; ReplyText.TextColor3 = CONFIG.SubTextColor
+ReplyText.TextSize = 11; ReplyText.Font = Enum.Font.Gotham
+ReplyText.TextXAlignment = Enum.TextXAlignment.Left
+ReplyText.TextTruncate = Enum.TextTruncate.AtEnd; ReplyText.Text = ""; ReplyText.ZIndex = 8
+
+local ReplyCancelBtn = Instance.new("TextButton", ReplyBar)
+ReplyCancelBtn.Size = UDim2.new(0,22,0,22); ReplyCancelBtn.Position = UDim2.new(1,-26,0.5,-11)
+ReplyCancelBtn.BackgroundTransparency = 1
+ReplyCancelBtn.Text = "âœ•"; ReplyCancelBtn.TextColor3 = CONFIG.SubTextColor
+ReplyCancelBtn.TextSize = 13; ReplyCancelBtn.Font = Enum.Font.GothamBold; ReplyCancelBtn.ZIndex = 8
+
+-- MentionPopup
+local MentionPopup = Instance.new("Frame", MainFrame)
+MentionPopup.Name = "MentionPopup"
+MentionPopup.Size = UDim2.new(1,-12,0,0); MentionPopup.Position = UDim2.new(0,6,1,-42)
+MentionPopup.BackgroundColor3 = Color3.fromRGB(18,14,30)
+MentionPopup.BorderSizePixel = 0; MentionPopup.Visible = false
+MentionPopup.ZIndex = 10; MentionPopup.ClipsDescendants = true
+Instance.new("UICorner", MentionPopup).CornerRadius = UDim.new(0,8)
+local _mpstroke = Instance.new("UIStroke", MentionPopup)
+_mpstroke.Color = CONFIG.AccentColor; _mpstroke.Thickness = 1
+local MentionList = Instance.new("UIListLayout", MentionPopup)
+MentionList.Padding = UDim.new(0,2); MentionList.SortOrder = Enum.SortOrder.LayoutOrder
+local MentionPad = Instance.new("UIPadding", MentionPopup)
+MentionPad.PaddingLeft = UDim.new(0,4); MentionPad.PaddingRight = UDim.new(0,4)
+MentionPad.PaddingTop = UDim.new(0,4); MentionPad.PaddingBottom = UDim.new(0,4)
+
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+--  LÃ“GICA PRINCIPAL
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+local messageCount = 0
+local minimized    = cfg.Minimized
+local originalSize = CONFIG.WindowSize
+
+local function persistConfig()
+    local pos  = MainFrame.Position
+    local size = MainFrame.Size
+    SaveManager:Save({
+        WindowPosX     = pos.X.Offset,
+        WindowPosY     = pos.Y.Offset,
+        WindowW        = size.X.Offset,
+        WindowH        = size.Y.Offset,
+        MaxMessages    = CONFIG.MaxMessages,
+        AccentColorHex = cfg.AccentColorHex,
+        Minimized      = minimized,
+    })
+end
+
+local function scrollToBottom()
+    task.defer(function()
+        ScrollFrame.CanvasPosition = Vector2.new(0, ScrollFrame.AbsoluteCanvasSize.Y)
+    end)
+end
+
+local function buildTextWithMentions(parent, text, baseColor, baseSize, baseFont, posY, widthOffset)
+    local parts = {}
+    local i = 1
+    while i <= #text do
+        local at = text:find("@", i, true)
+        if not at then table.insert(parts, { str = text:sub(i), mention = false }); break end
+        if at > i then table.insert(parts, { str = text:sub(i, at-1), mention = false }) end
+        local j = at + 1
+        while j <= #text and text:sub(j,j) ~= " " do j = j + 1 end
+        table.insert(parts, { str = text:sub(at, j-1), mention = true })
+        i = j
+    end
+    local Container = Instance.new("Frame", parent)
+    Container.BackgroundTransparency = 1
+    Container.Size = UDim2.new(1, widthOffset or -42, 0, baseSize + 4)
+    Container.Position = UDim2.new(0, 40, 0, posY)
+    Container.ClipsDescendants = false
+    local richText = ""
+    for _, part in ipairs(parts) do
+        if part.mention then
+            richText = richText .. '<font color="rgb(120,180,255)"><b>' .. part.str .. '</b></font>'
+        else
+            richText = richText .. part.str
+        end
+    end
+    local Lbl = Instance.new("TextLabel", Container)
+    Lbl.Size = UDim2.new(1,0,1,0); Lbl.BackgroundTransparency = 1
+    Lbl.RichText = true; Lbl.Text = richText
+    Lbl.TextColor3 = baseColor; Lbl.TextSize = baseSize; Lbl.Font = baseFont
+    Lbl.TextXAlignment = Enum.TextXAlignment.Left; Lbl.TextWrapped = true
+    return Container
+end
+
+local messageStore = {}
+local messageIdSeq = 0
+local frameByUID   = {}
+local replyTarget  = nil
+local editingUID   = nil
+
+local function clearBar()
+    replyTarget = nil; editingUID = nil
+    ReplyBar.Visible = false
+    ReplyStripe.BackgroundColor3 = CONFIG.AccentColor
+    SendBtn.Text = "â†‘"
+end
+
+local function setReply(id, name, text)
+    editingUID = nil
+    local snippet = text
+    if #snippet > 40 then snippet = snippet:sub(1,40) .. "..." end
+    replyTarget = { id = id, name = name, text = text }
+    ReplyText.Text = "Respondiendo a " .. name .. ": " .. snippet
+    ReplyStripe.BackgroundColor3 = CONFIG.AccentColor
+    SendBtn.Text = "â†‘"; ReplyBar.Visible = true
+end
+
+local function setEditMode(uid, text)
+    replyTarget = nil; editingUID = uid
+    ReplyText.Text = "Editando mensaje..."
+    ReplyStripe.BackgroundColor3 = Color3.fromRGB(255,195,60)
+    SendBtn.Text = "âœ“"; ReplyBar.Visible = true
+    ChatInput.Text = text; ChatInput:CaptureFocus()
+end
+
+local function applyEditToFrame(uid, newText)
+    local ref = frameByUID[uid]
+    if not ref or not ref.frame or not ref.frame.Parent then frameByUID[uid] = nil; return end
+    ref.container:Destroy()
+    ref.container = buildTextWithMentions(ref.frame, newText, CONFIG.TextColor, 13, Enum.Font.Gotham, 16 + ref.quoteHeight, -42)
+    local charsPerLine = math.floor((340-42-12)/8)
+    local lines = math.max(1, math.ceil(#newText/charsPerLine))
+    local totalHeight = math.max(48, 6 + 14 + 4 + ref.quoteHeight + lines*16 + 6)
+    ref.frame.Size = UDim2.new(1,0,0,totalHeight)
+    if ref.editedTag then ref.editedTag.Visible = true end
+    scrollToBottom()
+end
+
+ReplyCancelBtn.MouseButton1Click:Connect(clearBar)
+
+local function addMessage(playerName, userId, text, isSelf, rankKey, isSystem, quote, syncUid)
+    messageCount += 1
+    if messageCount > CONFIG.MaxMessages then
+        local first = ScrollFrame:FindFirstChildWhichIsA("Frame")
+        if first then first:Destroy() end
+        messageCount -= 1
+    end
+    messageIdSeq += 1
+    local msgId = messageIdSeq
+    if not isSystem then messageStore[msgId] = { name = playerName, text = text } end
+
+    local bgColor
+    if isSystem     then bgColor = Color3.fromRGB(15,15,30)
+    elseif isSelf   then bgColor = CONFIG.SelfColor
+    else                 bgColor = Color3.fromRGB(28,24,40) end
+
+    local mentionsMe = text:lower():find("@" .. lplr.DisplayName:lower(), 1, true) ~= nil
+
+    local MsgFrame = Instance.new("Frame", ScrollFrame)
+    MsgFrame.Name = "Msg_" .. messageCount
+    MsgFrame.Size = UDim2.new(1,0,0,48)
+    MsgFrame.BackgroundColor3 = bgColor; MsgFrame.BorderSizePixel = 0
+    MsgFrame.LayoutOrder = messageCount
+    Instance.new("UICorner", MsgFrame).CornerRadius = UDim.new(0,8)
+
+    if mentionsMe and not isSelf then
+        local ms = Instance.new("UIStroke", MsgFrame)
+        ms.Color = CONFIG.MentionColor; ms.Thickness = 1.2
+    end
+
+    local MP = Instance.new("UIPadding", MsgFrame)
+    MP.PaddingLeft = UDim.new(0,6); MP.PaddingRight = UDim.new(0,6)
+    MP.PaddingTop = UDim.new(0,6); MP.PaddingBottom = UDim.new(0,6)
+
+    local Avatar = Instance.new("ImageLabel", MsgFrame)
+    Avatar.Size = UDim2.new(0,32,0,32); Avatar.Position = UDim2.new(0,0,0,0)
+    Avatar.BackgroundColor3 = Color3.fromRGB(40,35,55); Avatar.BorderSizePixel = 0
+    if isSystem then
+        Avatar.Image = "rbxassetid://7733960981"
+        Avatar.BackgroundColor3 = Color3.fromRGB(30,20,50)
+    else
+        Avatar.Image = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. userId .. "&width=48&height=48&format=png"
+    end
+    Instance.new("UICorner", Avatar).CornerRadius = UDim.new(1,0)
+
+    local nameOffX = 40
+    if rankKey and RANK_INFO[rankKey] then
+        local info = RANK_INFO[rankKey]
+        local Badge = Instance.new("TextLabel", MsgFrame)
+        Badge.BackgroundColor3 = info.color; Badge.BackgroundTransparency = 0.55
+        Badge.Text = info.label; Badge.TextColor3 = Color3.fromRGB(255,255,255)
+        Badge.TextSize = 9; Badge.Font = Enum.Font.GothamBold; Badge.BorderSizePixel = 0
+        Badge.Size = UDim2.new(0,52,0,13); Badge.Position = UDim2.new(0,nameOffX,0,0)
+        Instance.new("UICorner", Badge).CornerRadius = UDim.new(0,4)
+        nameOffX = nameOffX + 56
+    end
+
+    local replyBtnWidth = isSystem and 0 or (isSelf and 40 or 20)
+    local NameLabel = Instance.new("TextLabel", MsgFrame)
+    NameLabel.Size = UDim2.new(1,-nameOffX-replyBtnWidth,0,14)
+    NameLabel.Position = UDim2.new(0,nameOffX,0,0)
+    NameLabel.BackgroundTransparency = 1
+    NameLabel.Text = playerName
+    NameLabel.TextColor3 = isSystem and CONFIG.AccentColor
+        or (isSelf and Color3.fromRGB(200,180,255) or CONFIG.SubTextColor)
+    NameLabel.TextSize = 10; NameLabel.Font = Enum.Font.GothamBold
+    NameLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+    if not isSystem then
+        local ReplyBtn = Instance.new("TextButton", MsgFrame)
+        ReplyBtn.Size = UDim2.new(0,18,0,14); ReplyBtn.Position = UDim2.new(1,-18,0,0)
+        ReplyBtn.BackgroundTransparency = 1
+        ReplyBtn.Text = "â†©"; ReplyBtn.TextColor3 = CONFIG.SubTextColor
+        ReplyBtn.TextSize = 13; ReplyBtn.Font = Enum.Font.GothamBold
+        ReplyBtn.MouseButton1Click:Connect(function() setReply(msgId, playerName, text) end)
+    end
+
+    if isSelf and not isSystem and syncUid then
+        local EditBtn = Instance.new("TextButton", MsgFrame)
+        EditBtn.Size = UDim2.new(0,18,0,14); EditBtn.Position = UDim2.new(1,-38,0,0)
+        EditBtn.BackgroundTransparency = 1
+        EditBtn.Text = "Ed"; EditBtn.TextColor3 = CONFIG.SubTextColor
+        EditBtn.TextSize = 12; EditBtn.Font = Enum.Font.GothamBold
+        EditBtn.MouseButton1Click:Connect(function() setEditMode(syncUid, text) end)
+    end
+
+    local quoteHeight = 0
+    if quote then
+        quoteHeight = 30
+        local QuoteBox = Instance.new("Frame", MsgFrame)
+        QuoteBox.Size = UDim2.new(1,-42,0,quoteHeight-4); QuoteBox.Position = UDim2.new(0,40,0,16)
+        QuoteBox.BackgroundColor3 = Color3.fromRGB(0,0,0); QuoteBox.BackgroundTransparency = 0.6
+        QuoteBox.BorderSizePixel = 0; Instance.new("UICorner", QuoteBox).CornerRadius = UDim.new(0,4)
+        local QuoteStripe = Instance.new("Frame", QuoteBox)
+        QuoteStripe.Size = UDim2.new(0,3,1,-4); QuoteStripe.Position = UDim2.new(0,2,0,2)
+        QuoteStripe.BackgroundColor3 = CONFIG.AccentColor; QuoteStripe.BorderSizePixel = 0
+        local QuoteName = Instance.new("TextLabel", QuoteBox)
+        QuoteName.Size = UDim2.new(1,-12,0,12); QuoteName.Position = UDim2.new(0,8,0,1)
+        QuoteName.BackgroundTransparency = 1; QuoteName.Text = quote.name
+        QuoteName.TextColor3 = CONFIG.AccentColor; QuoteName.TextSize = 10
+        QuoteName.Font = Enum.Font.GothamBold; QuoteName.TextXAlignment = Enum.TextXAlignment.Left
+        QuoteName.TextTruncate = Enum.TextTruncate.AtEnd
+        local qSnippet = quote.text
+        if #qSnippet > 45 then qSnippet = qSnippet:sub(1,45) .. "..." end
+        local QuoteSnippet = Instance.new("TextLabel", QuoteBox)
+        QuoteSnippet.Size = UDim2.new(1,-12,0,12); QuoteSnippet.Position = UDim2.new(0,8,0,13)
+        QuoteSnippet.BackgroundTransparency = 1; QuoteSnippet.Text = qSnippet
+        QuoteSnippet.TextColor3 = CONFIG.SubTextColor; QuoteSnippet.TextSize = 10
+        QuoteSnippet.Font = Enum.Font.Gotham; QuoteSnippet.TextXAlignment = Enum.TextXAlignment.Left
+        QuoteSnippet.TextTruncate = Enum.TextTruncate.AtEnd
+    end
+
+    local charsPerLine = math.floor((340-42-12)/8)
+    local lines = math.max(1, math.ceil(#text/charsPerLine))
+    local textHeight = lines * 16
+    local totalHeight = math.max(48, 6 + 14 + 4 + quoteHeight + textHeight + 6)
+    MsgFrame.Size = UDim2.new(1,0,0,totalHeight)
+
+    local TextContainer = buildTextWithMentions(MsgFrame, text, CONFIG.TextColor, 13, Enum.Font.Gotham, 16 + quoteHeight, -42)
+
+    local EditedTag = nil
+    if not isSystem then
+        EditedTag = Instance.new("TextLabel", MsgFrame)
+        EditedTag.Size = UDim2.new(0,52,0,10); EditedTag.Position = UDim2.new(1,-58,1,-9)
+        EditedTag.BackgroundTransparency = 1; EditedTag.Text = "(editado)"
+        EditedTag.TextColor3 = CONFIG.SubTextColor; EditedTag.TextSize = 9
+        EditedTag.Font = Enum.Font.Gotham; EditedTag.TextXAlignment = Enum.TextXAlignment.Right
+        EditedTag.Visible = false
+    end
+
+    if syncUid then
+        frameByUID[syncUid] = {
+            frame = MsgFrame, container = TextContainer,
+            quoteHeight = quoteHeight, editedTag = EditedTag,
+        }
+    end
+
+    MsgFrame.BackgroundTransparency = 1
+    TweenService:Create(MsgFrame, TweenInfo.new(0.15), {BackgroundTransparency = 0}):Play()
+    scrollToBottom()
+end
+
+local function sysMsg(text) addMessage("Sistema", 0, text, false, nil, true) end
+
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+--  POPUP DE MENCIONES
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+local activeMentionPrefix = nil
+
+local function closeMentionPopup()
+    MentionPopup.Visible = false; activeMentionPrefix = nil
+    for _, c in ipairs(MentionPopup:GetChildren()) do
+        if c:IsA("TextButton") then c:Destroy() end
+    end
+end
+
+local function openMentionPopup(matches)
+    for _, c in ipairs(MentionPopup:GetChildren()) do
+        if c:IsA("TextButton") then c:Destroy() end
+    end
+    if #matches == 0 then closeMentionPopup(); return end
+    local btnH = 24
+    for idx, displayName in ipairs(matches) do
+        local Btn = Instance.new("TextButton", MentionPopup)
+        Btn.Name = "MentionBtn_" .. idx
+        Btn.Size = UDim2.new(1,0,0,btnH)
+        Btn.BackgroundColor3 = Color3.fromRGB(30,22,50); Btn.BackgroundTransparency = 0.2
+        Btn.BorderSizePixel = 0; Btn.Text = "@" .. displayName
+        Btn.TextColor3 = CONFIG.MentionColor; Btn.TextSize = 12; Btn.Font = Enum.Font.GothamMedium
+        Btn.LayoutOrder = idx
+        Btn.MouseButton1Click:Connect(function()
+            local cur = ChatInput.Text
+            local newText = cur:gsub("@" .. (activeMentionPrefix or "") .. "$", "@" .. displayName .. " ")
+            ChatInput.Text = newText
+            closeMentionPopup(); ChatInput:CaptureFocus()
+        end)
+    end
+    local totalH = btnH * #matches + 8
+    MentionPopup.Size = UDim2.new(1,-12,0,totalH)
+    MentionPopup.Position = UDim2.new(0,6,1,-(42 + totalH + 4 + (ReplyBar.Visible and 34 or 0)))
+    MentionPopup.Visible = true
+end
+
+ChatInput:GetPropertyChangedSignal("Text"):Connect(function()
+    local text   = ChatInput.Text
+    local prefix = text:match("@([%w_]*)$")
+    if prefix ~= nil then
+        activeMentionPrefix = prefix
+        openMentionPopup(getDisplayMatches(prefix))
+    else
+        closeMentionPopup()
+    end
+end)
+
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+--  ANTI-SPAM LOCAL
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+local SPAM_LIMIT  = 6
+local SPAM_WINDOW = 1800
+local spamTracker = {}
+
+local function checkSpam(uid)
+    if getRankLevel(uid) >= 3 then return end
+    local key  = tostring(uid)
+    local now  = os.time()
+    local list = spamTracker[key] or {}
+    local fresh = {}
+    for _, t in ipairs(list) do
+        if now - t < SPAM_WINDOW then table.insert(fresh, t) end
+    end
+    table.insert(fresh, now)
+    spamTracker[key] = fresh
+    if #fresh > SPAM_LIMIT then
+        spamTracker[key] = nil
+        local expiry = now + SPAM_WINDOW
+        mutes[key] = { expiry = expiry }; saveMutes()
+        if tostring(lplr.UserId) == key then applyMuteState() end
+        local p = Players:GetPlayerByUserId(tonumber(uid))
+        sysMsg((p and p.DisplayName or ("UserId " .. key)) .. " fue muteado por spam (30 min).")
+    end
+end
+
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+--  RED GLOBAL â€” HTTP POLLING
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+local lastSeenId   = 0
+local isConnected  = false
+local sentUids     = {}   -- uids que yo mismo enviÃ©, para no duplicar
+
+-- EnvÃ­a un mensaje al servidor global
+local function httpSend(payload)
+    local ok, err = pcall(function()
+        HttpService:RequestAsync({
+            Url    = GLOBAL_SERVER_URL .. "/send",
+            Method = "POST",
+            Headers = { ["Content-Type"] = "application/json" },
+            Body   = HttpService:JSONEncode(payload),
+        })
+    end)
+    if not ok then
+        sysMsg("[Red] Error al enviar: " .. tostring(err))
+    end
+end
+
+-- EnvÃ­a un comando de moderaciÃ³n al servidor
+local function httpCmd(cmd)
+    pcall(function()
+        HttpService:RequestAsync({
+            Url    = GLOBAL_SERVER_URL .. "/cmd",
+            Method = "POST",
+            Headers = { ["Content-Type"] = "application/json" },
+            Body   = HttpService:JSONEncode({ cmd = cmd, game = GAME_FILTER }),
+        })
+    end)
+end
+
+-- Poll: recibe mensajes nuevos cada POLL_INTERVAL segundos
+local function startPolling()
+    task.spawn(function()
+        while true do
+            task.wait(POLL_INTERVAL)
+            local ok, result = pcall(function()
+                return HttpService:RequestAsync({
+                    Url    = GLOBAL_SERVER_URL .. "/messages?after=" .. lastSeenId .. "&game=" .. GAME_FILTER,
+                    Method = "GET",
+                })
+            end)
+
+            if ok and result and result.StatusCode == 200 then
+                if not isConnected then
+                    isConnected = true
+                    updateTitle(true)
+                end
+
+                local data = HttpService:JSONDecode(result.Body)
+                lastSeenId = data.lastId or lastSeenId
+
+                for _, msg in ipairs(data.msgs or {}) do
+                    -- Comandos de moderaciÃ³n del servidor
+                    if msg.sender == "__CMD__" then
+                        local cmd = msg.text or ""
+                        if cmd:sub(1,5) == "MUTE:" then
+                            local uid, exp = cmd:match("MUTE:(%d+):(.*)")
+                            if uid then
+                                mutes[uid] = { expiry = (exp ~= "nil") and tonumber(exp) or nil }; saveMutes()
+                                if uid == tostring(lplr.UserId) then applyMuteState() end
+                            end
+                        elseif cmd:sub(1,7) == "UNMUTE:" then
+                            local uid = cmd:match("UNMUTE:(%d+)")
+                            if uid then mutes[uid] = nil; saveMutes()
+                                if uid == tostring(lplr.UserId) then applyMuteState() end
+                            end
+                        elseif cmd:sub(1,4) == "BAN:" then
+                            local uid, exp = cmd:match("BAN:(%d+):(.*)")
+                            if uid then bans[uid] = { expiry = (exp ~= "nil") and tonumber(exp) or nil }; saveBans() end
+                        elseif cmd:sub(1,6) == "UNBAN:" then
+                            local uid = cmd:match("UNBAN:(%d+)")
+                            if uid then bans[uid] = nil; saveBans() end
+                        elseif cmd:sub(1,6) == "CLEAR:" then
+                            for _, c in ipairs(ScrollFrame:GetChildren()) do
+                                if c:IsA("Frame") then c:Destroy() end
+                            end
+                            messageCount = 0
+                            sysMsg("Chat limpiado por " .. cmd:match("CLEAR:(.+)") .. ".")
+                        elseif cmd:sub(1,5) == "EDIT:" then
+                            local uid, newText = cmd:match("^EDIT:([%d%-]+):(.*)$")
+                            if uid then applyEditToFrame(uid, newText) end
+                        end
+                        continue
+                    end
+
+                    -- Ignorar mis propios mensajes (ya los mostrÃ© al enviar)
+                    if sentUids[msg.uid] then continue end
+                    if msg.sender == tostring(lplr.UserId) then continue end
+
+                    -- Filtros de ban/mute
+                    if isBanned(msg.sender) or isMuted(msg.sender) then continue end
+
+                    checkSpam(msg.sender)
+
+                    local quote = nil
+                    if msg.quoteName and msg.quoteName ~= "" then
+                        quote = { name = msg.quoteName, text = msg.quoteText or "" }
+                    end
+
+                    local rankKey = (msg.rank ~= "" and msg.rank ~= nil) and msg.rank or nil
+                    addMessage(msg.display, msg.sender, msg.text, false, rankKey, false, quote, msg.uid)
+                end
+            else
+                if isConnected then
+                    isConnected = false
+                    updateTitle(false)
+                end
+            end
+        end
+    end)
+end
+
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+--  COMANDOS
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+local COMMANDS = {}
+
+COMMANDS["ayuda"] = {
+    minLevel = 0,
+    run = function()
+        local lv = getRankLevel(lplr.UserId)
+        local L  = { "â”€â”€ Comandos disponibles â”€â”€" }
+        table.insert(L, "@DisplayName  â€”  mencionar un jugador")
+        if lv >= 1 then
+            table.insert(L, "/mute <apodo> <tiempo|perm>")
+            table.insert(L, "/unmute <apodo>")
+            table.insert(L, "/clear")
+        end
+        if lv >= 2 then
+            table.insert(L, "/ban <userId> <tiempo|perm>")
+            table.insert(L, "/unban <apodo>")
+            table.insert(L, "/unban_id <userId>")
+            table.insert(L, "/setrank <apodo> <mod|admin|none>")
+        end
+        if lv >= 3 then table.insert(L, "/setrank <apodo> owner") end
+        if lv == 0 then table.insert(L, "(sin permisos especiales)") end
+        for _, l in ipairs(L) do sysMsg(l) end
+    end,
+}
+
+COMMANDS["clear"] = {
+    minLevel = 1,
+    run = function()
+        for _, c in ipairs(ScrollFrame:GetChildren()) do
+            if c:IsA("Frame") then c:Destroy() end
+        end
+        messageCount = 0
+        sysMsg("Chat limpiado por " .. lplr.DisplayName .. ".")
+        httpCmd("CLEAR:" .. lplr.Name)
+    end,
+}
+
+COMMANDS["mute"] = {
+    minLevel = 1,
+    run = function(args)
+        local tName, durStr = args[1], args[2]
+        if not tName then sysMsg("Uso: /mute <apodo> <tiempo|perm>") return end
+        local t = findPlayer(tName)
+        if not t then sysMsg("Jugador '" .. tName .. "' no encontrado.") return end
+        if getRankLevel(t.UserId) >= getRankLevel(lplr.UserId) then
+            sysMsg("No puedes mutear a alguien de igual o mayor rango.") return
+        end
+        local secs = parseDuration(durStr or "perm")
+        local expiry = secs and (os.time() + secs) or nil
+        mutes[tostring(t.UserId)] = { expiry = expiry }; saveMutes()
+        sysMsg(t.DisplayName .. " muteado (" .. (expiry and durStr or "permanente") .. ").")
+        httpCmd("MUTE:" .. t.UserId .. ":" .. tostring(expiry or "nil"))
+    end,
+}
+
+COMMANDS["unmute"] = {
+    minLevel = 1,
+    run = function(args)
+        local tName = args[1]
+        if not tName then sysMsg("Uso: /unmute <apodo>") return end
+        local t = findPlayer(tName)
+        if not t then sysMsg("Jugador no encontrado.") return end
+        mutes[tostring(t.UserId)] = nil; saveMutes()
+        sysMsg(t.DisplayName .. " desmuteado.")
+        httpCmd("UNMUTE:" .. t.UserId)
+    end,
+}
+
+COMMANDS["ban"] = {
+    minLevel = 2,
+    run = function(args)
+        local uidStr, durStr = args[1], args[2]
+        local uid = tonumber(uidStr)
+        if not uid then sysMsg("Uso: /ban <userId> <tiempo|perm>") return end
+        if getRankLevel(uid) >= getRankLevel(lplr.UserId) then
+            sysMsg("No puedes banear a alguien de igual o mayor rango.") return
+        end
+        local secs = parseDuration(durStr or "perm")
+        local expiry = secs and (os.time() + secs) or nil
+        bans[tostring(uid)] = { expiry = expiry }; saveBans()
+        local p = Players:GetPlayerByUserId(uid)
+        sysMsg((p and p.DisplayName or "UserId " .. uid) .. " baneado.")
+        httpCmd("BAN:" .. uid .. ":" .. tostring(expiry or "nil"))
+    end,
+}
+
+COMMANDS["unban"] = {
+    minLevel = 2,
+    run = function(args)
+        local tName = args[1]
+        if not tName then sysMsg("Uso: /unban <apodo>") return end
+        local t = findPlayer(tName)
+        if not t then sysMsg("No estÃ¡ en el servidor. Usa /unban_id <userId>.") return end
+        bans[tostring(t.UserId)] = nil; saveBans()
+        sysMsg(t.DisplayName .. " desbaneado.")
+        httpCmd("UNBAN:" .. t.UserId)
+    end,
+}
+
+COMMANDS["unban_id"] = {
+    minLevel = 2,
+    run = function(args)
+        local uid = args[1]
+        if not uid then sysMsg("Uso: /unban_id <userId>") return end
+        bans[uid] = nil; saveBans()
+        sysMsg("UserId " .. uid .. " desbaneado.")
+    end,
+}
+
+COMMANDS["setrank"] = {
+    minLevel = 2,
+    run = function(args)
+        local tName, rankStr = args[1], args[2] and args[2]:lower()
+        if not tName or not rankStr then
+            sysMsg("Uso: /setrank <apodo> <owner|admin|mod|none>") return
+        end
+        local t = findPlayer(tName)
+        if not t then sysMsg("Jugador '" .. tName .. "' no encontrado.") return end
+        local myLv = getRankLevel(lplr.UserId)
+        if rankStr == "none" then
+            if getRankLevel(t.UserId) >= myLv then
+                sysMsg("No puedes quitar el rango a alguien de igual o mayor nivel.") return
+            end
+            ranks[tostring(t.UserId)] = nil; saveRanks()
+            sysMsg(t.DisplayName .. " ya no tiene rango.")
+        elseif RANK_INFO[rankStr] then
+            if RANK_INFO[rankStr].level >= myLv then
+                sysMsg("No puedes dar un rango igual o mayor al tuyo.") return
+            end
+            ranks[tostring(t.UserId)] = rankStr; saveRanks()
+            sysMsg(t.DisplayName .. " ahora es " .. RANK_INFO[rankStr].label .. ".")
+        else
+            sysMsg("Rango invÃ¡lido: owner | admin | mod | none")
+        end
+    end,
+}
+
+local function handleCommand(text)
+    if text:sub(1,1) ~= "/" then return false end
+    local parts = {}
+    for w in text:gmatch("%S+") do table.insert(parts, w) end
+    local cmdName = parts[1]:sub(2):lower()
+    local args = {}
+    for i = 2, #parts do table.insert(args, parts[i]) end
+    local cmd = COMMANDS[cmdName]
+    if not cmd then sysMsg("Comando desconocido: /" .. cmdName .. "  (/ayuda)") return true end
+    if getRankLevel(lplr.UserId) < cmd.minLevel then
+        sysMsg("Sin permisos para usar /" .. cmdName .. ".") return true
+    end
+    cmd.run(args); return true
+end
+
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+--  ENVIAR MENSAJE
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+local function sendMessage()
+    closeMentionPopup()
+    local text = ChatInput.Text
+    if text == "" then return end
+    ChatInput.Text = ""
+
+    -- Modo ediciÃ³n
+    if editingUID then
+        if #text > 200 then sysMsg("Mensaje muy largo (mÃ¡x 200).") return end
+        local uid = editingUID
+        applyEditToFrame(uid, text)
+        httpCmd("EDIT:" .. uid .. ":" .. text)
+        clearBar(); return
+    end
+
+    if handleCommand(text) then return end
+    if #text > 200 then sysMsg("Mensaje muy largo (mÃ¡x 200 caracteres).") return end
+    if isBanned(lplr.UserId)  then sysMsg("EstÃ¡s baneado del chat.") return end
+    if isMuted(lplr.UserId)   then sysMsg("EstÃ¡s muteado, no puedes escribir.") return end
+
+    checkSpam(lplr.UserId)
+
+    local myRank = getRank(lplr.UserId)
+    local quote  = replyTarget and { name = replyTarget.name, text = replyTarget.text } or nil
+    local uid    = tostring(lplr.UserId) .. "-" .. tostring(os.time()) .. "-" .. tostring(math.random(10000,99999))
+
+    -- Mostrar inmediatamente en mi pantalla
+    addMessage(lplr.DisplayName, lplr.UserId, text, true, myRank, false, quote, uid)
+    sentUids[uid] = true   -- marcar para no duplicar al recibirlo del servidor
+
+    -- Enviar al servidor global
+    httpSend({
+        userId    = tostring(lplr.UserId),
+        display   = lplr.DisplayName,
+        text      = text,
+        rank      = myRank or "",
+        quoteName = quote and quote.name or "",
+        quoteText = quote and quote.text or "",
+        uid       = uid,
+        game      = GAME_FILTER,
+    })
+
+    clearBar()
+end
+
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+--  EVENTOS DE UI
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+SendBtn.MouseButton1Click:Connect(sendMessage)
+
+ChatInput.FocusLost:Connect(function(enterPressed)
+    if enterPressed then sendMessage() end
+end)
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if input.KeyCode == CONFIG.ChatKey and not gameProcessed then
+        if not ChatInput:IsFocused() then ChatInput:CaptureFocus() end
+    end
+    if input.KeyCode == Enum.KeyCode.Escape then closeMentionPopup() end
+end)
+
+MinBtn.MouseButton1Click:Connect(function()
+    minimized = not minimized
+    if minimized then
+        TweenService:Create(MainFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quart),
+            {Size = UDim2.new(0,340,0,32)}):Play()
+        ScrollFrame.Visible = false; InputFrame.Visible = false
+        TagLabel.Visible = false; CreditsLabel.Visible = false; MentionPopup.Visible = false
+        clearBar(); MinBtn.Text = "â–¡"
+    else
+        TweenService:Create(MainFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quart),
+            {Size = originalSize}):Play()
+        ScrollFrame.Visible = true; InputFrame.Visible = true
+        TagLabel.Visible = true; CreditsLabel.Visible = true; MinBtn.Text = "â€”"
+    end
+    persistConfig()
+end)
+
+if cfg.Minimized then
+    MainFrame.Size = UDim2.new(0,340,0,32)
+    ScrollFrame.Visible = false; InputFrame.Visible = false
+    TagLabel.Visible = false; CreditsLabel.Visible = false; MinBtn.Text = "â–¡"
+end
+
+-- Arrastrar ventana
+local dragging, dragStart, startPos = false, nil, nil
+TopBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1
+    or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true; dragStart = input.Position; startPos = MainFrame.Position
+    end
+end)
+TopBar.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1
+    or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = false; persistConfig()
+    end
+end)
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement
+    or input.UserInputType == Enum.UserInputType.Touch) then
+        local delta = input.Position - dragStart
+        MainFrame.Position = UDim2.new(
+            startPos.X.Scale, startPos.X.Offset + delta.X,
+            startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+
+game:BindToClose(persistConfig)
+
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+--  INICIO
+-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+applySuperOwnerIfNeeded()
+startPolling()
+
+task.delay(0.5, function()
+    local myRank = getRank(lplr.UserId)
+    local rankMsg = myRank and ("  Tu rango: " .. RANK_INFO[myRank].label) or ""
+    sysMsg("Â¡Chat GLOBAL iniciado! Conectando al servidor..." .. rankMsg)
+    sysMsg("Escribe @ para mencionar  â€¢  /ayuda para comandos.")
+end)
+
+print("[NexoChat] Chat Universal cargado.")
