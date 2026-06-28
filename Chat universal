@@ -1,14 +1,11 @@
--- â•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—
--- â•‘       NEXO CHAT UNIVERSAL â€” by Karma         â•‘
--- â•‘  SaveManager + Rangos + Comandos + @Mencionesâ•‘
--- â•‘  + Chat Global entre todos los juegos        â•‘
--- â•šâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-
--- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
---  CONFIGURACIÃ“N GLOBAL
---  Cambia esta URL por la de tu servidor Railway/Render
--- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-local GLOBAL_SERVER_URL = "ss-production-79fc.up.railway.app"
+local HttpService = game:GetService("HttpService")
+local ok, res = pcall(function()
+    return HttpService:RequestAsync({
+        Url = "https://ss-production-79fc.up.railway.app/ping",
+        Method = "GET"
+    })
+end)
+print(ok, res)
 
 -- "ALL" = todos los juegos comparten el chat
 -- Si quieres aislar por juego, pon el nombre del juego aquÃ­, ej: "MiJuego"
