@@ -2133,109 +2133,125 @@ local teleportSwitch = Folder_rebirth:AddSwitch("Auto Teleport to Muscle King", 
         end)
     end
 end, "Tp to Mk")
+local function CreateFolderpapu()
+    local Folderpapu = FarmingTab:AddFolder("con packs")
 
-local Folderpapu = FarmingTab:AddFolder("con packs")
-Folderpapu:AddTextBox("Swift Samurai Amount", function(value)
-local num = tonumber(value)
+    -- Variables declaradas ANTES de usarse en los callbacks
+    local SwiftSamuraiAmount = 8
+    local TribalOverlordAmount = 8
+    local omegaFarmLegends = false
 
-if num then  
-    SwiftSamuraiAmount = math.clamp(math.floor(num), 1, 8)  
-end
+    Folderpapu:AddTextBox("Swift Samurai Amount", function(value)
+        local num = tonumber(value)
+        if num then
+            SwiftSamuraiAmount = math.clamp(math.floor(num), 1, 8)
+        end
+    end, {
+        placeholder = "8"
+    })
 
-end, {
-placeholder = "8"
-})
+    Folderpapu:AddTextBox("Tribal Overlord Amount", function(value)
+        local num = tonumber(value)
+        if num then
+            TribalOverlordAmount = math.clamp(math.floor(num), 1, 8)
+        end
+    end, {
+        placeholder = "8"
+    })
 
-Folderpapu:AddTextBox("Tribal Overlord Amount", function(value)
-local num = tonumber(value)
+    Folderpapu:AddSwitch("FAST REBIRTH", function(state)
+        omegaFarmLegends = state
+        if not state then return end
 
-if num then  
-    TribalOverlordAmount = math.clamp(math.floor(num), 1, 8)  
-end
+        task.spawn(function()
+            local ReplicatedStorage = game:GetService("ReplicatedStorage")
+            local globalFunctions = require(ReplicatedStorage:WaitForChild("globalFunctions"))
 
-end, {
-placeholder = "8"
-}) 
-local SwiftSamuraiAmount = 8
-local TribalOverlordAmount = 8
+            local leaderstats = LocalPlayer:WaitForChild("leaderstats")
+            local Strength = leaderstats:WaitForChild("Strength")
+            local Rebirths = leaderstats:WaitForChild("Rebirths")
 
-Folderpapu:AddSwitch("FAST REBIRTH", function(state)
-    omegaFarmLegends = state
-    if not state then return end
+            local rEvents = ReplicatedStorage:WaitForChild("rEvents")
+            local rebirthRemote = rEvents:WaitForChild("rebirthRemote")
+            local equipPetEvent = rEvents:WaitForChild("equipPetEvent")
+            local muscleEvent = LocalPlayer:WaitForChild("muscleEvent")
 
-    task.spawn(function()
-        local ReplicatedStorage = game:GetService("ReplicatedStorage")
-        local globalFunctions = require(ReplicatedStorage:WaitForChild("globalFunctions"))
-
-        local leaderstats = LocalPlayer:WaitForChild("leaderstats")
-        local Strength = leaderstats:WaitForChild("Strength")
-        local Rebirths = leaderstats:WaitForChild("Rebirths")
-
-        local rebirthRemote = ReplicatedStorage.rEvents.rebirthRemote
-        local equipPetEvent = ReplicatedStorage.rEvents.equipPetEvent
-
-        local function unequipAllPets()
-            local f = LocalPlayer:WaitForChild("petsFolder")
-
-            for _, h in pairs(f:GetChildren()) do
-                if h:IsA("Folder") then
-                    for _, j in pairs(h:GetChildren()) do
-                        equipPetEvent:FireServer("unequipPet", j)
+            local function unequipAllPets()
+                local f = LocalPlayer:WaitForChild("petsFolder")
+                for _, h in pairs(f:GetChildren()) do
+                    if h:IsA("Folder") then
+                        for _, j in pairs(h:GetChildren()) do
+                            equipPetEvent:FireServer("unequipPet", j)
+                        end
                     end
                 end
             end
-        end
 
-        local function equipPet(petName, amount)
-            unequipAllPets()
-            task.wait(0.05)
+            local function equipPet(petName, amount)
+                unequipAllPets()
+                task.wait(0.05)
 
-            local equipped = 0
+                local petsFolder = LocalPlayer:WaitForChild("petsFolder")
+                local uniqueFolder = petsFolder:WaitForChild("Unique")
 
-            for _, pet in pairs(LocalPlayer.petsFolder.Unique:GetChildren()) do
-                if pet.Name == petName then
-                    equipPetEvent:FireServer("equipPet", pet)
-
-                    equipped += 1
-
-                    if equipped >= amount then
-                        break
+                local equipped = 0
+                for _, pet in pairs(uniqueFolder:GetChildren()) do
+                    if pet.Name == petName then
+                        equipPetEvent:FireServer("equipPet", pet)
+                        equipped += 1
+                        if equipped >= amount then
+                            break
+                        end
                     end
                 end
-            end
-        end
 
-        while omegaFarmLegends do
-            local neededStrength = globalFunctions.calculateRequiredRebirthStrength(
-                Rebirths.Value,
-                LocalPlayer
-            )
-
-            equipPet("Swift Samurai", SwiftSamuraiAmount)
-
-            while Strength.Value < neededStrength and omegaFarmLegends do
-                for i = 1, 10 do
-                    LocalPlayer.muscleEvent:FireServer("rep")
-                end
-
-                task.wait()
+                return equipped
             end
 
-            if omegaFarmLegends then
-                equipPet("Tribal Overlord", TribalOverlordAmount)
+            while omegaFarmLegends do
+                local neededStrength = globalFunctions.calculateRequiredRebirthStrength(
+                    Rebirths.Value,
+                    LocalPlayer
+                )
 
-                local oldRebirths = Rebirths.Value
+                equipPet("Swift Samurai", SwiftSamuraiAmount)
 
-                repeat
-                    rebirthRemote:InvokeServer("rebirthRequest")
+                while Strength.Value < neededStrength and omegaFarmLegends do
+                    for i = 1, 10 do
+                        muscleEvent:FireServer("rep")
+                    end
                     task.wait()
-                until Rebirths.Value > oldRebirths or not omegaFarmLegends
-            end
+                end
 
-            task.wait(1)
-        end
+                if omegaFarmLegends then
+                    equipPet("Tribal Overlord", TribalOverlordAmount)
+
+                    local oldRebirths = Rebirths.Value
+                    local rebirthAttempts = 0
+                    local MAX_REBIRTH_ATTEMPTS = 50
+
+                    repeat
+                        rebirthRemote:InvokeServer("rebirthRequest")
+                        rebirthAttempts += 1
+                        task.wait()
+                    until Rebirths.Value > oldRebirths
+                        or not omegaFarmLegends
+                        or rebirthAttempts >= MAX_REBIRTH_ATTEMPTS
+
+                    if rebirthAttempts >= MAX_REBIRTH_ATTEMPTS and Rebirths.Value <= oldRebirths then
+                        warn("[FAST REBIRTH] No se pudo confirmar el rebirth tras " .. MAX_REBIRTH_ATTEMPTS .. " intentos.")
+                    end
+                end
+
+                task.wait(1)
+            end
+        end)
     end)
-end)
+
+    return Folderpapu
+end
+
+CreateFolderpapu()
 local AutoEggEnabled = false
 
 local function ConsumeProteinEgg()
