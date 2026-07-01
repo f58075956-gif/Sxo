@@ -160,7 +160,7 @@ local selectedAura = ""
 -- Get all pets and auras
 local allPets, allAuras = getAllPetsAndAuras()
 
-Foldersexo:AddLabel("--- Buy pets and auras ---")
+Foldersexo:AddButton("--- Buy pets and auras ---", function() end)
 
 -- Pet dropdown
 local petDropdown = Foldersexo:AddDropdown("Select pet", function(text)
@@ -237,7 +237,7 @@ auraDropdown:Add("Muscle King (Unique)")
 auraDropdown:Add("Entropic Blast (Unique)")
 auraDropdown:Add("Eternal Megastrike (Unique)")
 
-Foldersexo:AddLabel("--- System to buys---")
+Foldersexo:AddButton("--- System to buys---", function() end)
 
 -- Auto buy pet toggle
 Foldersexo:AddSwitch("Auto Buy Pet", function(bool)
