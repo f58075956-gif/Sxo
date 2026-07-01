@@ -14,7 +14,7 @@ local function getCharacter()
 end
 
 
-local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/f58075956-gif/Sxo/refs/heads/main/UI%20v3.lua", true))()
+local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/f58075956-gif/Sxo/refs/heads/main/W%20UI.txt", true))()
 local Window = library:CreateWindow({
     Title = "ZIX DOM | WELCOME",
     SubTitle = "karma",
