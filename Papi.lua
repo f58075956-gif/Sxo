@@ -14,7 +14,7 @@ local function getCharacter()
 end
 
 
-local title = (" op script | CRONOS ")
+local title = (" op script | ZIX HUB")
 
 
 local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/f58075956-gif/Sxo/refs/heads/main/W%20UI.txt", true))()
