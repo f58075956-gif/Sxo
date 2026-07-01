@@ -1,6 +1,6 @@
 --[[
-    FluentUI v2 â€” Estilo visual 100% Fluent + API simple de W_UI
-    
+    FluentUI v3 â€” Visual 100% Fluent + API EXACTA de W_UI (mismos nombres y orden de parÃ¡metros)
+
     USO:
         local UI = loadstring(game:HttpGet("URL"))()
         local Window = UI:CreateWindow({
@@ -11,13 +11,24 @@
             MinimizeKey = Enum.KeyCode.RightShift,
         })
         local Tab = Window:AddTab("Main")
+        Tab:AddLabel("Texto informativo")
         Tab:AddButton("Click", function() print("hi") end)
-        Tab:AddToggle("God Mode", false, function(v) print(v) end)
-        Tab:AddSlider("Speed", {Min=0, Max=100, Default=16}, function(v) print(v) end)
-        Tab:AddDropdown("Weapon", {"Sword","Bow"}, function(v) print(v) end)
-        Tab:AddInput("Name", "Escribe...", function(v) print(v) end)
-        Tab:AddColorpicker("Color", Color3.fromRGB(76,194,255), function(v) print(v) end)
-        Tab:AddKeybind("Toggle", Enum.KeyCode.F, function() print("pressed") end)
+        Tab:AddSwitch("God Mode", function(v) print(v) end)                 -- antes AddToggle
+        Tab:AddTextBox("Nombre", function(v) print(v) end, {clear=false})   -- antes AddInput
+        Tab:AddSlider("Speed", function(v) print(v) end, {min=0, max=100})  -- antes AddSlider(title,opts,cb)
+        local dropdown = Tab:AddDropdown("Arma", function(v) print(v) end)  -- antes AddDropdown(title,values,cb,opts)
+        dropdown:Add("Espada")
+        dropdown:Add("Arco")
+        dropdown:Remove("Arco")
+        Tab:AddColorPicker(function(v) print(v) end)                       -- antes AddColorpicker(title,default,cb)
+        Tab:AddKeybind("Toggle", function() print("pressed") end, {standard=Enum.KeyCode.F})
+        local h = Tab:AddHorizontalAlignment()
+        h:AddButton("A", function() end)
+        h:AddButton("B", function() end)
+        local folder = Tab:AddFolder("Extras")
+        folder:AddButton("Sub-botÃ³n", function() end)
+
+        -- Extras propios de Fluent (no existen en W_UI, quedan disponibles igual):
         Tab:AddParagraph("Info", "Esto es un pÃ¡rrafo de texto.")
         Window:Notify({Title="Hola", Content="Cargado!", Duration=3})
 ]]
@@ -761,6 +772,21 @@ function Library:CreateWindow(cfg)
             return el
         end
 
+        -- â”€â”€ LABEL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        function Tab:AddLabel(text)
+            text = tostring(text or "New Label")
+            local el = Lbl({
+                Text = text,
+                Size = UDim2.new(1,0,0,20),
+                TextColor3 = theme.Text,
+                Font = Enum.Font.GothamSemibold,
+                TextSize = 13,
+            }, tabContent)
+            local ctrl = {}
+            function ctrl:SetText(t) el.Text = t end
+            return ctrl, el
+        end
+
         -- â”€â”€ BUTTON â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         function Tab:AddButton(title, callback, desc)
             callback = callback or function() end
@@ -785,9 +811,9 @@ function Library:CreateWindow(cfg)
         end
 
         -- â”€â”€ TOGGLE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        function Tab:AddToggle(title, default, callback, desc)
+        function Tab:AddSwitch(title, callback, desc)
             callback = callback or function() end
-            local state = default == true
+            local state = false
             local el = mkElement(title, desc, theme, tabContent)
             el.Size = UDim2.new(1,0,0, desc and 46 or 38)
 
@@ -837,13 +863,14 @@ function Library:CreateWindow(cfg)
         end
 
         -- â”€â”€ SLIDER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        function Tab:AddSlider(title, opts, callback, desc)
+        function Tab:AddSlider(title, callback, opts, desc)
             opts = opts or {}
             callback = callback or function() end
-            local minV = opts.Min or 0
-            local maxV = opts.Max or 100
+            local minV = opts.min or opts.Min or 0
+            local maxV = opts.max or opts.Max or 100
             local defV = opts.Default or minV
             local round = opts.Rounding or 0
+            local readonly = opts.readonly or false
 
             local el = Fr({ Size=UDim2.new(1,0,0,50), BackgroundColor3=theme.ElementBg }, tabContent)
             C(8,el); S(theme.ElementStroke,1,0.6,el)
@@ -917,6 +944,7 @@ function Library:CreateWindow(cfg)
 
             local dragging = false
             dot.InputBegan:Connect(function(inp)
+                if readonly then return end
                 if inp.UserInputType==Enum.UserInputType.MouseButton1 then dragging=true end
             end)
             dot.InputEnded:Connect(function(inp)
@@ -937,7 +965,7 @@ function Library:CreateWindow(cfg)
         end
 
         -- â”€â”€ DROPDOWN â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        function Tab:AddDropdown(title, values, callback, opts)
+        function Tab:AddDropdown(title, callback, values, opts)
             opts = opts or {}
             callback = callback or function() end
             values = values or {}
@@ -1014,12 +1042,14 @@ function Library:CreateWindow(cfg)
             togBtn.MouseButton1Click:Connect(function() if open then closeD() else openD() end end)
 
             local DD = {}
+            local rows = {}
 
             local function addItem(item)
                 table.insert(items,item)
                 local row = Btn({ Text="", Size=UDim2.new(1,0,0,28), BackgroundTransparency=1,
                     BackgroundColor3=theme.ElementHover, ZIndex=32 }, dropFrame)
                 C(6,row)
+                rows[item] = row
 
                 -- Checkbox (solo multi)
                 local chkFrame, chkMark
@@ -1069,6 +1099,21 @@ function Library:CreateWindow(cfg)
             end
 
             function DD:Add(item) addItem(item); return self end
+            function DD:Remove(item)
+                local row = rows[item]
+                if row then
+                    row:Destroy()
+                    rows[item] = nil
+                    for i,v in ipairs(items) do
+                        if v == item then table.remove(items,i); break end
+                    end
+                    if selected == item then
+                        selected = items[1]
+                        updateSelLabel()
+                        pcall(callback, selected)
+                    end
+                end
+            end
             function DD:SetValue(v)
                 if multi and type(v)=="table" then selectedMulti=v
                 else selected=v end
@@ -1080,9 +1125,11 @@ function Library:CreateWindow(cfg)
         end
 
         -- â”€â”€ INPUT / TEXTBOX â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        function Tab:AddInput(title, placeholder, callback, opts)
+        function Tab:AddTextBox(text, callback, opts)
             opts = opts or {}
             callback = callback or function() end
+            local title = text
+            local placeholder = text
 
             local el = Fr({ Size=UDim2.new(1,0,0,38), BackgroundColor3=theme.ElementBg }, tabContent)
             C(8,el); S(theme.ElementStroke,1,0.6,el)
@@ -1103,7 +1150,7 @@ function Library:CreateWindow(cfg)
             tb.TextSize = 12
             tb.Text = opts.Default or ""
             tb.BorderSizePixel = 0
-            tb.ClearTextOnFocus = opts.ClearOnFocus or false
+            tb.ClearTextOnFocus = opts.clear or opts.ClearOnFocus or false
             tb.TextXAlignment = Enum.TextXAlignment.Left
             tb.ZIndex = 3
             tb.Parent = el
@@ -1126,10 +1173,11 @@ function Library:CreateWindow(cfg)
         end
 
         -- â”€â”€ COLOR PICKER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        function Tab:AddColorpicker(title, default, callback, opts)
+        function Tab:AddColorPicker(callback, title, opts)
             opts = opts or {}
             callback = callback or function() end
-            default = default or Color3.fromRGB(76,194,255)
+            title = title or "Color"
+            local default = (opts.Default) or Color3.fromRGB(76,194,255)
             local h_,s_,v_ = default:ToHSV()
             local alpha_ = opts.Transparency or 1
 
@@ -1293,9 +1341,11 @@ function Library:CreateWindow(cfg)
         end
 
         -- â”€â”€ KEYBIND â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        function Tab:AddKeybind(title, default, callback, desc)
+        function Tab:AddKeybind(title, callback, opts)
+            opts = opts or {}
             callback = callback or function() end
-            local current = default or Enum.KeyCode.F
+            local current = opts.standard or Enum.KeyCode.F
+            local desc = opts.desc
             local binding = false
             local mode = "Always" -- Always / Toggle / Hold
             local togState = false
@@ -1500,6 +1550,21 @@ function Library:CreateWindow(cfg)
             end
 
             return Folder, folder
+        end
+
+        -- â”€â”€ HORIZONTAL ALIGNMENT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        function Tab:AddHorizontalAlignment()
+            local HA = {}
+            local row = Fr({Size=UDim2.new(1,0,0,38), BackgroundTransparency=1}, tabContent)
+            List(Enum.FillDirection.Horizontal, 6, row)
+            function HA:AddButton(...)
+                local results = {Tab:AddButton(...)}
+                local el = results[#results]
+                el.Size = UDim2.new(0.5,-3,1,0)
+                el.Parent = row
+                return table.unpack(results)
+            end
+            return HA, row
         end
 
         return Tab
