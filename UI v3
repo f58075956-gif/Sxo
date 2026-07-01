@@ -1,4 +1,4 @@
---[[
+"--[[
     FluentUI v3 â€” Visual 100% Fluent + API EXACTA de W_UI (mismos nombres y orden de parÃ¡metros)
 
     USO:
@@ -396,7 +396,7 @@ function Library:CreateWindow(cfg)
         ZIndex = 20,
     }, root)
     -- Ãcono grip
-    Lbl({ Text="â ¿", Size=UDim2.fromScale(1,1), TextColor3=theme.DimText,
+    Lbl({ Text="â ¿", Size=UDim2.fromScale(1,1), TextColor3=theme.DimText,
         TextSize=14, TextXAlignment=Enum.TextXAlignment.Center }, resizeGrip)
 
     do
@@ -543,12 +543,12 @@ function Library:CreateWindow(cfg)
         S(theme.NotifStroke, 1, 0.3, card)
 
         -- Barra acento izquierda
-        Fr({
+        local accentBar = Fr({
             Size = UDim2.fromOffset(3,h-20),
             Position = UDim2.fromOffset(12,10),
             BackgroundColor3 = theme.Accent,
-        }, card):Parent = card
-        C(2, card:GetChildren()[#card:GetChildren()])
+        }, card)
+        C(2, accentBar)
 
         Lbl({ Text=t2, Size=UDim2.new(1,-44,0,14), Position=UDim2.fromOffset(24,10),
             TextColor3=theme.Text, Font=Enum.Font.GothamBold, TextSize=13 }, card)
@@ -1579,4 +1579,4 @@ function Library:CreateWindow(cfg)
 end
 
 -- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-return setmetatable({}, {__index = Library, __call = function() return Library end})
+return setmetatable({}, {__index = Library, __call = function() return Library end})"
