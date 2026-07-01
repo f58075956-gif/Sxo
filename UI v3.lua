@@ -231,7 +231,7 @@ function Library:CreateWindow(cfg)
 
     -- ScreenGui
     local sg = Instance.new("ScreenGui")
-    sg.Name = "FluentUI"
+    sg.Name = "UltimatesUI"
     sg.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     sg.ResetOnSpawn = false
     sg.DisplayOrder = 100
@@ -287,7 +287,7 @@ function Library:CreateWindow(cfg)
     titleRowLayout.VerticalAlignment = Enum.VerticalAlignment.Center
 
     Lbl({
-        Text = cfg.Title or "FluentUI",
+        Text = cfg.Title or "Ultimates UI",
         Size = UDim2.fromScale(0, 1),
         AutomaticSize = Enum.AutomaticSize.X,
         TextColor3 = theme.Text,
@@ -1532,6 +1532,111 @@ function Library:CreateWindow(cfg)
                 end
                 set(st); b2.MouseButton1Click:Connect(function() set(not st) end)
                 local c3={}; function c3:Set(v) set(v) end; return c3,e
+            end
+
+            -- Alias con el mismo orden de parÃ¡metros que Tab:AddSwitch(title, callback, desc)
+            function Folder:AddSwitch(title,cb,desc)
+                return self:AddToggle(title,false,cb)
+            end
+
+            function Folder:AddLabel(text)
+                text = tostring(text or "New Label")
+                local e = Fr({Size=UDim2.new(1,0,0,20),BackgroundTransparency=1},childArea)
+                Lbl({Text=text,Size=UDim2.fromScale(1,1),TextColor3=theme.Text,
+                    Font=Enum.Font.GothamSemibold,TextSize=13},e)
+                local ctrl={}
+                function ctrl:SetText(t) e:FindFirstChildOfClass("TextLabel").Text = t end
+                return ctrl, e
+            end
+
+            function Folder:AddDropdown(title,cb,values,opts2)
+                opts2 = opts2 or {}; cb = cb or function()end; values = values or {}
+                local multi = opts2.Multi or false
+                local selected, selectedMulti, open, items2 = nil, {}, false, {}
+
+                local e = Fr({Size=UDim2.new(1,0,0,36),BackgroundColor3=theme.SecondaryBg,
+                    ClipsDescendants=false},childArea)
+                C(7,e); S(theme.ElementStroke,1,0.7,e)
+
+                Lbl({Text=title,Size=UDim2.new(0.5,0,1,0),Position=UDim2.fromOffset(12,0),
+                    TextColor3=theme.Text,Font=Enum.Font.GothamSemibold,TextSize=13,ZIndex=3},e)
+                local selLbl2 = Lbl({Text=opts2.Default or "Select...",
+                    Size=UDim2.new(0.5,-36,1,0),Position=UDim2.new(0.5,0,0,0),
+                    TextColor3=theme.SubText,Font=Enum.Font.Gotham,TextSize=12,
+                    TextXAlignment=Enum.TextXAlignment.Right,ZIndex=3},e)
+
+                local dropFrame2 = Scr({Size=UDim2.new(1,0,0,0),Position=UDim2.new(0,0,1,4),
+                    BackgroundColor3=theme.DropdownBg,CanvasSize=UDim2.new(0,0,0,0),
+                    ScrollBarImageColor3=theme.Scrollbar,ZIndex=30,Visible=false,
+                    ClipsDescendants=true},e)
+                C(7,dropFrame2); S(theme.ElementStroke,1,0.3,dropFrame2)
+                List(Enum.FillDirection.Vertical,2,dropFrame2)
+                Pad(4,4,6,6,dropFrame2)
+
+                local function updateSelLabel2()
+                    if multi then
+                        local keys={}
+                        for k in pairs(selectedMulti) do table.insert(keys,k) end
+                        if #keys==0 then selLbl2.Text="None"
+                        elseif #keys==1 then selLbl2.Text=keys[1]
+                        else selLbl2.Text=#keys.." selected" end
+                    else
+                        selLbl2.Text = selected or "Select..."
+                    end
+                end
+
+                local function closeD2()
+                    open=false
+                    T(dropFrame2,{Size=UDim2.new(1,0,0,0)},0.18)
+                    task.delay(0.19,function() dropFrame2.Visible=false end)
+                end
+                local function openD2()
+                    open=true; dropFrame2.Visible=true
+                    local h=math.min(#items2*30+10,180)
+                    T(dropFrame2,{Size=UDim2.new(1,0,0,h)},0.18)
+                    dropFrame2.CanvasSize=UDim2.fromOffset(0,#items2*32+8)
+                end
+
+                local togBtn2 = Btn({Size=UDim2.fromScale(1,1),BackgroundTransparency=1,ZIndex=10},e)
+                togBtn2.MouseButton1Click:Connect(function() if open then closeD2() else openD2() end end)
+
+                local DD2, rows2 = {}, {}
+                local function addItem2(item)
+                    table.insert(items2,item)
+                    local row = Btn({Text="",Size=UDim2.new(1,0,0,28),BackgroundTransparency=1,
+                        BackgroundColor3=theme.ElementHover,ZIndex=32},dropFrame2)
+                    C(6,row); rows2[item]=row
+                    Lbl({Text=item,Size=UDim2.new(1,-16,1,0),Position=UDim2.fromOffset(8,0),
+                        TextColor3=theme.Text,Font=Enum.Font.Gotham,TextSize=12,ZIndex=33},row)
+                    row.MouseEnter:Connect(function() T(row,{BackgroundTransparency=0.7}) end)
+                    row.MouseLeave:Connect(function() T(row,{BackgroundTransparency=1}) end)
+                    row.MouseButton1Click:Connect(function()
+                        if multi then
+                            selectedMulti[item] = not selectedMulti[item] or nil
+                            updateSelLabel2(); pcall(cb,selectedMulti)
+                        else
+                            selected=item; updateSelLabel2(); closeD2(); pcall(cb,item)
+                        end
+                    end)
+                end
+                for _,v in ipairs(values) do addItem2(v) end
+
+                function DD2:Add(item) addItem2(item); return self end
+                function DD2:Remove(item)
+                    local row=rows2[item]
+                    if row then
+                        row:Destroy(); rows2[item]=nil
+                        for i,v in ipairs(items2) do if v==item then table.remove(items2,i); break end end
+                        if selected==item then selected=items2[1]; updateSelLabel2(); pcall(cb,selected) end
+                    end
+                end
+                function DD2:SetValue(v)
+                    if multi and type(v)=="table" then selectedMulti=v else selected=v end
+                    updateSelLabel2()
+                end
+                function DD2:GetValue() return multi and selectedMulti or selected end
+
+                return DD2, e
             end
 
             function Folder:AddSlider(title,opts2,cb)
