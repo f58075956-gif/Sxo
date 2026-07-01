@@ -2169,7 +2169,7 @@ task.spawn(function()
     end
 end)
 
-Folderpapu:AddSwitch("Eat Egg (30 Min)", function(state)
+Folder_rebirth:AddSwitch("Eat Egg (30 Min)", function(state)
     AutoEggEnabled = state
 
     if state then
