@@ -14,15 +14,15 @@ local function getCharacter()
 end
 
 
-local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/f58075956-gif/Sxo/refs/heads/main/W%20UI.txt", true))()
-local Window = library:CreateWindow({
-    Title = "ZIX DOM | WELCOME",
-    SubTitle = "karma",
-    Size = UDim2.fromOffset(560, 560),
-    Theme = "Dark",
-    MinimizeKey = Enum.KeyCode.RightShift,
-})
+local title = (" op script | CRONOS ")
 
+
+local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/f58075956-gif/Sxo/refs/heads/main/UI%20v3", true))()
+local window = library:AddWindow(title, {
+    main_color = Color3.fromRGB(0, 0, 0),
+    min_size = Vector2.new(760, 760),
+    can_resize = true,
+})
 
 local pets = window:AddTab("pets")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
