@@ -1,4 +1,4 @@
-"--[[
+--[[
     FluentUI v3 â€” Visual 100% Fluent + API EXACTA de W_UI (mismos nombres y orden de parÃ¡metros)
 
     USO:
@@ -1579,4 +1579,4 @@ function Library:CreateWindow(cfg)
 end
 
 -- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-return setmetatable({}, {__index = Library, __call = function() return Library end})"
+return setmetatable({}, {__index = Library, __call = function() return Library end})
