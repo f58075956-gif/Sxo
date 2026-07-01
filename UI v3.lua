@@ -1,5 +1,5 @@
 --[[
-    FluentUI v3 â€” Visual 100% Fluent + API EXACTA de W_UI (mismos nombres y orden de parÃ¡metros)
+    FluentUI v4 â€” Visual 100% Fluent + API EXACTA de W_UI (mismos nombres y orden de parÃ¡metros)
 
     USO:
         local UI = loadstring(game:HttpGet("URL"))()
@@ -369,22 +369,38 @@ function Library:CreateWindow(cfg)
         end
     end)
 
-    -- â”€â”€ DRAG â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    -- â”€â”€ DRAG (mouse + touch) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     do
         local dragging, dragStart, startPos
+        local function beginDrag(pos)
+            dragging = true; dragStart = pos; startPos = root.Position
+        end
+        local function updateDrag(pos)
+            if not dragging then return end
+            local d = pos - dragStart
+            root.Position = UDim2.fromOffset(startPos.X.Offset+d.X, startPos.Y.Offset+d.Y)
+        end
+        local function endDrag()
+            dragging = false
+        end
+
         topBar.InputBegan:Connect(function(inp)
-            if inp.UserInputType == Enum.UserInputType.MouseButton1 then
-                dragging = true; dragStart = inp.Position; startPos = root.Position
+            if inp.UserInputType == Enum.UserInputType.MouseButton1
+            or inp.UserInputType == Enum.UserInputType.Touch then
+                beginDrag(inp.Position)
             end
         end)
         UIS.InputChanged:Connect(function(inp)
-            if dragging and inp.UserInputType == Enum.UserInputType.MouseMovement then
-                local d = inp.Position - dragStart
-                root.Position = UDim2.fromOffset(startPos.X.Offset+d.X, startPos.Y.Offset+d.Y)
+            if inp.UserInputType == Enum.UserInputType.MouseMovement
+            or inp.UserInputType == Enum.UserInputType.Touch then
+                updateDrag(inp.Position)
             end
         end)
         UIS.InputEnded:Connect(function(inp)
-            if inp.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end
+            if inp.UserInputType == Enum.UserInputType.MouseButton1
+            or inp.UserInputType == Enum.UserInputType.Touch then
+                endDrag()
+            end
         end)
     end
 
@@ -396,22 +412,27 @@ function Library:CreateWindow(cfg)
         ZIndex = 20,
     }, root)
     -- Ãcono grip
-    Lbl({ Text="â ¿", Size=UDim2.fromScale(1,1), TextColor3=theme.DimText,
+    Lbl({ Text="â ¿", Size=UDim2.fromScale(1,1), TextColor3=theme.DimText,
         TextSize=14, TextXAlignment=Enum.TextXAlignment.Center }, resizeGrip)
 
     do
         local resizing, resizeStart, startSz
         resizeGrip.InputBegan:Connect(function(inp)
-            if inp.UserInputType == Enum.UserInputType.MouseButton1 then
+            if inp.UserInputType == Enum.UserInputType.MouseButton1
+            or inp.UserInputType == Enum.UserInputType.Touch then
                 resizing=true; resizeStart=inp.Position
                 startSz=Vector2.new(root.Size.X.Offset, root.Size.Y.Offset)
             end
         end)
         UIS.InputEnded:Connect(function(inp)
-            if inp.UserInputType==Enum.UserInputType.MouseButton1 then resizing=false end
+            if inp.UserInputType==Enum.UserInputType.MouseButton1
+            or inp.UserInputType==Enum.UserInputType.Touch then
+                resizing=false
+            end
         end)
         UIS.InputChanged:Connect(function(inp)
-            if resizing and inp.UserInputType==Enum.UserInputType.MouseMovement then
+            if resizing and (inp.UserInputType==Enum.UserInputType.MouseMovement
+            or inp.UserInputType==Enum.UserInputType.Touch) then
                 local d = inp.Position - resizeStart
                 local nx = math.clamp(startSz.X+d.X, 420, 1200)
                 local ny = math.clamp(startSz.Y+d.Y, 300, 900)
