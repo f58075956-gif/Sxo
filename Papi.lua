@@ -18,7 +18,7 @@ local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/f5807
 local Window = library:CreateWindow({
     Title = "ZIX DOM | WELCOME",
     SubTitle = "karma",
-    Size = UDim2.fromOffset(760, 760),
+    Size = UDim2.fromOffset(560, 560),
     Theme = "Dark",
     MinimizeKey = Enum.KeyCode.RightShift,
 })
