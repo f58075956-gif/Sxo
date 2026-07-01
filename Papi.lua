@@ -13,15 +13,14 @@ local function getCharacter()
     return player.Character or player.CharacterAdded:Wait()
 end
 
-local title = (" op script | CRONOS ")
-
-local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/f58075956-gif/Sxo/refs/heads/main/UI%20v3", true))()
-
-local window = library:AddWindow(title, {
-    main_color = Color3.fromRGB(0, 0, 0),
-    min_size = Vector2.new(760, 760),
-    can_resize = true,
-})
+local UI = loadstring(game:HttpGet("https://raw.githubusercontent.com/f58075956-gif/Sxo/refs/heads/main/UI%20v3"))()
+        local Window = UI:CreateWindow({
+            Title = "CRONOS| HUB",
+            SubTitle = "by KARMA",
+            Size = UDim2.fromOffset(760, 760),
+            Theme = "Dark",
+            MinimizeKey = Enum.KeyCode.RightShift,
+        })
 
 
 local pets = window:AddTab("pets")
