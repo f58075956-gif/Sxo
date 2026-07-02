@@ -1,0 +1,103 @@
+local TweenService = game:GetService("TweenService")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+
+local KEY = "Z3R"
+local DISCORD = "https://discord.gg/UvNSQxBgrA"
+
+-- GUI...
+-- Título
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(0, 280, 0, 60)
+title.Position = UDim2.new(0.5, -140, 0.08, 0)
+title.BackgroundTransparency = 0
+title.Text = "Z3R"
+title.TextColor3 = Color3.new(1, 1, 1)
+title.Font = Enum.Font.LuckiestGuy
+title.TextSize = 30
+title.Parent = mainFrame
+
+local titleCorner = Instance.new("UICorner")
+titleCorner.CornerRadius = UDim.new(1, 0)
+titleCorner.Parent = title
+
+-- Animación del título
+local titleTween = TweenService:Create(
+    title,
+    TweenInfo.new(
+        1,
+        Enum.EasingStyle.Sine,
+        Enum.EasingDirection.InOut,
+        -1,
+        true
+    ),
+    {
+        TextSize = 34
+    }
+)
+
+titleTween:Play()
+
+-- Caja para introducir la Key
+local keyBox = Instance.new("TextBox")
+keyBox.Size = UDim2.new(0, 320, 0, 50)
+keyBox.Position = UDim2.new(0.5, -160, 0.38, 0)
+keyBox.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+keyBox.PlaceholderText = "Introduce tu Key aquí..."
+keyBox.Text = ""
+keyBox.TextColor3 = Color3.new(1, 1, 1)
+keyBox.Font = Enum.Font.DenkOne
+keyBox.TextSize = 20
+keyBox.Parent = mainFrame
+
+local keyStroke = Instance.new("UIStroke")
+keyStroke.Thickness = 2
+keyStroke.Color = Color3.fromRGB(60, 60, 60)
+keyStroke.Parent = keyBox
+
+Instance.new("UICorner").Parent = keyBox
+
+-- Botón Verificar
+local verifyButton = Instance.new("TextButton")
+verifyButton.Size = UDim2.new(0, 320, 0, 55)
+verifyButton.Position = UDim2.new(0.5, -160, 0.60, 0)
+verifyButton.Text = "VERIFICAR KEY"
+verifyButton.TextColor3 = Color3.new(1, 1, 1)
+verifyButton.Font = Enum.Font.DenkOne
+verifyButton.TextSize = 24
+verifyButton.Parent = mainFrame
+
+Instance.new("UICorner").Parent = verifyButton
+
+-- Botón Discord
+local discordButton = Instance.new("TextButton")
+discordButton.Size = UDim2.new(0, 320, 0, 45)
+discordButton.Position = UDim2.new(0.5, -160, 0.80, 0)
+discordButton.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
+discordButton.Text = "OBTENER KEY (Discord)"
+discordButton.TextColor3 = Color3.new(1, 1, 1)
+discordButton.Font = Enum.Font.DenkOne
+discordButton.TextSize = 18
+discordButton.Parent = mainFrame
+
+Instance.new("UICorner").Parent = discordButton
+
+-- Icono del botón Discord
+local discordIcon = Instance.new("ImageLabel")
+discordIcon.Size = UDim2.new(0, 25, 0, 25)
+discordIcon.Position = UDim2.new(0, 15, 0.5, -12)
+discordIcon.BackgroundTransparency = 1
+discordIcon.Image = "rbxassetid://11419714856"
+discordIcon.Parent = discordButton
+
+-- Créditos
+local credits = Instance.new("TextLabel")
+credits.Size = UDim2.new(1, 0, 0, 20)
+credits.Position = UDim2.new(0, 0, 0.95, 0)
+credits.BackgroundTransparency = 1
+credits.Text = "Made by karma"
+credits.Font = Enum.Font.DenkOne
+credits.TextSize = 14
+credits.Parent = mainFrame
