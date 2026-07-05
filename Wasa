@@ -1,0 +1,583 @@
+-- ╔══════════════════════════════════════════════╗
+-- ║           LOCAL CHAT - Nexo                 ║
+-- ║  SaveManager + Rangos + Comandos + @Menciones ║
+-- ╚══════════════════════════════════════════════╝
+
+local Players          = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local TweenService     = game:GetService("TweenService")
+local HttpService      = game:GetService("HttpService")
+
+local lplr      = Players.LocalPlayer
+local playerGui = lplr:WaitForChild("PlayerGui")
+
+-- ══════════════════════════════════════════════
+-- SAVE MANAGER
+-- Todos los datos usan UserId como clave (string)
+-- para que los apodos/DisplayNames no interfieran.
+-- ══════════════════════════════════════════════
+
+local SaveManager = {} do
+SaveManager.Folder    = "NexoLocalChat"
+SaveManager.File      = SaveManager.Folder .. "/settings.json"
+SaveManager.RanksFile = SaveManager.Folder .. "/ranks.json"
+SaveManager.BansFile  = SaveManager.Folder .. "/bans.json"
+SaveManager.MutesFile = SaveManager.Folder .. "/mutes.json"
+
+SaveManager.Defaults = {  
+    WindowPosX     = 10,  
+    WindowPosY     = 120,  
+    WindowW        = 380,  
+    WindowH        = 300,  
+    MaxMessages    = 50,  
+    AccentColorHex = "7850FF",  
+    Minimized      = false,  
+}  
+
+function SaveManager:BuildFolder()  
+    if not isfolder(self.Folder) then  
+        makefolder(self.Folder)  
+    end  
+end  
+
+function SaveManager:SaveTable(file, data)  
+    self:BuildFolder()  
+    local ok, encoded = pcall(HttpService.JSONEncode, HttpService, data)  
+    if ok then  
+        writefile(file, encoded)  
+    end  
+end  
+
+function SaveManager:LoadTable(file)  
+    self:BuildFolder()  
+    if not isfile(file) then  
+        return {}  
+    end  
+
+    local ok, decoded = pcall(HttpService.JSONDecode, HttpService, readfile(file))  
+    return ok and decoded or {}  
+end  
+
+function SaveManager:Save(data)  
+    self:SaveTable(self.File, data)  
+end  
+
+function SaveManager:Load()  
+    local d = self:LoadTable(self.File)  
+
+    for k, v in pairs(self.Defaults) do  
+        if d[k] == nil then  
+            d[k] = v  
+        end  
+    end  
+
+    return d  
+end  
+
+SaveManager:BuildFolder()
+
+end
+
+local cfg = SaveManager:Load()
+
+-- ══════════════════════════════════════════════
+-- OWNER HARDCODED
+-- KARMAXJOHAN tiene nivel 4 (super-owner).
+-- Su rango no se puede quitar ni sobreescribir.
+-- Se identifica por username (Name), no por UserId,
+-- porque el UserId no se conoce de antemano.
+-- ══════════════════════════════════════════════
+
+local HARDCODED_OWNER_NAME = "KARMAXJOHAN"
+
+-- ══════════════════════════════════════════════
+-- RANGOS — clave: tostring(userId)
+-- ══════════════════════════════════════════════
+local RANK_INFO = {
+superowner = {
+label = "[OWNER]",
+color = Color3.fromRGB(255, 215, 0),
+level = 4
+},
+
+owner = {  
+    label = "[OWNER]",  
+    color = Color3.fromRGB(255, 215, 0),  
+    level = 3  
+},  
+
+admin = {  
+    label = "[ADMIN]",  
+    color = Color3.fromRGB(255, 80, 80),  
+    level = 2  
+},  
+
+mod = {  
+    label = "[MOD]",  
+    color = Color3.fromRGB(80, 200, 120),  
+    level = 1  
+},
+
+}
+
+local ranks = SaveManager:LoadTable(SaveManager.RanksFile)
+
+local function saveRanks()
+SaveManager:SaveTable(SaveManager.RanksFile, ranks)
+end
+
+-- Devuelve el rango efectivo: si es el superowner hardcoded,
+-- siempre devuelve "superowner".
+local function getRank(uid)
+-- Buscar si el UserId corresponde al owner por username.
+local p = Players:GetPlayerByUserId(tonumber(uid) or 0)
+
+if p and p.Name == HARDCODED_OWNER_NAME then  
+    return "superowner"  
+end  
+
+-- También comprobar el LocalPlayer.  
+if lplr  
+    and lplr.Name == HARDCODED_OWNER_NAME  
+    and tostring(lplr.UserId) == tostring(uid)  
+then  
+    return "superowner"  
+end  
+
+return ranks[tostring(uid)]
+
+end
+
+local function getRankLevel(uid)
+local rank = getRank(uid)
+return rank and RANK_INFO[rank] and RANK_INFO[rank].level or 0
+end
+
+-- Asignar superowner automáticamente si corresponde.
+local function applySuperOwnerIfNeeded()
+if lplr.Name == HARDCODED_OWNER_NAME then
+ranks[tostring(lplr.UserId)] = "superowner"
+saveRanks()
+end
+end
+
+-- ══════════════════════════════════════════════
+-- BANS — clave: tostring(userId)
+-- ══════════════════════════════════════════════
+
+local bans = SaveManager:LoadTable(SaveManager.BansFile)
+
+local function saveBans()
+SaveManager:SaveTable(SaveManager.BansFile, bans)
+end
+
+local function isBanned(uid)
+local entry = bans[tostring(uid)]
+
+if not entry then  
+    return false  
+end  
+
+if entry.expiry and os.time() > entry.expiry then  
+    bans[tostring(uid)] = nil  
+    saveBans()  
+    return false  
+end  
+
+return true
+
+end
+
+-- Si el LocalPlayer está baneado, no permitimos cargar el script.
+if isBanned(lplr.UserId) then
+lplr:Kick("Lo sentimos, no puedes usar el script.")
+return
+end
+
+-- ══════════════════════════════════════════════
+-- MUTES — clave: tostring(userId)
+-- ══════════════════════════════════════════════
+local mutes = SaveManager:LoadTable(SaveManager.MutesFile)
+
+local function saveMutes()
+SaveManager:SaveTable(SaveManager.MutesFile, mutes)
+end
+
+local function isMuted(uid)
+local entry = mutes[tostring(uid)]
+
+if not entry then  
+    return false  
+end  
+
+if entry.expiry and os.time() > entry.expiry then  
+    mutes[tostring(uid)] = nil  
+    saveMutes()  
+    return false  
+end  
+
+return true
+
+end
+
+-- ══════════════════════════════════════════════
+-- UTILIDADES
+-- ══════════════════════════════════════════════
+
+local function parseDuration(str)
+if not str then
+return nil
+end
+
+str = str:lower()  
+
+if str == "perm" or str == "permanente" then  
+    return nil  
+end  
+
+local n, unit = str:match("^(%d+)(.+)$")  
+
+if not n then  
+    return nil  
+end  
+
+n = tonumber(n)  
+
+if unit == "s" then  
+    return n  
+elseif unit == "min" or unit == "m" then  
+    return n * 60  
+elseif unit == "h" then  
+    return n * 3600  
+elseif unit == "dia" or unit == "d" then  
+    return n * 86400  
+elseif unit == "sem" then  
+    return n * 604800  
+end  
+
+return nil
+
+end
+
+-- ══════════════════════════════════════════════
+-- USUARIOS DEL SCRIPT
+-- Solo cuentan como "usuarios" los jugadores que
+-- han enviado al menos un mensaje por este chat.
+-- Así el autocompletado de @menciones no incluye
+-- a jugadores que no tienen el script cargado.
+-- ══════════════════════════════════════════════
+
+local scriptUsers = {}
+scriptUsers[tostring(lplr.UserId)] = true -- Yo mismo uso el script.
+
+-- Busca un jugador por DisplayName o Name
+-- (búsqueda parcial, sin distinguir mayúsculas/minúsculas).
+local function findPlayer(query)
+query = query:lower()
+
+for _, player in ipairs(Players:GetPlayers()) do  
+    if player.DisplayName:lower():find(query, 1, true)  
+    or player.Name:lower():find(query, 1, true) then  
+        return player  
+    end  
+end  
+
+return nil
+
+end
+
+-- Devuelve una lista de DisplayNames que comienzan
+-- con el prefijo indicado.
+-- Solo incluye jugadores que usan el script.
+local function getDisplayMatches(prefix)
+prefix = prefix:lower()
+
+local results = {}  
+
+for _, player in ipairs(Players:GetPlayers()) do  
+    if scriptUsers[tostring(player.UserId)]  
+    and player.DisplayName:lower():sub(1, #prefix) == prefix then  
+        table.insert(results, player.DisplayName)  
+    end  
+end  
+
+return results
+
+end
+
+-- ══════════════════════════════════════════════
+-- CONFIGURACIÓN EN TIEMPO DE EJECUCIÓN
+-- ══════════════════════════════════════════════
+-- ══════════════════════════════════════════════
+-- CONFIGURACIÓN EN TIEMPO DE EJECUCIÓN
+-- ══════════════════════════════════════════════
+
+local CONFIG = {
+MaxMessages  = cfg.MaxMessages,
+ChatKey      = Enum.KeyCode.Return,
+
+WindowSize = UDim2.new(  
+    0,  
+    cfg.WindowW,  
+    0,  
+    cfg.WindowH  
+),  
+
+WindowPos = UDim2.new(  
+    0,  
+    cfg.WindowPosX,  
+    0,  
+    cfg.WindowPosY  
+),  
+
+BubbleColor  = Color3.fromRGB(20, 20, 28),  
+AccentColor  = Color3.fromHex(cfg.AccentColorHex),  
+SelfColor    = Color3.fromRGB(80, 60, 180),  
+TextColor    = Color3.fromRGB(235, 235, 240),  
+SubTextColor = Color3.fromRGB(140, 140, 160),  
+MentionColor = Color3.fromRGB(120, 180, 255),  
+BorderColor  = Color3.fromRGB(60, 50, 90),  
+InputBg      = Color3.fromRGB(14, 14, 20),  
+
+ChatTag = "[LOCAL]",
+
+}
+
+-- ══════════════════════════════════════════════
+-- GUI — ScreenGui + MainFrame
+-- ══════════════════════════════════════════════
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "NexoLocalChat"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+local guiParent =
+(typeof(gethui) == "function" and gethui())
+or playerGui
+
+ScreenGui.DisplayOrder = 999
+ScreenGui.Parent = guiParent
+
+local MainFrame = Instance.new("Frame", ScreenGui)
+MainFrame.Name = "MainFrame"
+MainFrame.Size = CONFIG.WindowSize
+MainFrame.Position = CONFIG.WindowPos
+MainFrame.BackgroundColor3 = CONFIG.BubbleColor
+MainFrame.BorderSizePixel = 0
+MainFrame.ClipsDescendants = false
+
+Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 12)
+
+local stroke = Instance.new("UIStroke", MainFrame)
+stroke.Color = CONFIG.BorderColor
+stroke.Thickness = 1.5
+
+-- TopBar
+
+local TopBar = Instance.new("Frame", MainFrame)
+TopBar.Name = "TopBar"
+TopBar.Size = UDim2.new(1, 0, 0, 32)
+TopBar.BackgroundColor3 = Color3.fromRGB(14, 10, 24)
+TopBar.BorderSizePixel = 0
+
+Instance.new("UICorner", TopBar).CornerRadius = UDim.new(0, 12)
+
+local topBarFix = Instance.new("Frame", TopBar)
+topBarFix.Size = UDim2.new(1, 0, 0.5, 0)
+topBarFix.Position = UDim2.new(0, 0, 0.5, 0)
+topBarFix.BackgroundColor3 = Color3.fromRGB(14, 10, 24)
+topBarFix.BorderSizePixel = 0
+topBarFix.ZIndex = 0
+topBarFix.Active = false
+
+local AccentDot = Instance.new("Frame", TopBar)
+AccentDot.Size = UDim2.new(0, 8, 0, 8)
+AccentDot.Position = UDim2.new(0, 10, 0.5, -4)
+AccentDot.BackgroundColor3 = CONFIG.AccentColor
+AccentDot.BorderSizePixel = 0
+
+Instance.new("UICorner", AccentDot).CornerRadius = UDim.new(1, 0)
+
+local TitleLabel = Instance.new("TextLabel", TopBar)
+TitleLabel.Size = UDim2.new(1, -60, 1, 0)
+TitleLabel.Position = UDim2.new(0, 24, 0, 0)
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.Text = "Chat Local • " .. #Players:GetPlayers() .. " jugadores"
+TitleLabel.TextColor3 = CONFIG.TextColor
+TitleLabel.TextSize = 12
+TitleLabel.Font = Enum.Font.GothamMedium
+TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+local MinBtn = Instance.new("TextButton", TopBar)
+MinBtn.Size = UDim2.new(0, 26, 0, 18)
+MinBtn.Position = UDim2.new(1, -30, 0.5, -9)
+MinBtn.BackgroundColor3 = Color3.fromRGB(40, 30, 60)
+MinBtn.Text = "—"
+MinBtn.TextColor3 = CONFIG.SubTextColor
+MinBtn.TextSize = 11
+MinBtn.Font = Enum.Font.GothamBold
+MinBtn.BorderSizePixel = 0
+
+Instance.new("UICorner", MinBtn).CornerRadius = UDim.new(0, 4)
+-- ══════════════════════════════════════════════
+-- ScrollFrame (mensajes)
+-- ══════════════════════════════════════════════
+
+local ScrollFrame = Instance.new("ScrollingFrame", MainFrame)
+ScrollFrame.Name = "ScrollFrame"
+ScrollFrame.Size = UDim2.new(1, -8, 1, -80)
+ScrollFrame.Position = UDim2.new(0, 4, 0, 36)
+ScrollFrame.BackgroundTransparency = 1
+ScrollFrame.BorderSizePixel = 0
+ScrollFrame.ScrollBarThickness = 3
+ScrollFrame.ScrollBarImageColor3 = CONFIG.AccentColor
+ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+ScrollFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+ScrollFrame.ScrollingDirection = Enum.ScrollingDirection.Y
+ScrollFrame.ScrollingEnabled = true
+ScrollFrame.Active = true
+
+local ListLayout = Instance.new("UIListLayout", ScrollFrame)
+ListLayout.Padding = UDim.new(0, 4)
+ListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+local ListPadding = Instance.new("UIPadding", ScrollFrame)
+ListPadding.PaddingLeft = UDim.new(0, 4)
+ListPadding.PaddingRight = UDim.new(0, 4)
+ListPadding.PaddingTop = UDim.new(0, 4)
+
+-- ══════════════════════════════════════════════
+-- InputFrame
+-- ══════════════════════════════════════════════
+
+local InputFrame = Instance.new("Frame", MainFrame)
+InputFrame.Name = "InputFrame"
+InputFrame.Size = UDim2.new(1, -12, 0, 36)
+InputFrame.Position = UDim2.new(0, 6, 1, -42)
+InputFrame.BackgroundColor3 = CONFIG.InputBg
+InputFrame.BorderSizePixel = 0
+
+Instance.new("UICorner", InputFrame).CornerRadius = UDim.new(0, 8)
+
+local inputStroke = Instance.new("UIStroke", InputFrame)
+inputStroke.Color = CONFIG.BorderColor
+inputStroke.Thickness = 1
+
+local ChatInput = Instance.new("TextBox", InputFrame)
+ChatInput.Size = UDim2.new(1, -50, 1, 0)
+ChatInput.Position = UDim2.new(0, 8, 0, 0)
+ChatInput.BackgroundTransparency = 1
+ChatInput.PlaceholderText = "Escribe, @ para mencionar, /ayuda..."
+ChatInput.PlaceholderColor3 = CONFIG.SubTextColor
+ChatInput.Text = ""
+ChatInput.TextColor3 = CONFIG.TextColor
+ChatInput.TextSize = 13
+ChatInput.Font = Enum.Font.Gotham
+ChatInput.TextXAlignment = Enum.TextXAlignment.Left
+ChatInput.ClearTextOnFocus = false
+
+-- Bloquea/desbloquea el cuadro de texto según el estado de muteo.
+local function applyMuteState()
+if isMuted(lplr.UserId) then
+ChatInput.Text = ""
+ChatInput.TextEditable = false
+ChatInput.PlaceholderText = "Estás muteado, no puedes escribir."
+else
+ChatInput.TextEditable = true
+ChatInput.PlaceholderText = "Escribe, @ para mencionar, /ayuda..."
+end
+end
+
+applyMuteState()
+
+local SendBtn = Instance.new("TextButton", InputFrame)
+SendBtn.Size = UDim2.new(0, 36, 0, 26)
+SendBtn.Position = UDim2.new(1, -40, 0.5, -13)
+SendBtn.BackgroundColor3 = CONFIG.AccentColor
+SendBtn.Text = "↑"
+SendBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+SendBtn.TextSize = 16
+SendBtn.Font = Enum.Font.GothamBold
+SendBtn.BorderSizePixel = 0
+
+Instance.new("UICorner", SendBtn).CornerRadius = UDim.new(0, 6)
+
+local TagLabel = Instance.new("TextLabel", MainFrame)
+TagLabel.Size = UDim2.new(0, 60, 0, 14)
+TagLabel.Position = UDim2.new(0, 6, 1, -14)
+TagLabel.BackgroundTransparency = 1
+TagLabel.Text = CONFIG.ChatTag
+TagLabel.TextColor3 = CONFIG.AccentColor
+TagLabel.TextSize = 10
+TagLabel.Font = Enum.Font.GothamBold
+TagLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+-- ══════════════════════════════════════════════
+-- POPUP DE @MENCIONES (autocompletado)
+-- Aparece justo encima del InputFrame.
+-- ══════════════════════════════════════════════
+-- ══════════════════════════════════════════════
+-- POPUP DE @MENCIONES (autocompletado)
+-- Aparece justo encima del InputFrame.
+-- ══════════════════════════════════════════════
+
+local MentionPopup = Instance.new("Frame", MainFrame)
+MentionPopup.Name = "MentionPopup"
+MentionPopup.Size = UDim2.new(1, -12, 0, 0) -- altura dinámica
+MentionPopup.Position = UDim2.new(0, 6, 1, -42)
+MentionPopup.BackgroundColor3 = Color3.fromRGB(18, 14, 30)
+MentionPopup.BorderSizePixel = 0
+MentionPopup.Visible = false
+MentionPopup.ZIndex = 10
+MentionPopup.ClipsDescendants = true
+
+Instance.new("UICorner", MentionPopup).CornerRadius = UDim.new(0, 8)
+
+local popupStroke = Instance.new("UIStroke", MentionPopup)
+popupStroke.Color = CONFIG.AccentColor
+popupStroke.Thickness = 1
+
+local MentionList = Instance.new("UIListLayout", MentionPopup)
+MentionList.Padding = UDim.new(0, 2)
+MentionList.SortOrder = Enum.SortOrder.LayoutOrder
+
+local MentionPadding = Instance.new("UIPadding", MentionPopup)
+MentionPadding.PaddingLeft = UDim.new(0, 4)
+MentionPadding.PaddingRight = UDim.new(0, 4)
+MentionPadding.PaddingTop = UDim.new(0, 4)
+MentionPadding.PaddingBottom = UDim.new(0, 4)
+
+-- ══════════════════════════════════════════════
+-- LÓGICA PRINCIPAL
+-- ══════════════════════════════════════════════
+
+local messageCount = 0
+local minimized = cfg.Minimized
+local originalSize = CONFIG.WindowSize
+
+local function persistConfig()
+local pos = MainFrame.Position
+local size = MainFrame.Size
+
+SaveManager:Save({  
+    WindowPosX = pos.X.Offset,  
+    WindowPosY = pos.Y.Offset,  
+    WindowW = size.X.Offset,  
+    WindowH = size.Y.Offset,  
+    MaxMessages = CONFIG.MaxMessages,  
+    AccentColorHex = cfg.AccentColorHex,  
+    Minimized = minimized,  
+})
+
+end
+
+local function scrollToBottom()
+task.defer(function()
+ScrollFrame.CanvasPosition =
+Vector2.new(0, ScrollFrame.AbsoluteCanvasSize.Y)
+end)
+end
+
+-- Renderiza el texto resaltando @DisplayName en azul.
+-- Devuelve un Frame contenedor con las partes del texto.
