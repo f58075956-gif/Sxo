@@ -139,6 +139,18 @@ while omegaFarmLegends do
 end
 end)
 end)
+
+local playerWhitelist = {}
+local targetPlayerNames = {}
+local autoGoodKarma = false
+local autoBadKarma = false
+local autoKill = false
+local killTarget = false
+local spying = false
+local autoEquipPunch = false
+local autoPunchNoAnim = false
+local targetDropdownItems = {}
+local availableTargets = {}
 local Killer = window:AddTab("killer")
 Killer:AddSwitch("equipar y desequipar", function(bool)
     if bool then
@@ -180,21 +192,46 @@ Killer:AddSwitch("equipar y desequipar", function(bool)
     end
 end)
 
-local playerWhitelist = {}
-local targetPlayerNames = {}
-local autoGoodKarma = false
-local autoBadKarma = false
-local autoKill = false
-local killTarget = false
-local spying = false
-local autoEquipPunch = false
-local autoPunchNoAnim = false
-local targetDropdownItems = {}
-local availableTargets = {}
 
-local Folderskarma = killer:AddFolder("crystals")
+local titleLabel = Killer:AddLabel("Equipar pet de dura o daño")
+titleLabel.TextSize = 14
+titleLabel.Font = Enum.Font.Merriweather 
+titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 
-Folderskarma:AddSwitch("Auto Good Karma", function(bool)
+local dropdown = Killer:AddDropdown("Select Pet", function(text)
+    local petsFolder = game.Players.LocalPlayer.petsFolder
+    for _, folder in pairs(petsFolder:GetChildren()) do
+        if folder:IsA("Folder") then
+            for _, pet in pairs(folder:GetChildren()) do
+                game:GetService("ReplicatedStorage").rEvents.equipPetEvent:FireServer("unequipPet", pet)
+            end
+        end
+    end
+    task.wait(0.2)
+
+    local petName = text
+    local petsToEquip = {}
+
+    for _, pet in pairs(game.Players.LocalPlayer.petsFolder.Unique:GetChildren()) do
+        if pet.Name == petName then
+            table.insert(petsToEquip, pet)
+        end
+    end
+
+    local maxPets = 8
+    local equippedCount = math.min(#petsToEquip, maxPets)
+
+    for i = 1, equippedCount do
+        game:GetService("ReplicatedStorage").rEvents.equipPetEvent:FireServer("equipPet", petsToEquip[i])
+        task.wait(0.1)
+    end
+end)
+
+local Wild_Wizard = dropdown:Add("Wild Wizard")
+local Powerful_Monster = dropdown:Add("Mighty Monster")
+local Folderkarma = killer:AddFolder("crystals")
+
+Folderkarma:AddSwitch("Auto Good Karma", function(bool)
     autoGoodKarma = bool
     task.spawn(function()
         while autoGoodKarma do
@@ -223,7 +260,7 @@ Folderskarma:AddSwitch("Auto Good Karma", function(bool)
     end)
 end)
 
-Folderskarma:AddSwitch("Auto Bad Karma", function(bool)
+Folderkarma:AddSwitch("Auto Bad Karma", function(bool)
     autoBadKarma = bool
     task.spawn(function()
         while autoBadKarma do
