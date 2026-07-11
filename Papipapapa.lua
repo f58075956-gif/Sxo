@@ -4210,195 +4210,146 @@ Killer:AddLabel("PACK SPAM & PETS").TextSize = 30
 local running = false
 
 local function getRemote()
-    local rEvents = ReplicatedStorage:FindFirstChild("rEvents")
-    if rEvents then
-        return rEvents:FindFirstChild("equipPetEvent")
-    end
+	local rEvents = ReplicatedStorage:FindFirstChild("rEvents")
+	if not rEvents then
+		return
+	end
+	return rEvents:FindFirstChild("equipPetEvent")
 end
 
 local function unequipAll(remote, petsFolder)
-    for _, folder in pairs(petsFolder:GetChildren()) do
-        if folder:IsA("Folder") then
-            for _, pet in pairs(folder:GetChildren()) do
-                remote:FireServer("unequipPet", pet)
-            end
-        end
-    end
-end
-
-local function getPetsByName(folder, name)
-    local t = {}
-    for _, pet in pairs(folder:GetChildren()) do
-        if pet.Name == name then
-            table.insert(t, pet)
-        end
-    end
-    return t
-end
-
-local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local LocalPlayer = Players.LocalPlayer
-
-local running = false
-
-local function getRemote()
-    local rEvents = ReplicatedStorage:FindFirstChild("rEvents")
-    if not rEvents then return end
-    return rEvents:FindFirstChild("equipPetEvent")
-end
-
-local function unequipAll(remote, petsFolder)
-    for _, folder in pairs(petsFolder:GetChildren()) do
-        if folder:IsA("Folder") then
-            for _, pet in pairs(folder:GetChildren()) do
-                remote:FireServer("unequipPet", pet)
-            end
-        end
-    end
+	for _, folder in pairs(petsFolder:GetChildren()) do
+		if folder:IsA("Folder") then
+			for _, pet in pairs(folder:GetChildren()) do
+				remote:FireServer("unequipPet", pet)
+			end
+		end
+	end
 end
 
 local function getPets(folder, name)
-    local t = {}
-    for _, pet in pairs(folder:GetChildren()) do
-        if pet.Name == name then
-            table.insert(t, pet)
-        end
-    end
-    return t
+	local t = {}
+	for _, pet in pairs(folder:GetChildren()) do
+		if pet.Name == name then
+			table.insert(t, pet)
+		end
+	end
+	return t
+end
+
+local function equipPet(petName, amount)
+	local petsFolder = LocalPlayer:FindFirstChild("petsFolder")
+	if not petsFolder then
+		warn("petsFolder not found")
+		return
+	end
+
+	local uniqueFolder = petsFolder:FindFirstChild("Unique")
+	if not uniqueFolder then
+		warn("Unique folder not found")
+		return
+	end
+
+	local remote = getRemote()
+	if not remote then
+		warn("equipPetEvent not found")
+		return
+	end
+
+	unequipAll(remote, petsFolder)
+	task.wait(0.2)
+
+	local petsToEquip = getPets(uniqueFolder, petName)
+
+	for i = 1, math.min(amount, #petsToEquip) do
+		remote:FireServer("equipPet", petsToEquip[i])
+		task.wait(0.1)
+	end
 end
 
 Killer:AddButton("Start Pack Spam", function()
-    if running then return end
-    running = true
+	if running then
+		return
+	end
+	running = true
 
-    task.spawn(function()
-        local petsFolder = LocalPlayer:FindFirstChild("petsFolder")
-        if not petsFolder then
-            warn("petsFolder not found")
-            running = false
-            return
-        end
+	task.spawn(function()
+		local petsFolder = LocalPlayer:FindFirstChild("petsFolder")
+		if not petsFolder then
+			warn("petsFolder not found")
+			running = false
+			return
+		end
 
-        local unique = petsFolder:FindFirstChild("Unique")
-        if not unique then
-            warn("Unique folder not found")
-            running = false
-            return
-        end
+		local unique = petsFolder:FindFirstChild("Unique")
+		if not unique then
+			warn("Unique folder not found")
+			running = false
+			return
+		end
 
-        local remote = getRemote()
-        if not remote then
-            warn("equipPetEvent not found")
-            running = false
-            return
-        end
+		local remote = getRemote()
+		if not remote then
+			warn("equipPetEvent not found")
+			running = false
+			return
+		end
 
-        while running do
-            -- ===== Mighty Monster =====
-            unequipAll(remote, petsFolder)
-            task.wait(0.1)
+		while running do
+			-- ===== Mighty Monster =====
+			unequipAll(remote, petsFolder)
+			task.wait(0.1)
 
-            local mighty = getPets(unique, "Mighty Monster")
+			local mighty = getPets(unique, "Mighty Monster")
 
-            for i = 1, math.min(7, #mighty) do
-                if not running then return end
-                remote:FireServer("equipPet", mighty[i])
-                task.wait(0.025)
-            end
+			for i = 1, math.min(7, #mighty) do
+				if not running then
+					return
+				end
+				remote:FireServer("equipPet", mighty[i])
+				task.wait(0.025)
+			end
 
-            task.wait(0.01)
+			task.wait(0.01)
 
-            -- ===== Wild Wizard =====
-            unequipAll(remote, petsFolder)
-            task.wait(0.1)
+			-- ===== Wild Wizard =====
+			unequipAll(remote, petsFolder)
+			task.wait(0.1)
 
-            local wizard = getPets(unique, "Wild Wizard")
+			local wizard = getPets(unique, "Wild Wizard")
 
-            for i = 1, math.min(0, #wizard) do
-                if not running then return end
-                remote:FireServer("equipPet", wizard[i])
-                task.wait(0.025)
-            end
+			-- Antes tenÃ­a math.min(0, #wizard), por eso nunca se equipaba
+			-- ningÃºn Wild Wizard. Corregido a 8 (mismo tope que el resto).
+			for i = 1, math.min(8, #wizard) do
+				if not running then
+					return
+				end
+				remote:FireServer("equipPet", wizard[i])
+				task.wait(0.025)
+			end
 
-            task.wait(0.1)
-        end
-    end)
+			task.wait(0.1)
+		end
+	end)
 end)
-
-
 
 Killer:AddButton("Stop Pack Spam", function()
-    running = false
-    print("[PackSpam]: Stopped")
+	running = false
+	print("[PackSpam]: Stopped")
 end)
 
-local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local LocalPlayer = Players.LocalPlayer
-
-local function equipPet(petName)
-    local petsFolder = LocalPlayer:FindFirstChild("petsFolder")
-    if not petsFolder then
-        warn("petsFolder not found")
-        return
-    end
-
-    local uniqueFolder = petsFolder:FindFirstChild("Unique")
-    if not uniqueFolder then
-        warn("Unique folder not found")
-        return
-    end
-
-    local remote = ReplicatedStorage:FindFirstChild("rEvents")
-    if remote then
-        remote = remote:FindFirstChild("equipPetEvent")
-    end
-
-    if not remote then
-        warn("equipPetEvent not found")
-        return
-    end
-
-    -- Unequip all
-    for _, folder in pairs(petsFolder:GetChildren()) do
-        if folder:IsA("Folder") then
-            for _, pet in pairs(folder:GetChildren()) do
-                remote:FireServer("unequipPet", pet)
-            end
-        end
-    end
-
-    task.wait(0.2)
-
-    -- Find pets
-    local petsToEquip = {}
-    for _, pet in pairs(uniqueFolder:GetChildren()) do
-        if pet.Name == petName then
-            table.insert(petsToEquip, pet)
-        end
-    end
-
-    -- Equip max 8
-    for i = 1, math.min(8, #petsToEquip) do
-        remote:FireServer("equipPet", petsToEquip[i])
-        task.wait(0.1)
-    end
-end
-
--- MAKE SURE GodmodeTab EXISTS BEFORE THIS
+-- MAKE SURE Killer TAB EXISTS BEFORE THIS
 if Killer then
-    KillerAddButton("Equip Wild Wizard", function()
-        equipPet("Wild Wizard")
-    end)
+	Killer:AddButton("Equip Wild Wizard", function()
+		equipPet("Wild Wizard", 8)
+	end)
 
-    Killer:AddButton("Equip Mighty Monster", function()
-        equipPet("Mighty Monster")
-    end)
+	Killer:AddButton("Equip Mighty Monster", function()
+		equipPet("Mighty Monster", 8)
+	end)
 else
-    warn("GodmodeTab is nil")
+	warn("Killer tab is nil")
 end
-
 local tabla = window:AddTab("rocks-info")
 tabla:AddLabel("RENACIMIENTOS MUSCLE LEGENDS").TextSize = 20
 tabla:AddLabel("ROCA DEL KING ").TextSize = 20
