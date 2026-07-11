@@ -601,10 +601,16 @@ local function gettool()
     local remote = LP:FindFirstChild("muscleEvent")
     if remote then
         remote:FireServer("punch", "rightHand")
-        
-		
-		
-		
+        remote:FireServer("punch", "rightHand")
+		remote:FireServer("punch", "rightHand")
+		remote:FireServer("punch", "rightHand")
+		remote:FireServer("punch", "rightHand")
+		remote:FireServer("punch", "rightHand")
+		remote:FireServer("punch", "rightHand")
+		remote:FireServer("punch", "rightHand")
+		remote:FireServer("punch", "rightHand")
+		remote:FireServer("punch", "rightHand")
+		remote:FireServer("punch", "rightHand")
 		
 	end
 end
@@ -628,6 +634,26 @@ local function farmRock(targetDurability)
                             -- 💀 MULTI TOUCH (RANGE BOOST)
                             for i = 90000, 100000 do
 								firetouchinterest(rock, left, 1)
+								firetouchinterest(rock, left, 0)
+									firetouchinterest(rock, left, 1)
+								firetouchinterest(rock, left, 0)
+									firetouchinterest(rock, left, 1)
+								firetouchinterest(rock, left, 0)
+									firetouchinterest(rock, left, 1)
+								firetouchinterest(rock, left, 0)
+									firetouchinterest(rock, left, 1)
+								firetouchinterest(rock, left, 0)
+									firetouchinterest(rock, left, 1)
+								firetouchinterest(rock, left, 0)
+									firetouchinterest(rock, left, 1)
+								firetouchinterest(rock, left, 0)
+									firetouchinterest(rock, left, 1)
+								firetouchinterest(rock, left, 0)
+									firetouchinterest(rock, left, 1)
+								firetouchinterest(rock, left, 0)
+									firetouchinterest(rock, left, 1)
+								firetouchinterest(rock, left, 0)
+									firetouchinterest(rock, left, 1)
 								firetouchinterest(rock, left, 0)
 								
 								
