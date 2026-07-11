@@ -4160,6 +4160,6 @@ infoTab:AddButton("Copy Invite", function()
 end)
 end
 
-crearpets()
+Crearpets()
 CrearRock()
 Crearextra()
