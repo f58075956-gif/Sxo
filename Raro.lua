@@ -23,7 +23,7 @@ local window = library:AddWindow(title, {
     min_size = Vector2.new(760, 760),
     can_resize = true,
 })
-
+local function Crearpets()
 local pets = window:AddTab("pets")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Foldersexo = pets:AddFolder("crystals")
@@ -575,6 +575,8 @@ Players.PlayerAdded:Connect(function(plr)
 		doTrade(plr)
 	end
 end)
+end
+local function CrearRock()
 local farmTab = window:AddTab("Rock")
 local Folderanal = farmTab:AddFolder("FARM-ROCK-V1")
 Folderanal:AddLabel("Rock Farming")
@@ -1998,10 +2000,11 @@ Folder_rebirth:AddSwitch("Eat Egg (30 Min)", function(state)
         print("[AutoEgg] Desactivado.")
     end
 end)
+end
+local function Crearextra()
 local RunService = game:GetService("RunService")
 local Lighting = game:GetService("Lighting")
 local UIS = game:GetService("UserInputService")
-
 local extraTab = window:AddTab("Extra")
 
 
@@ -4155,3 +4158,8 @@ infoTab:AddButton("Copy Invite", function()
         })
     end
 end)
+end
+
+crearpets()
+CrearRock()
+Crearextra()
