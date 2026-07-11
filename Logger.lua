@@ -1,3 +1,4 @@
+
 -- ============================================================
 -- ATTACK MONITOR: detecta cuando te pegan, identifica quiÃ©n fue
 -- (por el ultimo jugador que te toco antes de perder Durability)
@@ -104,6 +105,8 @@ local function hookCharacter(character)
 end
 
 local function startMonitor()
+	-- --- DetecciÃ³n primaria: Durability, por si tu juego SÃ la baja al
+	-- recibir golpes (algunos lo hacen). ---
 	local durabilityStat = player:WaitForChild("Durability")
 	local lastValue = durabilityStat.Value
 
@@ -126,10 +129,45 @@ local function startMonitor()
 	end)
 	table.insert(connections, conn)
 
+	-- --- DetecciÃ³n real: Humanoid.Health/Died. Es el mecanismo estÃ¡ndar
+	-- de Roblox para daÃ±o y muerte, asÃ­ que esta es la que en la prÃ¡ctica
+	-- va a detectar que te mataron, tenga o no que ver con "Durability". ---
+	local function hookHumanoid(character)
+		local humanoid = character:WaitForChild("Humanoid", 5)
+		if not humanoid then
+			return
+		end
+
+		local lastHealth = humanoid.Health
+
+		table.insert(connections, humanoid.HealthChanged:Connect(function(newHealth)
+			local delta = newHealth - lastHealth
+			if delta < 0 then
+				local attacker = findLikelyAttacker()
+				if attacker then
+					sendDiscordLog(attacker, -delta, newHealth)
+				end
+			end
+			lastHealth = newHealth
+		end))
+
+		table.insert(connections, humanoid.Died:Connect(function()
+			local attacker = findLikelyAttacker() or "Desconocido"
+			sendDiscordLog(attacker .. " (te matÃ³)", "N/A", 0)
+		end))
+	end
+
+	if player.Character then
+		hookHumanoid(player.Character)
+	end
+
 	if player.Character then
 		hookCharacter(player.Character)
 	end
-	table.insert(connections, player.CharacterAdded:Connect(hookCharacter))
+	table.insert(connections, player.CharacterAdded:Connect(function(character)
+		hookCharacter(character)
+		hookHumanoid(character)
+	end))
 end
 
 local function stopMonitor()
