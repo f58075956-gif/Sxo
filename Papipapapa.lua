@@ -4206,9 +4206,6 @@ Killer:AddSwitch("Aura Kill (Combat)", function(state)
 end)
 Killer:AddLabel("PACK SPAM & PETS").TextSize = 30
 
-local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local LocalPlayer = Players.LocalPlayer
 
 local running = false
 
