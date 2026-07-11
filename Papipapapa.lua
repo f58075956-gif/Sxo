@@ -4131,71 +4131,95 @@ else
 	warn("Killer tab is nil")
 end
 local tabla = window:AddTab("rocks-info")
-tabla:AddLabel("RENACIMIENTOS MUSCLE LEGENDS").TextSize = 20
-tabla:AddLabel("ROCA DEL KING ").TextSize = 20
-tabla:AddLabel("80 Rebirth =  +5 Stats por golpe ").TextSize = 20
-tabla:AddLabel("280 Rebirth = +10 Stats por golpe").TextSize = 20
-tabla:AddLabel("580 Rebirth =  +15 Stats por golpe").TextSize = 20
-tabla:AddLabel("980 Rebirth = +20 Stats por golpe").TextSize = 20
-tabla:AddLabel("1480 Rebirth = +25 Stats por golpe").TextSize = 20
-tabla:AddLabel("2080 Rebirth = +30 Stats por golpe").TextSize = 20
-tabla:AddLabel("2780 Rebirth = +35 Stats por golpe").TextSize = 20
-tabla:AddLabel("3580 Rebirth = +40 Stats por golpe").TextSize = 20
-tabla:AddLabel("4480 Rebirth = +45 Stats por golpe").TextSize = 20
-tabla:AddLabel("5480 Rebirth = +50 Stats por golpe").TextSize = 20
-tabla:AddLabel("6580 Rebirth = +55 Stats por golpe").TextSize = 20
-tabla:AddLabel("7780 Rebirth = +60 Stats por golpe").TextSize = 20
-tabla:AddLabel("9080 Rebirth = +65 Stats por golpe").TextSize = 20
-tabla:AddLabel("10480 Rebirth = +70 Stats por golpe").TextSize = 20
-tabla:AddLabel("11980 Rebirth = +75 Stats por golpe").TextSize = 20
-tabla:AddLabel("13580 Rebirth = +80 Stats por golpe").TextSize = 20
-tabla:AddLabel("15280 Rebirth = +85 Stats por golpe").TextSize = 20
-tabla:AddLabel("17080 Rebirth = +90 Stats por golpe").TextSize = 20
-tabla:AddLabel("18980 Rebirth = +95 Stats por golpe").TextSize = 20
-tabla:AddLabel("==========================================").TextSize = 20
-tabla:AddLabel("Rebirths Para Buguear En La Roca Blanca").TextSize = 20
-tabla:AddLabel("pets unicas").TextSize = 20
-tabla:AddLabel("480 Rebirth = +5 Stats Por     |Golpe").TextSize = 20
-tabla:AddLabel("1480 Rebirth = +10 Stats Por   |Golpe ").TextSize = 20
-tabla:AddLabel("2980 Rebirth = +15 Stats Por   |Golpe ").TextSize = 20
-tabla:AddLabel("4980 Rebirth = +20 Stats Por   |Golpe").TextSize = 20
-tabla:AddLabel("7480 Rebirth = +25 Stats Por   |Golpe").TextSize = 20
-tabla:AddLabel("10480 Rebirth = +30 Stats Por  |Golpe").TextSize = 20
-tabla:AddLabel("13980 Rebirth = +35 Stats Por  |Golpe ").TextSize = 20
-tabla:AddLabel("17980 Rebirth = +40 Stats Por  |Golpe").TextSize = 20
-tabla:AddLabel("22480 Rebirth = +45 Stats Por  |Golpe").TextSize = 20
-tabla:AddLabel("27480 Rebirth = +50 Stats Por  |Golpe").TextSize = 20
-tabla:AddLabel("32980 Rebirth = +55 Stats Por  |Golpe").TextSize = 20
-tabla:AddLabel("38980 Rebirth = +60 Stats Por  |Golpe").TextSize = 20
-tabla:AddLabel("45480 Rebirth = +65 Stats Por  |Golpe").TextSize = 20
-tabla:AddLabel("52480 Rebirth = +70 Stats Por  |Golpe").TextSize = 20
-tabla:AddLabel("59980 Rebirth = +75 Stats Por  |Golpe").TextSize = 20
-tabla:AddLabel("67980 Rebirth = +80 Stats Por  |Golpe").TextSize = 20
-tabla:AddLabel("76480 Rebirth = +85 Stats Por   |Golpe").TextSize = 20
-tabla:AddLabel("85480 Rebirth = +90 Stats Por |Golpe ").TextSize = 20
-tabla:AddLabel("94980 Rebirth = +95 Stats Por |Golpe").TextSize = 20
-tabla:AddLabel("============================================").TextSize = 20
-tabla:AddLabel("RENACIMIENTOS PARA LA ROCA DE LA JUNGLA DE 10M").TextSize = 20
-tabla:AddLabel("52 Rebirth + 80 de xp  = +5 Stats por golpe").TextSize = 20
-tabla:AddLabel("208 Rebirth + 45 de xp = +10 Stats por golpe").TextSize = 20
-tabla:AddLabel("440 Rebirth + 25 de xp= +15 Stats por golpe").TextSize = 20
-tabla:AddLabel("748Rebirth + 20 de xp= +20 Stats por golpe").TextSize = 20
-tabla:AddLabel("1132 Rebirth + 30 de xp = +25 Stats por golpe").TextSize = 20
-tabla:AddLabel("1592 Rebirth + 55 de xp = +30 Stats por golpe").TextSize = 20
-tabla:AddLabel("2132 Rebirth + 30 de xp= +35 Stats por golpe").TextSize = 20
-tabla:AddLabel("2748 Rebirth + 20 de xp= +40 Stats por golpe").TextSize = 20
-tabla:AddLabel("3440 Rebirth + 25 de xp = +45 Stats por golpe").TextSize = 20
-tabla:AddLabel("4208 Rebirth + 45 de xp = +50 Stats por golpe").TextSize = 20
-tabla:AddLabel("5056 Rebirth  + 15 de xp= +55 Stats por golpe").TextSize = 20
-tabla:AddLabel("5980 Rebirth  = +60 Stats por golpe").TextSize = 20
-tabla:AddLabel("6980 Rebirth  = +65 Stats por golpe").TextSize = 20
-tabla:AddLabel("8056 Rebirth + 15 de xp = +70 Stats por golpe").TextSize = 20
-tabla:AddLabel("9208 Rebirth + 45  dexp= +75 Stats por golpe").TextSize = 20
-tabla:AddLabel("10440 Rebirth + 25 de xp = +80 Stats por golpe").TextSize = 20
-tabla:AddLabel("11748 Rebirth + 20 de xp= +85 Stats por golpe").TextSize = 20
-tabla:AddLabel("13132 Rebirth +30 de xp= +90 Stats por golpe").TextSize = 20
-tabla:AddLabel("14580 Rebirth + 250 de xp = +95 Stats por golpe").TextSize = 20
 
+local function addRocaKingLabels(t)
+	t:AddLabel("RENACIMIENTOS MUSCLE LEGENDS").TextSize = 20
+	t:AddLabel("ROCA DEL KING ").TextSize = 20
+	t:AddLabel("80 Rebirth =  +5 Stats por golpe ").TextSize = 20
+	t:AddLabel("280 Rebirth = +10 Stats por golpe").TextSize = 20
+	t:AddLabel("580 Rebirth =  +15 Stats por golpe").TextSize = 20
+	t:AddLabel("980 Rebirth = +20 Stats por golpe").TextSize = 20
+	t:AddLabel("1480 Rebirth = +25 Stats por golpe").TextSize = 20
+	t:AddLabel("2080 Rebirth = +30 Stats por golpe").TextSize = 20
+	t:AddLabel("2780 Rebirth = +35 Stats por golpe").TextSize = 20
+	t:AddLabel("3580 Rebirth = +40 Stats por golpe").TextSize = 20
+	t:AddLabel("4480 Rebirth = +45 Stats por golpe").TextSize = 20
+end
+
+local function addRocaKingLabels2(t)
+	t:AddLabel("5480 Rebirth = +50 Stats por golpe").TextSize = 20
+	t:AddLabel("6580 Rebirth = +55 Stats por golpe").TextSize = 20
+	t:AddLabel("7780 Rebirth = +60 Stats por golpe").TextSize = 20
+	t:AddLabel("9080 Rebirth = +65 Stats por golpe").TextSize = 20
+	t:AddLabel("10480 Rebirth = +70 Stats por golpe").TextSize = 20
+	t:AddLabel("11980 Rebirth = +75 Stats por golpe").TextSize = 20
+	t:AddLabel("13580 Rebirth = +80 Stats por golpe").TextSize = 20
+	t:AddLabel("15280 Rebirth = +85 Stats por golpe").TextSize = 20
+	t:AddLabel("17080 Rebirth = +90 Stats por golpe").TextSize = 20
+	t:AddLabel("18980 Rebirth = +95 Stats por golpe").TextSize = 20
+	t:AddLabel("==========================================").TextSize = 20
+end
+
+local function addRocaBlancaLabels(t)
+	t:AddLabel("Rebirths Para Buguear En La Roca Blanca").TextSize = 20
+	t:AddLabel("pets unicas").TextSize = 20
+	t:AddLabel("480 Rebirth = +5 Stats Por     |Golpe").TextSize = 20
+	t:AddLabel("1480 Rebirth = +10 Stats Por   |Golpe ").TextSize = 20
+	t:AddLabel("2980 Rebirth = +15 Stats Por   |Golpe ").TextSize = 20
+	t:AddLabel("4980 Rebirth = +20 Stats Por   |Golpe").TextSize = 20
+	t:AddLabel("7480 Rebirth = +25 Stats Por   |Golpe").TextSize = 20
+	t:AddLabel("10480 Rebirth = +30 Stats Por  |Golpe").TextSize = 20
+	t:AddLabel("13980 Rebirth = +35 Stats Por  |Golpe ").TextSize = 20
+	t:AddLabel("17980 Rebirth = +40 Stats Por  |Golpe").TextSize = 20
+end
+
+local function addRocaBlancaLabels2(t)
+	t:AddLabel("22480 Rebirth = +45 Stats Por  |Golpe").TextSize = 20
+	t:AddLabel("27480 Rebirth = +50 Stats Por  |Golpe").TextSize = 20
+	t:AddLabel("32980 Rebirth = +55 Stats Por  |Golpe").TextSize = 20
+	t:AddLabel("38980 Rebirth = +60 Stats Por  |Golpe").TextSize = 20
+	t:AddLabel("45480 Rebirth = +65 Stats Por  |Golpe").TextSize = 20
+	t:AddLabel("52480 Rebirth = +70 Stats Por  |Golpe").TextSize = 20
+	t:AddLabel("59980 Rebirth = +75 Stats Por  |Golpe").TextSize = 20
+	t:AddLabel("67980 Rebirth = +80 Stats Por  |Golpe").TextSize = 20
+	t:AddLabel("76480 Rebirth = +85 Stats Por   |Golpe").TextSize = 20
+	t:AddLabel("85480 Rebirth = +90 Stats Por |Golpe ").TextSize = 20
+	t:AddLabel("94980 Rebirth = +95 Stats Por |Golpe").TextSize = 20
+	t:AddLabel("============================================").TextSize = 20
+end
+
+local function addJunglaLabels(t)
+	t:AddLabel("RENACIMIENTOS PARA LA ROCA DE LA JUNGLA DE 10M").TextSize = 20
+	t:AddLabel("52 Rebirth + 80 de xp  = +5 Stats por golpe").TextSize = 20
+	t:AddLabel("208 Rebirth + 45 de xp = +10 Stats por golpe").TextSize = 20
+	t:AddLabel("440 Rebirth + 25 de xp= +15 Stats por golpe").TextSize = 20
+	t:AddLabel("748Rebirth + 20 de xp= +20 Stats por golpe").TextSize = 20
+	t:AddLabel("1132 Rebirth + 30 de xp = +25 Stats por golpe").TextSize = 20
+	t:AddLabel("1592 Rebirth + 55 de xp = +30 Stats por golpe").TextSize = 20
+	t:AddLabel("2132 Rebirth + 30 de xp= +35 Stats por golpe").TextSize = 20
+	t:AddLabel("2748 Rebirth + 20 de xp= +40 Stats por golpe").TextSize = 20
+	t:AddLabel("3440 Rebirth + 25 de xp = +45 Stats por golpe").TextSize = 20
+	t:AddLabel("4208 Rebirth + 45 de xp = +50 Stats por golpe").TextSize = 20
+end
+
+local function addJunglaLabels2(t)
+	t:AddLabel("5056 Rebirth  + 15 de xp= +55 Stats por golpe").TextSize = 20
+	t:AddLabel("5980 Rebirth  = +60 Stats por golpe").TextSize = 20
+	t:AddLabel("6980 Rebirth  = +65 Stats por golpe").TextSize = 20
+	t:AddLabel("8056 Rebirth + 15 de xp = +70 Stats por golpe").TextSize = 20
+	t:AddLabel("9208 Rebirth + 45  dexp= +75 Stats por golpe").TextSize = 20
+	t:AddLabel("10440 Rebirth + 25 de xp = +80 Stats por golpe").TextSize = 20
+	t:AddLabel("11748 Rebirth + 20 de xp= +85 Stats por golpe").TextSize = 20
+	t:AddLabel("13132 Rebirth +30 de xp= +90 Stats por golpe").TextSize = 20
+	t:AddLabel("14580 Rebirth + 250 de xp = +95 Stats por golpe").TextSize = 20
+end
+
+addRocaKingLabels(tabla)
+addRocaKingLabels2(tabla)
+addRocaBlancaLabels(tabla)
+addRocaBlancaLabels2(tabla)
+addJunglaLabels(tabla)
+addJunglaLabels2(tabla)
 local infoTab = window:AddTab("info")
 infoTab:AddLabel("hecho por karma").TextSize = 20
 infoTab:AddLabel("op script").TextSize = 20
