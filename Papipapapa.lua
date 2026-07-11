@@ -4,7 +4,7 @@ local MarketplaceService = game:GetService("MarketplaceService")
 local UserInputService = game:GetService("UserInputService")
 local player = game.Players.LocalPlayer
 local VirtualInputManager = game:GetService("VirtualInputManager")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Rep0 oklicatedStorage = game:GetService("ReplicatedStorage")
 local muscleEvent = player:WaitForChild("muscleEvent")
 local leaderstats = player:WaitForChild("leaderstats")
 local rebirthsStat = leaderstats:WaitForChild("Rebirths")
@@ -2674,358 +2674,138 @@ Gift:AddButton("Eat Everything", function(state)
 	eatingRunning = state
 	if state then activateRandomItems(4) end
 end)
-local SpecsTab = window:AddTab("spy ")
 
-SpecsTab:AddLabel("Player Stats:").TextSize = 24
+-- Requiere que ya tengas creado el Tab (acÃ¡ lo llamo StatsTab) y las
+-- variables player / leaderstats como en el resto de tus scripts.
 
-local playerToInspect = nil
+local StatsTab = window:AddTab("Stats")
 
-local emojiMap = {
-	["Time"] = utf8.char(),
-	["Stats"] = utf8.char(),
-	["Strength"] = utf8.char(),
-	["Rebirths"] = utf8.char(),
-	["Durability"] = utf8.char(),
-	["Kills"] = utf8.char(),
-	["Agility"] = utf8.char(),
-	["Evil Karma"] = utf8.char(),
-	["Good Karma"] = utf8.char(),
-	["Brawls"] = utf8.char(),
-}
+local targetName = ""
+local playerDropdown = StatsTab:AddDropdown("Select Player", function(value)
+	-- El dropdown muestra "DisplayName | Name", nos quedamos con el Name real
+	targetName = value:match("| (.+)")
+end)
 
-local statDefinitions = {
-	{ name = "Strength", statName = "Strength" },
-	{ name = "Rebirths", statName = "Rebirths" },
-	{ name = "Durability", statName = "Durability" },
-	{ name = "Agility", statName = "Agility" },
-	{ name = "Kills", statName = "Kills" },
-	{ name = "Evil Karma", statName = "evilKarma" },
-	{ name = "Good Karma", statName = "goodKarma" },
-	{ name = "Brawls", statName = "Brawls" },
-}
-
-local function getCurrentPlayers()
-	local playersList = {}
-	for _, p in ipairs(Players:GetPlayers()) do
-		table.insert(playersList, p)
-	end
-	return playersList
+for _, plr in pairs(Players:GetPlayers()) do
+	playerDropdown:Add(plr.DisplayName .. " | " .. plr.Name)
 end
 
-local specDropdown = SpecsTab:AddDropdown("Choose Player", function(text)
-	for _, player in ipairs(getCurrentPlayers()) do
-		local optionText = player.DisplayName .. " | " .. player.Name
-		if text == optionText then
-			playerToInspect = player
-			updateStatLabels(playerToInspect)
-			break
+Players.PlayerAdded:Connect(function(plr)
+	playerDropdown:Add(plr.DisplayName .. " | " .. plr.Name)
+end)
+
+local function formatNumber(number)
+	-- Igual que en tu farming_stats.lua: agrega separador de miles y
+	-- sufijo (K/M/B/T/Qa/Qi)
+	local suffixes = {"", "K", "M", "B", "T", "Qa", "Qi"}
+	local index = 1
+	while number >= 1000 and index < #suffixes do
+		number = number / 1000
+		index = index + 1
+	end
+	return string.format("%.2f", number) .. suffixes[index]
+end
+
+-- CuÃ¡ntas mascotas de "petName" tiene equipadas el jugador dado
+local function countEquippedPets(plr, petName)
+	local equippedPets = plr:FindFirstChild("equippedPets")
+	if not equippedPets then
+		return 0
+	end
+	local count = 0
+	for _, entry in pairs(equippedPets:GetChildren()) do
+		local ref = entry:FindFirstChild("petReference")
+		if ref and ref.Value and ref.Value.Name == petName then
+			count += 1
 		end
 	end
-end)
-
-for _, player in ipairs(getCurrentPlayers()) do
-	specDropdown:Add(player.DisplayName .. " | " .. player.Name)
+	return count
 end
 
-Players.PlayerAdded:Connect(function(player)
-	specDropdown:Add(player.DisplayName .. " | " .. player.Name)
-end)
+local wildWizardLabel -- se asigna mÃ¡s abajo, junto con los demÃ¡s labels
 
-Players.PlayerRemoving:Connect(function()
-	specDropdown:Clear()
-	for _, p in ipairs(getCurrentPlayers()) do
-		specDropdown:Add(p.DisplayName .. " | " .. p.Name)
+-- Tu daÃ±o: 10% de tu Strength, + 33% de bonus por cada Wild Wizard equipado
+local function calculateYourDamage()
+	local strength = player:FindFirstChild("leaderstats")
+		and player.leaderstats:FindFirstChild("Strength")
+	if not strength then
+		return 0
 	end
-end)
 
-local playerNameLabel = SpecsTab:AddLabel("Name: N/A")
-playerNameLabel.TextSize = 20
+	local base = strength.Value * 0.1
+	local wildWizardCount = countEquippedPets(player, "Wild Wizard")
+	local bonusMultiplier = wildWizardCount * 0.33
 
-local playerUsernameLabel = SpecsTab:AddLabel("Username: N/A")
-playerUsernameLabel.TextSize = 20
-local function CreateMyStats()
-
-    -- ===== PARTE 1 =====
-    SpecsTab:AddLabel("━━━━━━━━ MY STATS ━━━━━━━━").TextSize = 22
-
-    local myPlayer = Players.LocalPlayer
-    local myLeaderstats = myPlayer:WaitForChild("leaderstats")
-
-    local myStrengthStat = myLeaderstats:WaitForChild("Strength")
-    local myRebirthStat = myLeaderstats:WaitForChild("Rebirths")
-    local myKillsStat = myLeaderstats:WaitForChild("Kills")
-
-    local myDurabilityStat = myPlayer:WaitForChild("Durability")
-    local myEvilStat = myPlayer:WaitForChild("evilKarma")
-    local myGoodStat = myPlayer:WaitForChild("goodKarma")
-
-    local SessionLabel = SpecsTab:AddLabel("⏱️ Session: 0d 0h 0m 0s")
-    local MyStrength = SpecsTab:AddLabel("💪 Strength: 0")
-    local MyDurability = SpecsTab:AddLabel("🛡️ Durability: 0")
-    local MyRebirths = SpecsTab:AddLabel("🔄 Rebirths: 0")
-    local MyKills = SpecsTab:AddLabel("⚔️ Kills: 0")
-    local MyEvil = SpecsTab:AddLabel("😈 Evil Karma: 0")
-    local MyGood = SpecsTab:AddLabel("😇 Good Karma: 0")
-    local MyStrengthRate = SpecsTab:AddLabel("💪 Str/hr: Warming up...")
-    local MyDurabilityRate = SpecsTab:AddLabel("🛡️ Dur/hr: Warming up...")
-
-    local sessionStart = tick()
-
-    local strengthStart = myStrengthStat.Value
-    local durabilityStart = myDurabilityStat.Value
-    local rebirthStart = myRebirthStat.Value
-    local killsStart = myKillsStat.Value
-
-    local strengthHistory = {}
-    local durabilityHistory = {}
-
-    -- ===== PARTE 2 + 3 =====
-    task.spawn(function()
-        while task.wait(0.5) do
-		local elapsed = tick() - sessionStart
-
-		local days = math.floor(elapsed / 86400)
-		local hours = math.floor((elapsed % 86400) / 3600)
-		local minutes = math.floor((elapsed % 3600) / 60)
-		local seconds = math.floor(elapsed % 60)
-
-		SessionLabel.Text = string.format(
-			"⏱️ Session: %dd %dh %dm %ds",
-			days,
-			hours,
-			minutes,
-			seconds
-		)
-
-		MyStrength.Text =
-			"💪 Strength: " ..
-			formatNumber(myStrengthStat.Value) ..
-			" (+" ..
-			formatNumber(myStrengthStat.Value - strengthStart) ..
-			")"
-
-		MyDurability.Text =
-			"🛡️ Durability: " ..
-			formatNumber(myDurabilityStat.Value) ..
-			" (+" ..
-			formatNumber(myDurabilityStat.Value - durabilityStart) ..
-			")"
-
-		MyRebirths.Text =
-			"🔄 Rebirths: " ..
-			formatNumber(myRebirthStat.Value) ..
-			" (+" ..
-			formatNumber(myRebirthStat.Value - rebirthStart) ..
-			")"
-
-		MyKills.Text =
-			"⚔️ Kills: " ..
-			formatNumber(myKillsStat.Value) ..
-			" (+" ..
-			formatNumber(myKillsStat.Value - killsStart) ..
-			")"
-
-		MyEvil.Text =
-			"😈 Evil Karma: " ..
-			formatNumber(myEvilStat.Value)
-
-		MyGood.Text =
-			"😇 Good Karma: " ..
-			formatNumber(myGoodStat.Value)
-
-		local now = tick()
-
-		table.insert(strengthHistory,{
-			t = now,
-			v = myStrengthStat.Value
-		})
-
-		table.insert(durabilityHistory,{
-			t = now,
-			v = myDurabilityStat.Value
-		})
-
-		while #strengthHistory > 0 and now - strengthHistory[1].t > 30 do
-			table.remove(strengthHistory,1)
-		end
-
-		while #durabilityHistory > 0 and now - durabilityHistory[1].t > 30 do
-			table.remove(durabilityHistory,1)
-							end
-						        if #durabilityHistory >= 2 then
-            local gain =
-                (durabilityHistory[#durabilityHistory].v - durabilityHistory[1].v) /
-                (durabilityHistory[#durabilityHistory].t - durabilityHistory[1].t)
-
-            MyDurabilityRate.Text =
-                "🛡️ Durability/hr: " ..
-                formatNumber(math.floor(gain * 3600))
-        else
-            MyDurabilityRate.Text = "🛡️ Durability/hr: Warming up..."
-        end
-
-    end
-end)
-
-end
-
-CreateMyStats()
-	
-local statLabels = {}
-for _, info in ipairs(statDefinitions) do
-	statLabels[info.name] =
-		SpecsTab:AddLabel(emojiMap[info.name] .. " " .. info.name .. ": 0 (0)")
-	statLabels[info.name].TextSize = 20
-end
-
-local function formatNumber(n)
-	if n >= 1e15 then
-		return string.format("%.1fqa", n / 1e15)
-	elseif n >= 1e12 then
-		return string.format("%.1ft", n / 1e12)
-	elseif n >= 1e9 then
-		return string.format("%.1fb", n / 1e9)
-	elseif n >= 1e6 then
-		return string.format("%.1fm", n / 1e6)
-	elseif n >= 1e3 then
-		return string.format("%.1fk", n / 1e3)
-	else
-		return tostring(n)
+	if wildWizardLabel then
+		wildWizardLabel.Text = "Wild Wizard equipped: " .. wildWizardCount
+			.. " (" .. formatNumber(base * bonusMultiplier) .. " bonus)"
 	end
+
+	return base * (1 + bonusMultiplier)
 end
 
-local function formatWithCommas(n)
-	local formatted = tostring(n)
-	while true do
-		formatted, k = formatted:gsub("^(-?%d+)(%d%d%d)", "%1,%2")
-		if k == 0 then
-			break
-		end
-	end
-	return formatted
-end
-
-local function updateStatLabels(targetPlayer)
+-- Vida del objetivo: su Durability (con posible bonus de "Infernal Health",
+-- ver nota abajo)
+local function calculateEnemyLife(targetPlayer)
 	if not targetPlayer then
+		return 0
+	end
+	local durability = targetPlayer:FindFirstChild("Durability")
+	return durability and durability.Value or 0
+end
+
+-- Golpes necesarios: vida / daÃ±o, redondeado hacia arriba; âˆž si da mÃ¡s de 50
+local function calculateBlowsToKill(enemyLife, yourDamage)
+	if yourDamage <= 0 then
+		return "âˆž"
+	end
+	local blows = math.ceil(enemyLife / yourDamage)
+	if blows > 50 then
+		return "âˆž"
+	end
+	return tostring(math.max(blows, 1))
+end
+
+-- --- Labels ---
+
+local enemyLifeLabel = StatsTab:AddLabel("Enemy life: N/A")
+local yourDamageLabel = StatsTab:AddLabel("Your damage: N/A")
+local blowsToKillLabel = StatsTab:AddLabel("Blows to kill him: N/A")
+wildWizardLabel = StatsTab:AddLabel("Wild Wizard equipped: 0 (0 bonus)")
+
+local goodKarmaLabel = StatsTab:AddLabel("Good Karma: N/A")
+local evilKarmaLabel = StatsTab:AddLabel("Evil Karma: N/A")
+
+local function updateStats(targetPlayer)
+	if not targetPlayer then
+		enemyLifeLabel.Text = "Enemy life: N/A"
+		yourDamageLabel.Text = "Your damage: N/A"
+		blowsToKillLabel.Text = "Blows to kill him: N/A"
+		goodKarmaLabel.Text = "Good Karma: N/A"
+		evilKarmaLabel.Text = "Evil Karma: N/A"
 		return
 	end
 
-	playerNameLabel.Text = "Name: " .. targetPlayer.DisplayName
-	playerUsernameLabel.Text = "Username: " .. targetPlayer.Name
+	local enemyLife = calculateEnemyLife(targetPlayer)
+	local yourDamage = calculateYourDamage()
 
-	local leaderstats = targetPlayer:FindFirstChild("leaderstats")
-	if not leaderstats then
-		return
-	end
+	enemyLifeLabel.Text = "Enemy life: " .. (enemyLife > 0 and formatNumber(enemyLife) or "N/A")
+	yourDamageLabel.Text = "Your damage: " .. (yourDamage > 0 and formatNumber(yourDamage) or "N/A")
+	blowsToKillLabel.Text = "Blows to kill him: " .. calculateBlowsToKill(enemyLife, yourDamage)
 
-	for _, info in ipairs(statDefinitions) do
-		local statObject
-
-		if leaderstats:FindFirstChild(info.statName) then
-			statObject = leaderstats:FindFirstChild(info.statName)
-		elseif targetPlayer:FindFirstChild(info.statName) then
-			statObject = targetPlayer:FindFirstChild(info.statName)
-		end
-
-		if statObject then
-			local value = statObject.Value
-			local emoji = emojiMap[info.name] or ""
-			statLabels[info.name].Text = string.format(
-				"%s %s: %s (%s)",
-				emoji,
-				info.name,
-				formatNumber(value),
-				formatWithCommas(value)
-			)
-		else
-			statLabels[info.name].Text =
-				emojiMap[info.name] .. " " .. info.name .. ": 0 (0)"
-		end
-	end
+	local goodKarma = targetPlayer:FindFirstChild("goodKarma")
+	local evilKarma = targetPlayer:FindFirstChild("evilKarma")
+	goodKarmaLabel.Text = "Good Karma: " .. (goodKarma and formatNumber(goodKarma.Value) or "N/A")
+	evilKarmaLabel.Text = "Evil Karma: " .. (evilKarma and formatNumber(evilKarma.Value) or "N/A")
 end
 
 task.spawn(function()
 	while true do
-		if playerToInspect then
-			updateStatLabels(playerToInspect)
-		end
-		task.wait(0.2)
+		local targetPlayer = targetName ~= "" and Players:FindFirstChild(targetName)
+		updateStats(targetPlayer)
+		task.wait() -- se recalcula todos los frames, igual que el original
 	end
 end)
-
-task.spawn(function()
-	while true do
-		if playerToInspect then
-			updateAdvancedStats(playerToInspect)
-		else
-			updateAdvancedStats(nil)
-		end
-		task.wait(0.1)
-	end
-end)
-
-local function checkCharacter()
-	if not Players.LocalPlayer.Character then
-		repeat
-			task.wait()
-		until Players.LocalPlayer.Character
-	end
-	return Players.LocalPlayer.Character
-end
-
-local function gettool()
-	for _, v in pairs(Players.LocalPlayer.Backpack:GetChildren()) do
-		if v.Name == "Punch" and Players.LocalPlayer.Character:FindFirstChild("Humanoid") then
-			Players.LocalPlayer.Character.Humanoid:EquipTool(v)
-		end
-	end
-
-	Players.LocalPlayer.muscleEvent:FireServer("punch", "leftHand")
-	Players.LocalPlayer.muscleEvent:FireServer("punch", "rightHand")
-end
-
-local function isPlayerAlive(player)
-	return player
-		and player.Character
-		and player.Character:FindFirstChild("HumanoidRootPart")
-		and player.Character:FindFirstChild("Humanoid")
-		and player.Character.Humanoid.Health > 0
-end
-
-local function killPlayer(target)
-	if not isPlayerAlive(target) then
-		return
-	end
-
-	local character = checkCharacter()
-	if character and character:FindFirstChild("LeftHand") then
-		pcall(function()
-			firetouchinterest(target.Character.HumanoidRootPart, character.LeftHand, 0)
-			firetouchinterest(target.Character.HumanoidRootPart, character.LeftHand, 1)
-			gettool()
-		end)
-	end
-end
-
-local strengthStartValue = 0
-local durabilityStartValue = 0
-local rebirthsStartValue = 0
-local killsStartValue = 0
-local brawlsStartValue = 0
-
-local strengthStartTime = 0
-local durabilityStartTime = 0
-local rebirthsStartTime = 0
-local killsStartTime = 0
-local brawlsStartTime = 0
-
-local strengthActive = false
-local durabilityActive = false
-local rebirthsActive = false
-local killsActive = false
-local brawlsActive = false
-
-
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
