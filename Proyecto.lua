@@ -17,7 +17,7 @@ end
 local title = (" op script | ZIX HUB")
 
 
-local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/f58075956-gif/Sxo/refs/heads/main/W%20UI.txt", true))()
+local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/f58075956-gif/Sxo/refs/heads/main/Proyecto%20gui", true))()
 local window = library:AddWindow(title, {
     main_color = Color3.fromRGB(0, 0, 0),
     min_size = Vector2.new(760, 760),
