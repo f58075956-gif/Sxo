@@ -613,6 +613,8 @@ local function gettool()
 		remote:FireServer("punch", "rightHand")
 		remote:FireServer("punch", "rightHand")
 		remote:FireServer("punch", "rightHand")
+		remote:FireServer("punch", "rightHand")
+		remote:FireServer("punch", "rightHand")
 		
 	end
 end
@@ -656,6 +658,10 @@ local function farmRock(targetDurability)
 									firetouchinterest(rock, left, 1)
 								firetouchinterest(rock, left, 0)
 									firetouchinterest(rock, left, 1)
+								firetouchinterest(rock, left, 0)
+										firetouchinterest(rock, left, 1)
+								firetouchinterest(rock, left, 0)
+										firetouchinterest(rock, left, 1)
 								firetouchinterest(rock, left, 0)
 								
 								
@@ -2006,60 +2012,62 @@ local RunService = game:GetService("RunService")
 local Lighting = game:GetService("Lighting")
 local UIS = game:GetService("UserInputService")
 local extraTab = window:AddTab("Extra")
+local lockSwitch = extraTab:AddSwitch("Lock Position", function(Value)
+    local player = game.Players.LocalPlayer
 
+    if Value then
+        lockRunning = true
+        lockConnection = game:GetService("RunService").Heartbeat:Connect(function()
+            local char = player.Character
+            if not char or not char:FindFirstChild("HumanoidRootPart") or not char:FindFirstChildOfClass("Humanoid") then return end
 
---------------------------------------------------
--- 🔒 LOCK POSITION
---------------------------------------------------
-local lockConn
-local function onLockPosition(enabled)
-    if enabled then
-        lockConn = RunService.Heartbeat:Connect(function()
-            local char = LocalPlayer.Character
-            if not char then return end
+            local hrp = char.HumanoidRootPart
+            local humanoid = char:FindFirstChildOfClass("Humanoid")
 
-            local hrp = char:FindFirstChild("HumanoidRootPart")
-            local hum = char:FindFirstChildOfClass("Humanoid")
-            if not hrp or not hum then return end
+            if not humanoid or not hrp then return end
 
-            if not hum:GetAttribute("Locked") then
-                hum:SetAttribute("Locked", true)
-                hum:SetAttribute("LockCF", hrp.CFrame)
-
-                hum.WalkSpeed = 0
-                hum.JumpPower = 0
-                hum.AutoRotate = false
+            if not humanoid:FindFirstChild("LockState") then
+                humanoid.WalkSpeed = 0
+                humanoid.JumpPower = 0
+                humanoid.AutoRotate = false
+                humanoid:ChangeState(Enum.HumanoidStateType.Physics)
+                local marker = Instance.new("BoolValue", humanoid)
+                marker.Name = "LockState"
+                marker.Value = true
+                humanoid:SetAttribute("LockCFrame", hrp.CFrame)
             end
 
-            local cf = hum:GetAttribute("LockCF")
-            if cf then
-                hrp.CFrame = cf
+            local savedCFrame = humanoid:GetAttribute("LockCFrame")
+            if savedCFrame then
                 hrp.Velocity = Vector3.zero
                 hrp.RotVelocity = Vector3.zero
+                hrp.CFrame = savedCFrame
             end
         end)
     else
-        if lockConn then
-            lockConn:Disconnect()
-            lockConn = nil
+        lockRunning = false
+        if lockConnection then
+            lockConnection:Disconnect()
+            lockConnection = nil
         end
-
-        local char = LocalPlayer.Character
-        if not char then return end
-        local hum = char:FindFirstChildOfClass("Humanoid")
-
-        if hum then
-            hum:SetAttribute("Locked", false)
-            hum.WalkSpeed = 250
-            hum.JumpPower = 50
-            hum.AutoRotate = true
+        local char = player.Character
+        if char then
+            local humanoid = char:FindFirstChildOfClass("Humanoid")
+            if humanoid then
+                humanoid.WalkSpeed = 250
+                humanoid.JumpPower = 50
+                humanoid.AutoRotate = true
+                humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
+                if humanoid:FindFirstChild("LockState") then
+                    humanoid.LockState:Destroy()
+                end
+                humanoid:SetAttribute("LockCFrame", nil)
+            end
         end
     end
-end
+end)
 
-local LockSwitch = extraTab:AddSwitch("Lock Position", onLockPosition)
-LockSwitch:Set(false)
-
+lockSwitch:Set(false)
 --------------------------------------------------
 -- 🐾 SHOW / HIDE PETS
 --------------------------------------------------
