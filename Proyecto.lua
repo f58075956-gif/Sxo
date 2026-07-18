@@ -2409,7 +2409,25 @@ extraTab:AddTextBox("Speed", function(value)
         end
     end
 end)
- 
+ extraTab:AddButton('Claim All Chest ', function()
+    firetouchinterest(game.Players.LocalPlayer.Character.HumanoidRootPart, game:GetService('Workspace').mythicalChest.circleInner, 0)
+    firetouchinterest(game.Players.LocalPlayer.Character.HumanoidRootPart, game:GetService('Workspace').mythicalChest.circleInner, 1)
+    wait()
+    firetouchinterest(game.Players.LocalPlayer.Character.HumanoidRootPart, game:GetService('Workspace').magmaChest.circleInner, 0)
+    firetouchinterest(game.Players.LocalPlayer.Character.HumanoidRootPart, game:GetService('Workspace').magmaChest.circleInner, 1)
+    wait()
+    firetouchinterest(game.Players.LocalPlayer.Character.HumanoidRootPart, game:GetService('Workspace').groupRewardsCircle.circleInner, 0)
+    firetouchinterest(game.Players.LocalPlayer.Character.HumanoidRootPart, game:GetService('Workspace').groupRewardsCircle.circleInner, 1)
+    wait()
+    firetouchinterest(game.Players.LocalPlayer.Character.HumanoidRootPart, game:GetService('Workspace').goldenChest.circleInner, 0)
+    firetouchinterest(game.Players.LocalPlayer.Character.HumanoidRootPart, game:GetService('Workspace').goldenChest.circleInner, 1)
+    wait()
+    firetouchinterest(game.Players.LocalPlayer.Character.HumanoidRootPart, game:GetService('Workspace').enchantedChest.circleInner, 0)
+    firetouchinterest(game.Players.LocalPlayer.Character.HumanoidRootPart, game:GetService('Workspace').enchantedChest.circleInner, 1)
+    wait()
+    firetouchinterest(game.Players.LocalPlayer.Character.HumanoidRootPart, game:GetService('Workspace').legendsChest.circleInner, 0)
+    firetouchinterest(game.Players.LocalPlayer.Character.HumanoidRootPart, game:GetService('Workspace').legendsChest.circleInner, 1)
+end)
 extraTab:AddTextBox("Size", function(value)
     local selectedSize = value
  
