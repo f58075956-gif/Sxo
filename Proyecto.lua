@@ -14,8 +14,7 @@ local function getCharacter()
 end
 
 
-local title = (" op script | ZIX HUB")
-
+local title = " SERAPH HUB | HELLO | " .. player.DisplayName
 
 local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/f58075956-gif/Sxo/refs/heads/main/Proyecto%20gui", true))()
 local window = library:AddWindow(title, {
