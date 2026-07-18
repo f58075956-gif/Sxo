@@ -2541,6 +2541,37 @@ extraTab:AddButton("Remove Portals", function()
         Duration = 0
     })
 end)
+extraTab:AddButton("Claim Codes", function()
+
+    local Event = game:GetService("ReplicatedStorage").rEvents.codeRemote
+
+    local codes = {
+        "superpunch100",
+        "supermuscle100",
+        "speedy50",
+        "spacegems50",
+        "Skyagility50",
+        "musclestorm50",
+        "megalift50",
+        "launch250",
+        "galaxycrystal50",
+        "frostgems10",
+        "epicreward500",
+        "MillionWarriors"
+    }
+
+    for _, code in ipairs(codes) do
+        Event:InvokeServer(code)
+        task.wait(0.5)
+    end
+
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = "Codes",
+        Text = "Claim Done",
+        Duration = 5
+    })
+
+end)
 local Gift = window:AddTab("Auto Gift")
 local RS = game:GetService("ReplicatedStorage")
 
