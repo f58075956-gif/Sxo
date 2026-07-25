@@ -14,7 +14,7 @@ local function getCharacter()
 end
 
 
-local title = " SERAPH HUB | HELLO | " .. player.DisplayName
+local title = " SERAPH HUB PRIVATED | bienvenido  " .. player.DisplayName
 
 local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/f58075956-gif/Sxo/refs/heads/main/Proyecto%20gui", true))()
 local window = library:AddWindow(title, {
@@ -4193,7 +4193,7 @@ local infoTab = window:AddTab("info")
 infoTab:AddLabel("hecho por karma").TextSize = 20
 infoTab:AddLabel("op script").TextSize = 20
 infoTab:AddLabel("epic").TextSize = 20
-
+infoTab:AddLabel("VERSION 3.1").TextSize = 40
 infoTab:AddButton("Copy Invite", function()
     local link = "https://discord.gg/v5nw66wcEQ"
 
