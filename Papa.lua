@@ -65,8 +65,24 @@ local function gettool()
 		remote:FireServer("punch", "rightHand")
 		remote:FireServer("punch", "rightHand")
 		remote:FireServer("punch", "rightHand")
-
-        
+        remote:FireServer("punch","leftHand")
+        remote:FireServer("punch","leftHand")
+		remote:FireServer("punch","leftHand")
+		remote:FireServer("punch","leftHand")
+		remote:FireServer("punch","leftHand")
+		remote:FireServer("punch","leftHand")
+		remote:FireServer("punch","leftHand")
+		remote:FireServer("punch","leftHand")
+		remote:FireServer("punch","leftHand")
+		remote:FireServer("punch","leftHand")
+		remote:FireServer("punch","leftHand")
+		remote:FireServer("punch","leftHand")
+		remote:FireServer("punch","leftHand")
+		remote:FireServer("punch","leftHand")
+		remote:FireServer("punch","leftHand")
+		remote:FireServer("punch","leftHand")
+		remote:FireServer("punch","leftHand")
+		remote:FireServer("punch","leftHand")
 	end
 end
 
