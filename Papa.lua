@@ -60,7 +60,7 @@ local function gettool()
 		remote:FireServer("punch", "rightHand")
 		remote:FireServer("punch", "rightHand")
 		remote:FireServer("punch", "rightHand")
-1
+
         remote:FireServer("punch", "rightHand")
 		remote:FireServer("punch", "rightHand")
 		remote:FireServer("punch", "rightHand")
