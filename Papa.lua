@@ -22,7 +22,6 @@ local window = library:AddWindow(title, {
 })
 
 local farmTab = window:AddTab("Rock")
-local farmTab = window:AddTab("Rock")
 local Folderanal = farmTab:AddFolder("FARM-ROCK-V1")
 Folderanal:AddLabel("Rock Farming")
 
