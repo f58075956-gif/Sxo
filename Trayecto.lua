@@ -3089,6 +3089,12 @@ Killer:AddSwitch("Auto Good Karma", function(bool)
             local playerChar = LocalPlayer.Character
             local rightHand = playerChar and playerChar:FindFirstChild("RightHand")
             local leftHand = playerChar and playerChar:FindFirstChild("LeftHand")
+						 local rightHand = playerChar and playerChar:FindFirstChild("RightHand")
+            local leftHand = playerChar and playerChar:FindFirstChild("LeftHand")
+						 local rightHand = playerChar and playerChar:FindFirstChild("RightHand")
+            local leftHand = playerChar and playerChar:FindFirstChild("LeftHand")
+						 local rightHand = playerChar and playerChar:FindFirstChild("RightHand")
+            local leftHand = playerChar and playerChar:FindFirstChild("LeftHand")
             if playerChar and rightHand and leftHand then
                 for _, target in ipairs(Players:GetPlayers()) do
                     if target ~= LocalPlayer then
@@ -3101,12 +3107,24 @@ Killer:AddSwitch("Auto Good Karma", function(bool)
                                 firetouchinterest(leftHand, rootPart, 1)
                                 firetouchinterest(rightHand, rootPart, 0)
                                 firetouchinterest(leftHand, rootPart, 0)
+											firetouchinterest(rightHand, rootPart, 1)
+                                firetouchinterest(leftHand, rootPart, 1)
+                                firetouchinterest(rightHand, rootPart, 0)
+                                firetouchinterest(leftHand, rootPart, 0)
+											firetouchinterest(rightHand, rootPart, 1)
+                                firetouchinterest(leftHand, rootPart, 1)
+                                firetouchinterest(rightHand, rootPart, 0)
+                                firetouchinterest(leftHand, rootPart, 0)
+											firetouchinterest(rightHand, rootPart, 1)
+                                firetouchinterest(leftHand, rootPart, 1)
+                                firetouchinterest(rightHand, rootPart, 0)
+                                firetouchinterest(leftHand, rootPart, 0)
                             end
                         end
                     end
                 end
             end
-            task.wait(0.01)
+            task.wait(0)
         end
     end)
 end)
@@ -3117,6 +3135,12 @@ Killer:AddSwitch("Auto Bad Karma", function(bool)
         while autoBadKarma do
             local playerChar = LocalPlayer.Character
             local rightHand = playerChar and playerChar:FindFirstChild("RightHand")
+            local leftHand = playerChar and playerChar:FindFirstChild("LeftHand")
+						local rightHand = playerChar and playerChar:FindFirstChild("RightHand")
+            local leftHand = playerChar and playerChar:FindFirstChild("LeftHand")
+						local rightHand = playerChar and playerChar:FindFirstChild("RightHand")
+            local leftHand = playerChar and playerChar:FindFirstChild("LeftHand")
+						local rightHand = playerChar and playerChar:FindFirstChild("RightHand")
             local leftHand = playerChar and playerChar:FindFirstChild("LeftHand")
             if playerChar and rightHand and leftHand then
                 for _, target in ipairs(Players:GetPlayers()) do
@@ -3130,12 +3154,24 @@ Killer:AddSwitch("Auto Bad Karma", function(bool)
                                 firetouchinterest(leftHand, rootPart, 1)
                                 firetouchinterest(rightHand, rootPart, 0)
                                 firetouchinterest(leftHand, rootPart, 0)
+											firetouchinterest(rightHand, rootPart, 1)
+                                firetouchinterest(leftHand, rootPart, 1)
+                                firetouchinterest(rightHand, rootPart, 0)
+                                firetouchinterest(leftHand, rootPart, 0)
+											firetouchinterest(rightHand, rootPart, 1)
+                                firetouchinterest(leftHand, rootPart, 1)
+                                firetouchinterest(rightHand, rootPart, 0)
+                                firetouchinterest(leftHand, rootPart, 0)
+											firetouchinterest(rightHand, rootPart, 1)
+                                firetouchinterest(leftHand, rootPart, 1)
+                                firetouchinterest(rightHand, rootPart, 0)
+                                firetouchinterest(leftHand, rootPart, 0)
                             end
                         end
                     end
                 end
             end
-            task.wait(0.01)
+            task.wait(0)
         end
     end)
 end)
@@ -3191,6 +3227,10 @@ Killer:AddSwitch("Auto Kill", function(bool)
             local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
             local rightHand = character:FindFirstChild("RightHand")
             local leftHand = character:FindFirstChild("LeftHand")
+						local rightHand = character:FindFirstChild("RightHand")
+            local leftHand = character:FindFirstChild("LeftHand")
+						local rightHand = character:FindFirstChild("RightHand")
+            local leftHand = character:FindFirstChild("LeftHand")
 
             local punch = LocalPlayer.Backpack:FindFirstChild("Punch")
             if punch and not character:FindFirstChild("Punch") then
@@ -3208,13 +3248,21 @@ Killer:AddSwitch("Auto Kill", function(bool)
                                 firetouchinterest(leftHand, rootPart, 1)
                                 firetouchinterest(rightHand, rootPart, 0)
                                 firetouchinterest(leftHand, rootPart, 0)
+								firetouchinterest(rightHand, rootPart, 1)
+                                firetouchinterest(leftHand, rootPart, 1)
+                                firetouchinterest(rightHand, rootPart, 0)
+                                firetouchinterest(leftHand, rootPart, 0)
+								firetouchinterest(rightHand, rootPart, 1)
+                                firetouchinterest(leftHand, rootPart, 1)
+                                firetouchinterest(rightHand, rootPart, 0)
+                                firetouchinterest(leftHand, rootPart, 0)
                             end)
                         end
                     end
                 end
             end
 
-            task.wait(0.05)
+            task.wait(0)
         end
     end)
 end)
@@ -3278,6 +3326,10 @@ Killer:AddSwitch("Start Kill Target", function(state)
 
             local rightHand = character:WaitForChild("RightHand", 5)
             local leftHand = character:WaitForChild("LeftHand", 5)
+					local rightHand = character:WaitForChild("RightHand", 5)
+            local leftHand = character:WaitForChild("LeftHand", 5)
+						local rightHand = character:WaitForChild("RightHand", 5)
+            local leftHand = character:WaitForChild("LeftHand", 5)
 
             if rightHand and leftHand then
                 for _, name in ipairs(targetPlayerNames) do
@@ -3290,13 +3342,21 @@ Killer:AddSwitch("Start Kill Target", function(state)
                                 firetouchinterest(leftHand, rootPart, 1)
                                 firetouchinterest(rightHand, rootPart, 0)
                                 firetouchinterest(leftHand, rootPart, 0)
+												firetouchinterest(rightHand, rootPart, 1)
+                                firetouchinterest(leftHand, rootPart, 1)
+                                firetouchinterest(rightHand, rootPart, 0)
+                                firetouchinterest(leftHand, rootPart, 0)
+												firetouchinterest(rightHand, rootPart, 1)
+                                firetouchinterest(leftHand, rootPart, 1)
+                                firetouchinterest(rightHand, rootPart, 0)
+                                firetouchinterest(leftHand, rootPart, 0)
                             end)
                         end
                     end
                 end
             end
 
-            task.wait(0.05)
+            task.wait(0)
         end
     end)
 end)
