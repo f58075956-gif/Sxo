@@ -3081,7 +3081,6 @@ end)
 local Wild_Wizard = dropdown:Add("Wild Wizard")
 local Powerful_Monster = dropdown:Add("Mighty Monster")
 
-
 Killer:AddSwitch("Auto Good Karma", function(bool)
     autoGoodKarma = bool
     task.spawn(function()
@@ -3089,17 +3088,13 @@ Killer:AddSwitch("Auto Good Karma", function(bool)
             local playerChar = LocalPlayer.Character
             local rightHand = playerChar and playerChar:FindFirstChild("RightHand")
             local leftHand = playerChar and playerChar:FindFirstChild("LeftHand")
-						 local rightHand = playerChar and playerChar:FindFirstChild("RightHand")
-            local leftHand = playerChar and playerChar:FindFirstChild("LeftHand")
-						 local rightHand = playerChar and playerChar:FindFirstChild("RightHand")
-            local leftHand = playerChar and playerChar:FindFirstChild("LeftHand")
-						 local rightHand = playerChar and playerChar:FindFirstChild("RightHand")
-            local leftHand = playerChar and playerChar:FindFirstChild("LeftHand")
+            
             if playerChar and rightHand and leftHand then
                 for _, target in ipairs(Players:GetPlayers()) do
                     if target ~= LocalPlayer then
                         local evilKarma = target:FindFirstChild("evilKarma")
                         local goodKarma = target:FindFirstChild("goodKarma")
+                        
                         if evilKarma and goodKarma and evilKarma:IsA("IntValue") and goodKarma:IsA("IntValue") and evilKarma.Value > goodKarma.Value then
                             local rootPart = target.Character and target.Character:FindFirstChild("HumanoidRootPart")
                             if rootPart then
@@ -3107,28 +3102,15 @@ Killer:AddSwitch("Auto Good Karma", function(bool)
                                 firetouchinterest(leftHand, rootPart, 1)
                                 firetouchinterest(rightHand, rootPart, 0)
                                 firetouchinterest(leftHand, rootPart, 0)
-											firetouchinterest(rightHand, rootPart, 1)
-                                firetouchinterest(leftHand, rootPart, 1)
-                                firetouchinterest(rightHand, rootPart, 0)
-                                firetouchinterest(leftHand, rootPart, 0)
-											firetouchinterest(rightHand, rootPart, 1)
-                                firetouchinterest(leftHand, rootPart, 1)
-                                firetouchinterest(rightHand, rootPart, 0)
-                                firetouchinterest(leftHand, rootPart, 0)
-											firetouchinterest(rightHand, rootPart, 1)
-                                firetouchinterest(leftHand, rootPart, 1)
-                                firetouchinterest(rightHand, rootPart, 0)
-                                firetouchinterest(leftHand, rootPart, 0)
                             end
                         end
                     end
                 end
             end
-            task.wait(0.1)
+            task.wait(0.01)
         end
     end)
 end)
-
 Killer:AddSwitch("Auto Bad Karma", function(bool)
     autoBadKarma = bool
     task.spawn(function()
@@ -3136,42 +3118,29 @@ Killer:AddSwitch("Auto Bad Karma", function(bool)
             local playerChar = LocalPlayer.Character
             local rightHand = playerChar and playerChar:FindFirstChild("RightHand")
             local leftHand = playerChar and playerChar:FindFirstChild("LeftHand")
-						local rightHand = playerChar and playerChar:FindFirstChild("RightHand")
-            local leftHand = playerChar and playerChar:FindFirstChild("LeftHand")
-						local rightHand = playerChar and playerChar:FindFirstChild("RightHand")
-            local leftHand = playerChar and playerChar:FindFirstChild("LeftHand")
-						local rightHand = playerChar and playerChar:FindFirstChild("RightHand")
-            local leftHand = playerChar and playerChar:FindFirstChild("LeftHand")
+            
             if playerChar and rightHand and leftHand then
                 for _, target in ipairs(Players:GetPlayers()) do
-                    if target ~= LocalPlayer then
+                    if target ~= LocalPlayer and target.Character then
                         local evilKarma = target:FindFirstChild("evilKarma")
                         local goodKarma = target:FindFirstChild("goodKarma")
-                        if evilKarma and goodKarma and evilKarma:IsA("IntValue") and goodKarma:IsA("IntValue") and goodKarma.Value > evilKarma.Value then
-                            local rootPart = target.Character and target.Character:FindFirstChild("HumanoidRootPart")
-                            if rootPart then
-                                firetouchinterest(rightHand, rootPart, 1)
-                                firetouchinterest(leftHand, rootPart, 1)
-                                firetouchinterest(rightHand, rootPart, 0)
-                                firetouchinterest(leftHand, rootPart, 0)
-											firetouchinterest(rightHand, rootPart, 1)
-                                firetouchinterest(leftHand, rootPart, 1)
-                                firetouchinterest(rightHand, rootPart, 0)
-                                firetouchinterest(leftHand, rootPart, 0)
-											firetouchinterest(rightHand, rootPart, 1)
-                                firetouchinterest(leftHand, rootPart, 1)
-                                firetouchinterest(rightHand, rootPart, 0)
-                                firetouchinterest(leftHand, rootPart, 0)
-											firetouchinterest(rightHand, rootPart, 1)
-                                firetouchinterest(leftHand, rootPart, 1)
-                                firetouchinterest(rightHand, rootPart, 0)
-                                firetouchinterest(leftHand, rootPart, 0)
-                            end
+                        local rootPart = target.Character:FindFirstChild("HumanoidRootPart")
+                        
+                        if evilKarma and goodKarma and rootPart and 
+                           evilKarma:IsA("IntValue") and goodKarma:IsA("IntValue") and 
+                           goodKarma.Value > evilKarma.Value then
+                            
+                            -- ATACAR
+                            firetouchinterest(rightHand, rootPart, 1)
+                            firetouchinterest(leftHand, rootPart, 1)
+                            firetouchinterest(rightHand, rootPart, 0)
+                            firetouchinterest(leftHand, rootPart, 0)
                         end
                     end
                 end
             end
-            task.wait(0.1)
+            -- Espera un poco para que el juego procese
+            task.wait(0.01)
         end
     end)
 end)
