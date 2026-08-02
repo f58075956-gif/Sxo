@@ -3124,7 +3124,7 @@ Killer:AddSwitch("Auto Good Karma", function(bool)
                     end
                 end
             end
-            task.wait(0)
+            task.wait(0.1)
         end
     end)
 end)
@@ -3171,7 +3171,7 @@ Killer:AddSwitch("Auto Bad Karma", function(bool)
                     end
                 end
             end
-            task.wait(0)
+            task.wait(0.1)
         end
     end)
 end)
@@ -3262,7 +3262,7 @@ Killer:AddSwitch("Auto Kill", function(bool)
                 end
             end
 
-            task.wait(0)
+            task.wait(0.1)
         end
     end)
 end)
@@ -3356,7 +3356,7 @@ Killer:AddSwitch("Start Kill Target", function(state)
                 end
             end
 
-            task.wait(0)
+            task.wait(0.1)
         end
     end)
 end)
