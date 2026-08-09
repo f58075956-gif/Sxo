@@ -1801,6 +1801,669 @@ RockRanking:AddLabel(
 RockRanking:AddLabel(
     "⏱️ El tiempo usa tu Durability/segundo medida por Rock Analyzer."
 )
+	--========================================================--
+-- 🐾 PET ANALYZER + 🏆 PET RANKING
+-- Usa la GUI existente de Trayecto.lua
+--========================================================--
+
+local PetFolder = Calculadora:AddFolder("🐾 Pet Analyzer")
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local player = Players.LocalPlayer
+local petsFolder = player:WaitForChild("petsFolder")
+
+local globalFunctions =
+    ReplicatedStorage:FindFirstChild("globalFunctions")
+
+--========================================================--
+-- LABELS
+--========================================================--
+
+local PetStatus =
+    PetFolder:AddLabel(
+        "Estado: esperando..."
+    )
+
+local TotalPetsLabel =
+    PetFolder:AddLabel(
+        "Pets totales: 0"
+    )
+
+local EquippedPetsLabel =
+    PetFolder:AddLabel(
+        "Pets equipados: 0"
+    )
+
+local HighestLevelLabel =
+    PetFolder:AddLabel(
+        "Mayor nivel: -"
+    )
+
+local HighestExpLabel =
+    PetFolder:AddLabel(
+        "Mayor EXP: -"
+    )
+
+local SelectedPetLabel =
+    PetFolder:AddLabel(
+        "Pet seleccionado: -"
+    )
+
+local SelectedLevelLabel =
+    PetFolder:AddLabel(
+        "Nivel: -"
+    )
+
+local SelectedExpLabel =
+    PetFolder:AddLabel(
+        "EXP: -"
+    )
+
+local SelectedEquippedLabel =
+    PetFolder:AddLabel(
+        "Equipado: -"
+    )
+
+local SelectedEvolvedLabel =
+    PetFolder:AddLabel(
+        "Evolucionado: -"
+    )
+
+--========================================================--
+-- VARIABLES
+--========================================================--
+
+local PetData = {}
+local SelectedPet = nil
+
+--========================================================--
+-- FUNCIONES AUXILIARES
+--========================================================--
+
+local function ShortNumber(value)
+
+    value = tonumber(value) or 0
+
+    if value >= 1e18 then
+        return string.format("%.2fQi", value / 1e18)
+
+    elseif value >= 1e15 then
+        return string.format("%.2fQa", value / 1e15)
+
+    elseif value >= 1e12 then
+        return string.format("%.2fT", value / 1e12)
+
+    elseif value >= 1e9 then
+        return string.format("%.2fB", value / 1e9)
+
+    elseif value >= 1e6 then
+        return string.format("%.2fM", value / 1e6)
+
+    elseif value >= 1e3 then
+        return string.format("%.2fK", value / 1e3)
+    end
+
+    return string.format("%.0f", value)
+end
+
+--========================================================--
+-- OBTENER LEVEL
+--========================================================--
+
+local function GetPetLevel(pet)
+
+    local level =
+        pet:FindFirstChild("level")
+
+    if level then
+        return tonumber(level.Value) or 0
+    end
+
+    return 0
+end
+
+--========================================================--
+-- OBTENER EXP
+--========================================================--
+
+local function GetPetExp(pet)
+
+    local exp =
+        pet:FindFirstChild("exp")
+
+    if exp then
+        return tonumber(exp.Value) or 0
+    end
+
+    return 0
+end
+
+--========================================================--
+-- EQUIPADO
+--========================================================--
+
+local function IsPetEquipped(pet)
+
+    -- Intentar usar la función original
+    if globalFunctions then
+
+        local check =
+            globalFunctions:FindFirstChild(
+                "checkIfPetIsEquipped"
+            )
+
+        -- Si no es accesible como ModuleScript,
+        -- usamos la estructura local de equippedPets.
+    end
+
+    local equippedPets =
+        player:FindFirstChild("equippedPets")
+
+    if equippedPets then
+
+        for _, equipped in ipairs(
+            equippedPets:GetChildren()
+        ) do
+
+            if equipped.Value == pet
+                or equipped.Name == pet.Name then
+
+                return true
+            end
+        end
+    end
+
+    return false
+end
+
+--========================================================--
+-- EVOLUCIONADO
+--========================================================--
+
+local function IsPetEvolved(pet)
+
+    local evolved =
+        pet:FindFirstChild("evolved")
+
+    if evolved then
+
+        if evolved:IsA("BoolValue") then
+            return evolved.Value
+        end
+
+        return tostring(evolved.Value)
+            == "true"
+    end
+
+    return false
+end
+
+--========================================================--
+-- ESCANEAR PETS
+--========================================================--
+
+local function ScanPets()
+
+    table.clear(PetData)
+
+    local total = 0
+    local equipped = 0
+
+    local highestLevel = -1
+    local highestLevelPet = nil
+
+    local highestExp = -1
+    local highestExpPet = nil
+
+    for _, pet in ipairs(
+        petsFolder:GetChildren()
+    ) do
+
+        total += 1
+
+        local level =
+            GetPetLevel(pet)
+
+        local exp =
+            GetPetExp(pet)
+
+        local isEquipped =
+            IsPetEquipped(pet)
+
+        local evolved =
+            IsPetEvolved(pet)
+
+        if isEquipped then
+            equipped += 1
+        end
+
+        local data = {
+            instance = pet,
+            name = pet.Name,
+            level = level,
+            exp = exp,
+            equipped = isEquipped,
+            evolved = evolved
+        }
+
+        table.insert(
+            PetData,
+            data
+        )
+
+        if level > highestLevel then
+
+            highestLevel =
+                level
+
+            highestLevelPet =
+                data
+        end
+
+        if exp > highestExp then
+
+            highestExp =
+                exp
+
+            highestExpPet =
+                data
+        end
+    end
+
+    TotalPetsLabel.Text =
+        "Pets totales: "
+        .. tostring(total)
+
+    EquippedPetsLabel.Text =
+        "Pets equipados: "
+        .. tostring(equipped)
+
+    if highestLevelPet then
+
+        HighestLevelLabel.Text =
+            "Mayor nivel: "
+            .. highestLevelPet.name
+            .. " Lv."
+            .. tostring(
+                highestLevelPet.level
+            )
+
+    else
+
+        HighestLevelLabel.Text =
+            "Mayor nivel: -"
+    end
+
+    if highestExpPet then
+
+        HighestExpLabel.Text =
+            "Mayor EXP: "
+            .. highestExpPet.name
+            .. " ("
+            .. ShortNumber(
+                highestExpPet.exp
+            )
+            .. ")"
+
+    else
+
+        HighestExpLabel.Text =
+            "Mayor EXP: -"
+    end
+
+    PetStatus.Text =
+        "🟢 Escaneo completado: "
+        .. tostring(total)
+        .. " pets"
+end
+
+--========================================================--
+-- MOSTRAR PET SELECCIONADO
+--========================================================--
+
+local function UpdateSelectedPet()
+
+    if not SelectedPet then
+
+        SelectedPetLabel.Text =
+            "Pet seleccionado: -"
+
+        SelectedLevelLabel.Text =
+            "Nivel: -"
+
+        SelectedExpLabel.Text =
+            "EXP: -"
+
+        SelectedEquippedLabel.Text =
+            "Equipado: -"
+
+        SelectedEvolvedLabel.Text =
+            "Evolucionado: -"
+
+        return
+    end
+
+    local pet = SelectedPet
+
+    if not pet.instance
+        or not pet.instance.Parent then
+
+        SelectedPet = nil
+
+        UpdateSelectedPet()
+
+        return
+    end
+
+    local level =
+        GetPetLevel(
+            pet.instance
+        )
+
+    local exp =
+        GetPetExp(
+            pet.instance
+        )
+
+    local equipped =
+        IsPetEquipped(
+            pet.instance
+        )
+
+    local evolved =
+        IsPetEvolved(
+            pet.instance
+        )
+
+    SelectedPetLabel.Text =
+        "Pet seleccionado: "
+        .. pet.instance.Name
+
+    SelectedLevelLabel.Text =
+        "Nivel: "
+        .. tostring(level)
+
+    SelectedExpLabel.Text =
+        "EXP: "
+        .. ShortNumber(exp)
+
+    SelectedEquippedLabel.Text =
+        "Equipado: "
+        .. (
+            equipped
+            and "🟢 YES"
+            or "🔴 NO"
+        )
+
+    SelectedEvolvedLabel.Text =
+        "Evolucionado: "
+        .. (
+            evolved
+            and "🟢 YES"
+            or "⚪ NO"
+        )
+end
+
+--========================================================--
+-- DROPDOWN
+--========================================================--
+
+local PetDropdown
+
+local function RebuildDropdown()
+
+    local names = {}
+
+    for _, data in ipairs(
+        PetData
+    ) do
+
+        table.insert(
+            names,
+            data.name
+        )
+    end
+
+    -- Algunas versiones de la UI library
+    -- permiten refrescar el dropdown con Set.
+    -- Si tu versión no lo permite, el botón
+    -- "Seleccionar por nombre" sigue siendo útil.
+end
+
+--========================================================--
+-- SELECCIONAR POR NOMBRE
+--========================================================--
+
+PetFolder:AddTextbox(
+    "🔎 Buscar pet",
+    function(text)
+
+        text =
+            string.lower(
+                tostring(text)
+            )
+
+        for _, data in ipairs(
+            PetData
+        ) do
+
+            if string.find(
+                string.lower(data.name),
+                text,
+                1,
+                true
+            ) then
+
+                SelectedPet =
+                    data
+
+                UpdateSelectedPet()
+
+                PetStatus.Text =
+                    "🔍 Encontrado: "
+                    .. data.name
+
+                return
+            end
+        end
+
+        PetStatus.Text =
+            "❌ No se encontró ese pet"
+    end
+)
+
+--========================================================--
+-- RANKING
+--========================================================--
+
+local RankingFolder =
+    PetFolder:AddFolder(
+        "🏆 Pet Ranking"
+    )
+
+local RankingLabel =
+    RankingFolder:AddLabel(
+        "Ranking: esperando..."
+    )
+
+local function UpdateRanking()
+
+    local sorted =
+        {}
+
+    for _, data in ipairs(
+        PetData
+    ) do
+
+        table.insert(
+            sorted,
+            data
+        )
+    end
+
+    table.sort(
+        sorted,
+        function(a, b)
+
+            if a.level == b.level then
+                return a.exp > b.exp
+            end
+
+            return a.level > b.level
+        end
+    )
+
+    local lines = {
+        "🏆 PET RANKING"
+    }
+
+    local max =
+        math.min(
+            5,
+            #sorted
+        )
+
+    for i = 1, max do
+
+        local data =
+            sorted[i]
+
+        local icon
+
+        if i == 1 then
+            icon = "🥇"
+        elseif i == 2 then
+            icon = "🥈"
+        elseif i == 3 then
+            icon = "🥉"
+        else
+            icon = "⭐"
+        end
+
+        table.insert(
+            lines,
+            icon
+            .. " "
+            .. data.name
+            .. " | Lv."
+            .. tostring(data.level)
+            .. " | EXP "
+            .. ShortNumber(data.exp)
+        )
+    end
+
+    RankingLabel.Text =
+        table.concat(
+            lines,
+            "\n"
+        )
+end
+
+--========================================================--
+-- BOTÓN ESCANEAR
+--========================================================--
+
+PetFolder:AddButton(
+    "🔍 Escanear pets",
+    function()
+
+        ScanPets()
+
+        UpdateRanking()
+
+        UpdateSelectedPet()
+    end
+)
+
+--========================================================--
+-- BOTÓN ACTUALIZAR
+--========================================================--
+
+PetFolder:AddButton(
+    "🔄 Actualizar",
+    function()
+
+        ScanPets()
+
+        UpdateRanking()
+
+        UpdateSelectedPet()
+    end
+)
+
+--========================================================--
+-- AUTO UPDATE
+--========================================================--
+
+task.spawn(function()
+
+    while task.wait(2) do
+
+        pcall(function()
+
+            ScanPets()
+
+            UpdateRanking()
+
+            UpdateSelectedPet()
+
+        end)
+    end
+end)
+
+--========================================================--
+-- CAMBIOS EN PETS
+--========================================================--
+
+petsFolder.ChildAdded:Connect(function()
+
+    task.wait(0.2)
+
+    pcall(function()
+
+        ScanPets()
+
+        UpdateRanking()
+
+    end)
+end)
+
+petsFolder.ChildRemoved:Connect(function()
+
+    task.wait(0.2)
+
+    pcall(function()
+
+        ScanPets()
+
+        UpdateRanking()
+
+        UpdateSelectedPet()
+
+    end)
+end)
+
+--========================================================--
+-- INICIO
+--========================================================--
+
+task.spawn(function()
+
+    task.wait(1)
+
+    pcall(function()
+
+        ScanPets()
+
+        UpdateRanking()
+
+        UpdateSelectedPet()
+
+    end)
+
+end)
 local FarmingTab = window:AddTab("Fast Farm")
 
 local Folderfarming = FarmingTab:AddFolder("farm")
