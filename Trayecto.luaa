@@ -1708,7 +1708,9 @@ end)
 -- NUEVO PET
 --========================================================--
 
-petsFolder.ChildAdded:Connect(function()
+if petsFolder then
+    petsFolder.ChildAdded:Connect(function()
+
 
     task.wait(0.2)
 
