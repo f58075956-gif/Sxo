@@ -1995,6 +1995,7 @@ Folderfarming:AddSwitch("Fast Tools", function(state)
         applyTool(tool)
     end
 end)
+local function Crearpepe()
 local FolderautoTools = FarmingTab:AddFolder("TOOLS X ROCK")
 FolderautoTools:AddLabel("Select the tool you will use:").TextSize = 22
 
@@ -4861,7 +4862,9 @@ pcall(function()
     print("CrearRock")
     CrearRock()
 end)
-
+pcall(function()
+    Crearpepe()
+end)
 pcall(function()
     print("Crearextra")
     Crearextra()
