@@ -2158,6 +2158,88 @@ Folderfarming:AddSwitch("Fast Farm Fuerza", function(state)
         task.spawn(fastRepLoop)
     end
 end)
+
+-- 💾 CONFIGURACIÓN: GUARDAR / CARGAR
+local ConfigFolder = "PacksPrivated"
+local ConfigFile = ConfigFolder .. "/settings.json"
+
+local Config = {
+    RepSpeed = repsPerTick or 50,
+}
+
+local function notifyConfig(title, message)
+    pcall(function()
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = title,
+            Text = message,
+            Duration = 4
+        })
+    end)
+end
+
+local function saveConfig()
+    if not writefile then
+        notifyConfig("Configuración", "Tu executor no soporta guardar archivos.")
+        return
+    end
+
+    local ok, result = pcall(function()
+        if makefolder then
+            pcall(function()
+                makefolder(ConfigFolder)
+            end)
+        end
+
+        Config.RepSpeed = repsPerTick
+        writefile(ConfigFile, HttpService:JSONEncode(Config))
+    end)
+
+    if ok then
+        notifyConfig("Configuración", "Configuración guardada.")
+    else
+        notifyConfig("Configuración", "Error al guardar: " .. tostring(result))
+    end
+end
+
+local function loadConfig()
+    if not readfile or not isfile then
+        notifyConfig("Configuración", "Tu executor no soporta cargar archivos.")
+        return
+    end
+
+    if not isfile(ConfigFile) then
+        notifyConfig("Configuración", "No existe una configuración guardada.")
+        return
+    end
+
+    local ok, result = pcall(function()
+        local data = HttpService:JSONDecode(readfile(ConfigFile))
+
+        if type(data) == "table" and tonumber(data.RepSpeed) then
+            repsPerTick = math.max(1, math.floor(tonumber(data.RepSpeed)))
+        end
+    end)
+
+    if ok then
+        notifyConfig("Configuración", "Configuración cargada. Rep Speed: " .. tostring(repsPerTick))
+    else
+        notifyConfig("Configuración", "Error al cargar: " .. tostring(result))
+    end
+end
+
+local ConfigTab = window:AddTab("Config")
+local ConfigFolderUI = ConfigTab:AddFolder("Configuración")
+
+ConfigFolderUI:AddButton("💾 Guardar configuración", function()
+    saveConfig()
+end)
+
+ConfigFolderUI:AddButton("📂 Cargar configuración", function()
+    loadConfig()
+end)
+
+ConfigFolderUI:AddLabel("Guarda/carga Rep Speed en el dispositivo.")
+
 local SelectedTool = nil
 local AutoFarmActive = false
 local selectedRock = nil
