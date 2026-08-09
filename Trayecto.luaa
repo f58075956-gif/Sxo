@@ -3,6 +3,7 @@ local Players = game:GetService("Players")
 local MarketplaceService = game:GetService("MarketplaceService")
 local UserInputService = game:GetService("UserInputService")
 local player = game.Players.LocalPlayer
+local petsFolder = player:WaitForChild("petsFolder",10)
 local VirtualInputManager = game:GetService("VirtualInputManager")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local muscleEvent = player:WaitForChild("muscleEvent")
@@ -1722,23 +1723,23 @@ if petsFolder then
     end)
 
 end)
-
 --========================================================--
 -- PET ELIMINADO
 --========================================================--
 
-petsFolder.ChildRemoved:Connect(function()
+if petsFolder then
+    petsFolder.ChildRemoved:Connect(function()
 
-    task.wait(0.2)
+        task.wait(0.2)
 
-    pcall(function()
-
-        ScanPets()
-        UpdateRanking()
-        UpdateSelectedPet()
+        pcall(function()
+            ScanPets()
+            UpdateRanking()
+            UpdateSelectedPet()
+        end)
 
     end)
-
+end
 end)
 
 --========================================================--
