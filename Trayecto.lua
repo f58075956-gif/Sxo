@@ -4849,7 +4849,22 @@ infoTab:AddButton("Copy Invite", function()
 end)
 end
 
-Crearpets()
-CrearRock()
-Crearextra()
-end
+print("Iniciando creación de tabs")
+
+pcall(function()
+    print("Crearpets")
+    Crearpets()
+end)
+
+pcall(function()
+    print("CrearRock")
+    CrearRock()
+end)
+
+pcall(function()
+    print("Crearextra")
+    Crearextra()
+end)
+
+print("Terminado")
+
