@@ -1,3 +1,4 @@
+
 -- ============================================================
 -- TRAYECTO CORE: Task Manager + Configuration
 -- ============================================================
@@ -176,6 +177,8 @@ local TweenService = game:GetService("TweenService")
 local StarterGui = game:GetService("StarterGui")
 local VirtualUser = game:GetService("VirtualUser")
 local Stats = game:GetService("Stats")
+local SoundService = game:GetService("SoundService")
+local UIS = UserInputService
 local player = Players.LocalPlayer
 local petsFolder = player:WaitForChild("petsFolder", 10)
 local muscleEvent = player:WaitForChild("muscleEvent")
@@ -2870,6 +2873,7 @@ extraTab:AddSwitch("Infinite Jump", onInfiniteJump)
 -- 🌊 WALK ON WATER (OPTIMIZADO)
 --------------------------------------------------
 local waterPart = nil
+local waterConnection = nil
 
 local function onWalkOnWater(state)
     if state then
@@ -2890,7 +2894,11 @@ local function onWalkOnWater(state)
             end
         end
 
-        RunService.Heartbeat:Connect(function()
+        if waterConnection then
+            waterConnection:Disconnect()
+        end
+
+        waterConnection = RunService.Heartbeat:Connect(function()
             if waterPart then
                 local char = player.Character
                 if char then
@@ -2902,6 +2910,10 @@ local function onWalkOnWater(state)
             end
         end)
     else
+        if waterConnection then
+            waterConnection:Disconnect()
+            waterConnection = nil
+        end
         if waterPart then
             waterPart:Destroy()
             waterPart = nil
@@ -3350,6 +3362,8 @@ extraTab:AddButton("Claim Codes", function()
     })
 
 end)
+end
+
 local Gift = window:AddTab("Auto Gift")
 local RS = ReplicatedStorage
 
@@ -4986,7 +5000,6 @@ infoTab:AddButton("Copy Invite", function()
         })
     end
 end)
-end
 
 print("Iniciando creación de tabs")
 
@@ -5026,3 +5039,5 @@ pcall(function()
         saveTrayectoConfig()
     end)
 end)
+
+
