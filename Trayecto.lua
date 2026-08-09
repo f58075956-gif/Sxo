@@ -1946,7 +1946,8 @@ local function fastRepLoop()
         end
     end
 end
-
+	end 
+	local function Crearraro()
 Folderfarming:AddSwitch("Fast Rep", function(state)
     if state and not runFastRep then
         runFastRep = true
@@ -4863,12 +4864,15 @@ pcall(function()
     CrearRock()
 end)
 pcall(function()
+    Crearraro()
+end)
+pcall(function()
+    print("Crearpepe")
     Crearpepe()
 end)
 pcall(function()
     print("Crearextra")
     Crearextra()
 end)
-
 print("Terminado")
 
