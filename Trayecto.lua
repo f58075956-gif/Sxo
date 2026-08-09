@@ -5389,9 +5389,171 @@ else
 	warn("Killer tab is nil")
 end
 -- ============================================================
+-- TRAYECTO AUTOMATICO: boton unico + base de datos de renacimientos
+-- ============================================================
+local TrayectoAutoRunning = false
+
+-- Unica base de datos permitida por el trayecto.
+local TrayectoRebirthDB = {
+    80, 280, 580, 980, 1480, 2080, 2780, 3580,
+    4480, 5480, 6580, 7780, 9080,
+    10480, 11980, 13580, 15280, 17080, 18980
+}
+
+-- Saltos especiales indicados: al llegar a 3580 -> 7780;
+-- al llegar a 9080 -> 13580.
+local TrayectoStageJump = {
+    [3580] = 7780,
+    [9080] = 13580,
+}
+
+local function trayectoHasTarget(value)
+    for _, target in ipairs(TrayectoRebirthDB) do
+        if target == value then
+            return true
+        end
+    end
+    return false
+end
+
+local function trayectoGetTarget(current)
+    if trayectoStageJump[current] and trayectoHasTarget(trayectoStageJump[current]) then
+        return trayectoStageJump[current]
+    end
+
+    for _, target in ipairs(TrayectoRebirthDB) do
+        if target > current then
+            return target
+        end
+    end
+
+    return nil
+end
+
+local function trayectoRebirthUntil(target)
+    local rebirthRemote = ReplicatedStorage:FindFirstChild("rEvents")
+        and ReplicatedStorage.rEvents:FindFirstChild("rebirthRemote")
+    if not rebirthRemote then
+        warn("[Trayecto] No se encontro rebirthRemote")
+        return false
+    end
+
+    while TrayectoAutoRunning and rebirthsStat.Value < target do
+        pcall(function()
+            rebirthRemote:InvokeServer("rebirthRequest")
+        end)
+        task.wait(0.05)
+    end
+
+    return TrayectoAutoRunning and rebirthsStat.Value >= target
+end
+
+local function trayectoStartKingRock()
+    -- Muscle King Rock = 5,000,000 de durability en el rock farm V3.
+    getgenv().autoFarmV3 = true
+    pcall(function()
+        farmRockV3(5000000)
+    end)
+end
+
+local function trayectoStopKingRock()
+    getgenv().autoFarmV3 = false
+end
+
+local function trayectoWaitTwoDays()
+    local TWO_DAYS = 2 * 24 * 60 * 60
+    local started = os.clock()
+    while TrayectoAutoRunning and os.clock() - started < TWO_DAYS do
+        task.wait(1)
+    end
+    return TrayectoAutoRunning
+end
+
+local function trayectoAutomatico()
+    if TrayectoAutoRunning then
+        return
+    end
+
+    TrayectoAutoRunning = true
+    TrayectoCore:SetConfig("TrayectoAutomatico", true)
+    saveTrayectoConfig()
+
+    task.spawn(function()
+        local ok, err = xpcall(function()
+            while TrayectoAutoRunning do
+                local current = rebirthsStat.Value
+                local target = trayectoGetTarget(current)
+
+                if not target then
+                    break
+                end
+
+                -- Primero alcanza el objetivo valido de la base de datos.
+                if current < target then
+                    if not trayectoRebirthUntil(target) then
+                        break
+                    end
+                end
+
+                if not TrayectoAutoRunning then
+                    break
+                end
+
+                -- En cada salto de etapa: equipa/farma la King Rock durante 2 dias.
+                trayectoStartKingRock()
+                local keepGoing = trayectoWaitTwoDays()
+                trayectoStopKingRock()
+
+                if not keepGoing then
+                    break
+                end
+
+                -- Luego continua usando exclusivamente la misma base de datos.
+            end
+        end, debug.traceback)
+
+        trayectoStopKingRock()
+        TrayectoAutoRunning = false
+        TrayectoCore:SetConfig("TrayectoAutomatico", false)
+        saveTrayectoConfig()
+
+        if not ok then
+            TrayectoCore.Diagnostics.LastError = "[TrayectoAutomatico] " .. tostring(err)
+            TrayectoCore.Diagnostics.ErrorCount += 1
+            warn(TrayectoCore.Diagnostics.LastError)
+        end
+    end)
+end
+
+-- ============================================================
 -- TRAYECTO CONTROL: Dashboard + Config + Debug
 -- ============================================================
 local controlTab = window:AddTab("Control")
+local trayectoAutoFolder = controlTab:AddFolder("🚀 Trayecto Automático")
+local trayectoAutoStatus = trayectoAutoFolder:AddLabel("Trayecto: detenido")
+
+trayectoAutoFolder:AddButton("🚀 ACTIVAR TRAYECTO AUTOMÁTICO", function()
+    if TrayectoAutoRunning then
+        TrayectoAutoRunning = false
+        trayectoStopKingRock()
+        TrayectoCore:SetConfig("TrayectoAutomatico", false)
+        saveTrayectoConfig()
+        trayectoAutoStatus.Text = "Trayecto: detenido"
+        return
+    end
+
+    trayectoAutoStatus.Text = "Trayecto: ejecutando"
+    trayectoAutomatico()
+end)
+
+trayectoAutoFolder:AddButton("⛔ DETENER TRAYECTO", function()
+    TrayectoAutoRunning = false
+    trayectoStopKingRock()
+    TrayectoCore:SetConfig("TrayectoAutomatico", false)
+    saveTrayectoConfig()
+    trayectoAutoStatus.Text = "Trayecto: detenido"
+end)
+
 
 local statusLabel = controlTab:AddLabel("Estado: listo")
 local errorLabel = controlTab:AddLabel("Errores: 0")
@@ -5409,7 +5571,8 @@ local function updateTrayectoStatus()
     local lastError = TrayectoCore.Diagnostics.LastError
 
     pcall(function()
-        statusLabel.Text = TrayectoCore.Config.SafeMode and "Estado: Safe Mode ON" or "Estado: Safe Mode OFF"
+        statusLabel.Text = TrayectoAutoRunning and "Estado: Trayecto Automático ON" or (TrayectoCore.Config.SafeMode and "Estado: Safe Mode ON" or "Estado: Safe Mode OFF")
+        trayectoAutoStatus.Text = TrayectoAutoRunning and "Trayecto: ejecutando" or "Trayecto: detenido"
         errorLabel.Text = "Errores: " .. tostring(errorCount)
         taskLabel.Text = "Tareas activas: " .. tostring(active)
     end)
