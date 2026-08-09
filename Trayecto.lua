@@ -1,4 +1,3 @@
-
 -- ============================================================
 -- TRAYECTO CORE: Task Manager + Configuration
 -- ============================================================
@@ -745,6 +744,10 @@ Players.PlayerAdded:Connect(function(plr)
 	end
 end)
 end
+local FarmingTab
+local Folderfarming
+local Folder_rebirth
+
 local function CrearRock()
 local farmTab = window:AddTab("Rock")
 local Folderanal = farmTab:AddFolder("FARM-ROCK-V1")
@@ -1882,6 +1885,7 @@ if petsFolder then
     end)
 
 end)
+end
 --========================================================--
 -- PET ELIMINADO
 --========================================================--
@@ -1918,9 +1922,9 @@ task.spawn(function()
     end)
 
 end)
-local FarmingTab = window:AddTab("Fast Farm")
+FarmingTab = window:AddTab("Fast Farm")
 
-local Folderfarming = FarmingTab:AddFolder("farm")
+Folderfarming = FarmingTab:AddFolder("farm")
 
 local strengthStat = leaderstats:WaitForChild("Strength")
 local durabilityStat = player:WaitForChild("Durability")
@@ -2105,6 +2109,8 @@ local function fastRepLoop()
         end
     end
 end
+end
+
 local function Crearraro()
 Folderfarming:AddSwitch("Fast Rep", function(state)
     if state and not runFastRep then
@@ -2628,7 +2634,7 @@ Folder_AutoGym:AddSwitch('Auto Legends Lift', function(p76)
     end
 end)
 
-local Folder_rebirth = FarmingTab:AddFolder("sin packs")
+Folder_rebirth = FarmingTab:AddFolder("sin packs")
 local targetRebirthValue = 1
 Folder_rebirth:AddTextBox("Rebirth Target", function(text)
     local newValue = tonumber(text)
@@ -4982,12 +4988,6 @@ infoTab:AddButton("Copy Invite", function()
 end)
 end
 
--- Build all Rock sub-sections after their local dependencies exist.
-Crearraro()
-Crearpepe()
-Crearextra()
-end
-
 print("Iniciando creación de tabs")
 
 pcall(function()
@@ -4999,6 +4999,22 @@ pcall(function()
     print("CrearRock")
     CrearRock()
 end)
+
+pcall(function()
+    print("Crearraro")
+    Crearraro()
+end)
+
+pcall(function()
+    print("Crearpepe")
+    Crearpepe()
+end)
+
+pcall(function()
+    print("Crearextra")
+    Crearextra()
+end)
+
 print("Terminado")
 
 
@@ -5010,29 +5026,3 @@ pcall(function()
         saveTrayectoConfig()
     end)
 end)
-
-
--- ============================================================
--- TRAYECTO SETTINGS
--- ============================================================
-local function CreateTrayectoSettings(parent)
-    if not parent or type(parent.AddFolder) ~= "function" then
-        return
-    end
-
-    local folder = parent:AddFolder("Trayecto Settings")
-
-    if folder.AddButton then
-        folder:AddButton("Save Config", function()
-            saveTrayectoConfig()
-        end)
-
-        folder:AddButton("Reset Config", function()
-            resetTrayectoConfig()
-        end)
-
-        folder:AddButton("Stop All Tasks", function()
-            TrayectoCore:StopAll()
-        end)
-    end
-end
