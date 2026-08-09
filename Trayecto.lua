@@ -1994,7 +1994,7 @@ Folderfarming:AddSwitch("Fast Tools", function(state)
     for _, tool in ipairs(toolSettings) do
         applyTool(tool)
     end
-end)
+end
 local FolderautoTools = FarmingTab:AddFolder("TOOLS X ROCK")
 FolderautoTools:AddLabel("Select the tool you will use:").TextSize = 22
 
