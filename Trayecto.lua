@@ -1989,7 +1989,7 @@ Folderfarming:AddSwitch("Fast Tools", function(state)
                 equippedTool[tool[2]].Value = tool[3]
             end
         end
-    end
+    
 
     for _, tool in ipairs(toolSettings) do
         applyTool(tool)
@@ -2610,6 +2610,7 @@ Folder_rebirth:AddSwitch("Eat Egg (30 Min)", function(state)
     end
 end)
 end
+	end
 local function Crearextra()
 local RunService = game:GetService("RunService")
 local Lighting = game:GetService("Lighting")
