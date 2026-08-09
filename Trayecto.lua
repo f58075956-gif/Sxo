@@ -1995,6 +1995,7 @@ Folderfarming:AddSwitch("Fast Tools", function(state)
         applyTool(tool)
     end
 end)
+end 
 local function Crearpepe()
 local FolderautoTools = FarmingTab:AddFolder("TOOLS X ROCK")
 FolderautoTools:AddLabel("Select the tool you will use:").TextSize = 22
@@ -2611,7 +2612,6 @@ Folder_rebirth:AddSwitch("Eat Egg (30 Min)", function(state)
     end
 end)
 end
-	end
 local function Crearextra()
 local RunService = game:GetService("RunService")
 local Lighting = game:GetService("Lighting")
