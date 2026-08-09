@@ -10,28 +10,53 @@ local TrayectoCore = {
         AutoTrade = false,
         AutoBuy = false,
         AutoEvolve = false,
+        SafeMode = true,
+        DebugMode = false,
+    },
+    Diagnostics = {
+        LastError = nil,
+        ErrorCount = 0,
+        StartedAt = os.clock(),
     }
 }
 
+function TrayectoCore:Log(message)
+    if self.Config.DebugMode then
+        print("[Trayecto][DEBUG] " .. tostring(message))
+    end
+end
+
 function TrayectoCore:IsRunning(name)
-    local task = self.Tasks[name]
-    return task ~= nil and task.running == true
+    local taskState = self.Tasks[name]
+    return taskState ~= nil and taskState.running == true
 end
 
 function TrayectoCore:Stop(name)
-    local task = self.Tasks[name]
-    if not task then return end
+    local taskState = self.Tasks[name]
+    if not taskState then return end
 
-    task.running = false
+    taskState.running = false
 
-    if task.connection then
+    if taskState.connection then
         pcall(function()
-            task.connection:Disconnect()
+            taskState.connection:Disconnect()
         end)
-        task.connection = nil
+        taskState.connection = nil
+    end
+
+    if type(taskState.connections) == "table" then
+        for _, connection in ipairs(taskState.connections) do
+            pcall(function()
+                if connection then
+                    connection:Disconnect()
+                end
+            end)
+        end
+        taskState.connections = {}
     end
 
     self.Tasks[name] = nil
+    self:Log("Stopped: " .. tostring(name))
 end
 
 function TrayectoCore:StopAll()
@@ -46,24 +71,28 @@ function TrayectoCore:StopAll()
 end
 
 function TrayectoCore:Start(name, runner)
-    -- Prevent duplicate loops/connections.
     if self:IsRunning(name) then
         return false
     end
 
     local taskState = {
         running = true,
-        connection = nil
+        connection = nil,
+        connections = {},
+        startedAt = os.clock(),
     }
 
     self.Tasks[name] = taskState
+    self:Log("Started: " .. tostring(name))
 
     task.spawn(function()
-        local ok, err = pcall(function()
+        local ok, err = xpcall(function()
             runner(taskState)
-        end)
+        end, debug.traceback)
 
         if not ok then
+            self.Diagnostics.LastError = "[" .. tostring(name) .. "] " .. tostring(err)
+            self.Diagnostics.ErrorCount = self.Diagnostics.ErrorCount + 1
             warn("[Trayecto][" .. tostring(name) .. "] " .. tostring(err))
         end
 
@@ -146,6 +175,8 @@ local function resetTrayectoConfig()
         AutoTrade = false,
         AutoBuy = false,
         AutoEvolve = false,
+        SafeMode = true,
+        DebugMode = false,
     }) do
         TrayectoCore.Config[key] = defaultValue
     end
@@ -2081,13 +2112,18 @@ end)
 Folderfarming:AddLabel("")
 Folderfarming:AddLabel("Fast Farm (Recommended Speed: 20)").TextSize = 20
 
-local repsPerTick = 1
+local repsPerTick = 50
+local runFastRep = false
 
 local function getPing()
-    local stats = Stats
-    local pingStat = stats:FindFirstChild("PerformanceStats") and stats.PerformanceStats:FindFirstChild("Ping")
+    local stats = game:GetService("Stats")
+    local performanceStats = stats:FindFirstChild("PerformanceStats")
+    local pingStat = performanceStats and performanceStats:FindFirstChild("Ping")
     return pingStat and pingStat:GetValue() or 0
 end
+
+Folderfarming:AddLabel("")
+Folderfarming:AddLabel("⚡ FAST FARM FUERZA ULTRA").TextSize = 20
 
 Folderfarming:AddTextBox("Rep Speed", function(value)
     local num = tonumber(value)
@@ -2095,32 +2131,31 @@ Folderfarming:AddTextBox("Rep Speed", function(value)
         repsPerTick = math.floor(num)
     end
 end, {
-    placeholder = "1",
+    placeholder = "50",
 })
 
 local function fastRepLoop()
     while runFastRep do
-        local startTick = tick()
-        while tick() - startTick < 0.75 and runFastRep do
-            for i = 1, repsPerTick do
-                muscleEvent:FireServer("rep")
+        for i = 1, repsPerTick do
+            if not runFastRep then
+                break
             end
-            task.wait(0.02)
+            muscleEvent:FireServer("rep")
         end
-        while runFastRep and getPing() >= 350 do
-            task.wait(1)
+
+        task.wait()
+
+        if getPing() >= 350 then
+            task.wait(0.25)
         end
     end
 end
-end
 
-local function Crearraro()
-Folderfarming:AddSwitch("Fast Rep", function(state)
-    if state and not runFastRep then
-        runFastRep = true
+Folderfarming:AddSwitch("Fast Farm Fuerza", function(state)
+    runFastRep = state
+
+    if state then
         task.spawn(fastRepLoop)
-    elseif not state and runFastRep then
-        runFastRep = false
     end
 end)
 local SelectedTool = nil
@@ -2868,6 +2903,290 @@ UIS.JumpRequest:Connect(function()
 end)
 
 extraTab:AddSwitch("Infinite Jump", onInfiniteJump)
+
+
+--------------------------------------------------
+-- ⚡ FAST REBIRTH + PET CYCLE
+--------------------------------------------------
+local SwiftSamuraiAmount = 8
+local TribalOverlordAmount = 8
+local fastRebirthEnabled = false
+local fastRebirthThread = nil
+
+extraTab:AddTextBox("Swift Samurai Amount", function(value)
+    local num = tonumber(value)
+    if num then
+        SwiftSamuraiAmount = math.clamp(math.floor(num), 1, 8)
+    end
+end, {placeholder = "8"})
+
+extraTab:AddTextBox("Tribal Overlord Amount", function(value)
+    local num = tonumber(value)
+    if num then
+        TribalOverlordAmount = math.clamp(math.floor(num), 1, 8)
+    end
+end, {placeholder = "8"})
+
+local function fastRebirthEquipPet(petName, amount)
+    local remoteFolder = ReplicatedStorage:FindFirstChild("rEvents")
+    local equipRemote = remoteFolder and remoteFolder:FindFirstChild("equipPetEvent")
+    local unique = player:FindFirstChild("petsFolder") and player.petsFolder:FindFirstChild("Unique")
+    if not equipRemote or not unique then
+        warn("[Fast Rebirth] No se encontró equipPetEvent o petsFolder.Unique")
+        return 0
+    end
+
+    local equipped = 0
+    for _, pet in ipairs(unique:GetChildren()) do
+        if pet.Name == petName then
+            local ok = pcall(function()
+                equipRemote:FireServer("equipPet", pet)
+            end)
+            if ok then
+                equipped += 1
+            end
+            if equipped >= amount then
+                break
+            end
+        end
+    end
+    return equipped
+end
+
+local function fastRebirthUnequipTargets()
+    local remoteFolder = ReplicatedStorage:FindFirstChild("rEvents")
+    local equipRemote = remoteFolder and remoteFolder:FindFirstChild("equipPetEvent")
+    local pf = player:FindFirstChild("petsFolder")
+    if not equipRemote or not pf then return end
+
+    local targets = {
+        ["Swift Samurai"] = true,
+        ["Tribal Overlord"] = true,
+    }
+
+    for _, folder in ipairs(pf:GetChildren()) do
+        if folder:IsA("Folder") then
+            for _, pet in ipairs(folder:GetChildren()) do
+                if targets[pet.Name] then
+                    pcall(function()
+                        equipRemote:FireServer("unequipPet", pet)
+                    end)
+                end
+            end
+        end
+    end
+end
+
+local function startFastRebirth()
+    if fastRebirthThread then return end
+
+    fastRebirthThread = task.spawn(function()
+        local globalFunctions
+        local ok, result = pcall(function()
+            return require(ReplicatedStorage:WaitForChild("globalFunctions"))
+        end)
+        if not ok then
+            warn("[Fast Rebirth] No se pudo cargar globalFunctions: " .. tostring(result))
+            fastRebirthThread = nil
+            return
+        end
+        globalFunctions = result
+
+        local stats = player:FindFirstChild("leaderstats")
+        local strength = stats and stats:FindFirstChild("Strength")
+        local rebirths = stats and stats:FindFirstChild("Rebirths")
+        local events = ReplicatedStorage:FindFirstChild("rEvents")
+        local rebirthRemote = events and events:FindFirstChild("rebirthRemote")
+
+        if not strength or not rebirths or not rebirthRemote then
+            warn("[Fast Rebirth] Faltan Strength, Rebirths o rebirthRemote.")
+            fastRebirthThread = nil
+            return
+        end
+
+        while fastRebirthEnabled do
+            local neededStrength
+            local calcOK, calcResult = pcall(function()
+                return globalFunctions.calculateRequiredRebirthStrength(rebirths.Value, player)
+            end)
+            if calcOK then
+                neededStrength = calcResult
+            else
+                warn("[Fast Rebirth] Error calculando fuerza: " .. tostring(calcResult))
+                break
+            end
+
+            fastRebirthUnequipTargets()
+            task.wait(0.05)
+            fastRebirthEquipPet("Swift Samurai", SwiftSamuraiAmount)
+
+            while fastRebirthEnabled and strength.Value < neededStrength do
+                for _ = 1, 6 do
+                    pcall(function()
+                        muscleEvent:FireServer("rep")
+                    end)
+                end
+                task.wait()
+            end
+
+            if not fastRebirthEnabled then break end
+
+            fastRebirthEquipPet("Tribal Overlord", TribalOverlordAmount)
+            local oldRebirths = rebirths.Value
+
+            repeat
+                pcall(function()
+                    rebirthRemote:InvokeServer("rebirthRequest")
+                end)
+                task.wait()
+            until rebirths.Value > oldRebirths or not fastRebirthEnabled
+        end
+
+        fastRebirthThread = nil
+    end)
+end
+
+extraTab:AddSwitch("FAST REBIRTH", function(state)
+    fastRebirthEnabled = state
+    if state then
+        startFastRebirth()
+    end
+end)
+
+--------------------------------------------------
+-- 🥚 EAT PROTEIN EGG (30 MIN)
+--------------------------------------------------
+local extraAutoEggEnabled = false
+local extraEggThread = nil
+
+local function consumeProteinEgg()
+    local backpack = player:FindFirstChildOfClass("Backpack") or player:WaitForChild("Backpack", 5)
+    local character = player.Character or player.CharacterAdded:Wait()
+    if not backpack or not character then return false end
+
+    local egg = backpack:FindFirstChild("Protein Egg")
+    if not egg then
+        return false
+    end
+
+    egg.Parent = character
+    local ok = pcall(function()
+        egg:Activate()
+    end)
+    return ok
+end
+
+extraTab:AddSwitch("Eat Egg (30 Min)", function(state)
+    extraAutoEggEnabled = state
+    if not state then return end
+    if extraEggThread then return end
+
+    extraEggThread = task.spawn(function()
+        while extraAutoEggEnabled do
+            consumeProteinEgg()
+            task.wait(1800)
+        end
+        extraEggThread = nil
+    end)
+end)
+
+--------------------------------------------------
+-- 💤 ANTI AFK (LOCAL)
+--------------------------------------------------
+local antiAFKEnabled = false
+local antiAFKConnection = nil
+
+extraTab:AddSwitch("Anti AFK", function(state)
+    antiAFKEnabled = state
+
+    if antiAFKConnection then
+        antiAFKConnection:Disconnect()
+        antiAFKConnection = nil
+    end
+
+    if state then
+        antiAFKConnection = player.Idled:Connect(function()
+            pcall(function()
+                VirtualUser:CaptureController()
+                VirtualUser:ClickButton2(Vector2.new())
+            end)
+        end)
+    end
+end)
+
+--------------------------------------------------
+-- 🚀 FULL OPTIMIZATION
+-- No destruye ScreenGuis para no romper el propio hub.
+--------------------------------------------------
+local fullOptimizationEnabled = false
+local optimizationConnection = nil
+
+local function applyFullOptimization()
+    pcall(function()
+        Lighting.GlobalShadows = false
+        Lighting.Brightness = 0
+        Lighting.ClockTime = 0
+        Lighting.TimeOfDay = "00:00:00"
+        Lighting.OutdoorAmbient = Color3.new(0, 0, 0)
+        Lighting.Ambient = Color3.new(0, 0, 0)
+        Lighting.FogColor = Color3.new(0, 0, 0)
+        Lighting.FogEnd = 9e9
+    end)
+
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        pcall(function()
+            if obj:IsA("ParticleEmitter") or obj:IsA("Smoke") or obj:IsA("Fire") or obj:IsA("Sparkles") then
+                obj.Enabled = false
+            elseif obj:IsA("PointLight") or obj:IsA("SpotLight") or obj:IsA("SurfaceLight") then
+                obj.Enabled = false
+            elseif obj:IsA("Decal") or obj:IsA("Texture") then
+                obj.Transparency = 1
+            elseif obj:IsA("BasePart") then
+                obj.Reflectance = 0
+                if not obj:IsA("MeshPart") then
+                    obj.Material = Enum.Material.SmoothPlastic
+                end
+            end
+        end)
+    end
+
+    for _, obj in ipairs(Lighting:GetChildren()) do
+        pcall(function()
+            if obj:IsA("PostEffect") then
+                obj.Enabled = false
+            end
+        end)
+    end
+
+    pcall(function()
+        settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+    end)
+end
+
+extraTab:AddSwitch("Full Optimization", function(state)
+    fullOptimizationEnabled = state
+
+    if optimizationConnection then
+        optimizationConnection:Disconnect()
+        optimizationConnection = nil
+    end
+
+    if state then
+        applyFullOptimization()
+        optimizationConnection = RunService.Heartbeat:Connect(function()
+            if fullOptimizationEnabled then
+                -- Reaplica solo de forma periódica; Heartbeat no hace trabajo pesado.
+            end
+        end)
+
+        task.spawn(function()
+            while fullOptimizationEnabled do
+                applyFullOptimization()
+                task.wait(5)
+            end
+        end)
+    end
+end)
 
 --------------------------------------------------
 -- 🌊 WALK ON WATER (OPTIMIZADO)
@@ -4987,6 +5306,81 @@ if Killer then
 else
 	warn("Killer tab is nil")
 end
+-- ============================================================
+-- TRAYECTO CONTROL: Dashboard + Config + Debug
+-- ============================================================
+local controlTab = window:AddTab("Control")
+
+local statusLabel = controlTab:AddLabel("Estado: listo")
+local errorLabel = controlTab:AddLabel("Errores: 0")
+local taskLabel = controlTab:AddLabel("Tareas activas: 0")
+
+local function updateTrayectoStatus()
+    local active = 0
+    for _, taskState in pairs(TrayectoCore.Tasks) do
+        if taskState and taskState.running then
+            active = active + 1
+        end
+    end
+
+    local errorCount = TrayectoCore.Diagnostics.ErrorCount or 0
+    local lastError = TrayectoCore.Diagnostics.LastError
+
+    pcall(function()
+        statusLabel.Text = TrayectoCore.Config.SafeMode and "Estado: Safe Mode ON" or "Estado: Safe Mode OFF"
+        errorLabel.Text = "Errores: " .. tostring(errorCount)
+        taskLabel.Text = "Tareas activas: " .. tostring(active)
+    end)
+
+    if TrayectoCore.Config.DebugMode and lastError then
+        print("[Trayecto][LAST ERROR] " .. tostring(lastError))
+    end
+end
+
+controlTab:AddSwitch("Safe Mode", function(state)
+    TrayectoCore:SetConfig("SafeMode", state)
+    saveTrayectoConfig()
+    updateTrayectoStatus()
+end)
+
+controlTab:AddSwitch("Debug Mode", function(state)
+    TrayectoCore:SetConfig("DebugMode", state)
+    saveTrayectoConfig()
+    updateTrayectoStatus()
+end)
+
+controlTab:AddButton("Guardar configuración", function()
+    saveTrayectoConfig()
+    TrayectoCore:Log("Configuración guardada.")
+    updateTrayectoStatus()
+end)
+
+controlTab:AddButton("Detener todas las tareas", function()
+    TrayectoCore:StopAll()
+    updateTrayectoStatus()
+end)
+
+controlTab:AddButton("Reset configuración", function()
+    resetTrayectoConfig()
+    updateTrayectoStatus()
+end)
+
+controlTab:AddButton("Limpiar errores", function()
+    TrayectoCore.Diagnostics.LastError = nil
+    TrayectoCore.Diagnostics.ErrorCount = 0
+    updateTrayectoStatus()
+end)
+
+controlTab:AddButton("Actualizar estado", function()
+    updateTrayectoStatus()
+end)
+
+task.spawn(function()
+    while task.wait(2) do
+        pcall(updateTrayectoStatus)
+    end
+end)
+
 local infoTab = window:AddTab("info")
 infoTab:AddLabel("hecho por karma").TextSize = 20
 infoTab:AddLabel("op script").TextSize = 20
