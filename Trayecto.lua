@@ -2323,7 +2323,7 @@ Folder_AutoGym:AddSwitch('Auto Muscle King Lift', function(p36)
                 workspace.machinesFolder:FindFirstChild('Muscle King Lift').interactSeat,
             }
 
-            game:GetService('Players').player.muscleEvent:FireServer(unpack(v40))
+            player.muscleEvent:FireServer(unpack(v40))
             game:GetService('RunService').RenderStepped:Wait()
 
             if not _G.automlking then
@@ -2361,7 +2361,7 @@ Folder_AutoGym:AddSwitch('Auto Muscle King Bench', function(p41)
                 workspace.machinesFolder:FindFirstChild('Muscle King Bench').interactSeat,
             }
 
-            game:GetService('Players').player.muscleEvent:FireServer(unpack(v45))
+            player.muscleEvent:FireServer(unpack(v45))
             game:GetService('RunService').RenderStepped:Wait()
 
             if not _G.automlking then
@@ -2399,7 +2399,7 @@ Folder_AutoGym:AddSwitch('Auto Muscle King Squat', function(p46)
                 workspace.machinesFolder:FindFirstChild('Muscle King Squat').interactSeat,
             }
 
-            game:GetService('Players').player.muscleEvent:FireServer(unpack(v50))
+            player.muscleEvent:FireServer(unpack(v50))
             game:GetService('RunService').RenderStepped:Wait()
 
             if not _G.automlking then
@@ -2437,7 +2437,7 @@ Folder_AutoGym:AddSwitch('Auto Muscle King Boulder', function(p51)
                 workspace.machinesFolder:FindFirstChild('King Boulder').interactSeat,
             }
 
-            game:GetService('Players').player.muscleEvent:FireServer(unpack(v55))
+            player.muscleEvent:FireServer(unpack(v55))
             game:GetService('RunService').RenderStepped:Wait()
 
             if not _G.automlking then
@@ -2476,7 +2476,7 @@ Folder_AutoGym:AddSwitch('Auto Legends Press', function(p56)
                 workspace.machinesFolder:FindFirstChild('Legends Press').interactSeat,
             }
 
-            game:GetService('Players').player.muscleEvent:FireServer(unpack(v60))
+            player.muscleEvent:FireServer(unpack(v60))
             game:GetService('RunService').RenderStepped:Wait()
 
             if not _G.autolegends then
@@ -2513,7 +2513,7 @@ Folder_AutoGym:AddSwitch('Auto Legends Throw', function(p61)
             workspace.machinesFolder:FindFirstChild('Legends Throw').interactSeat,
         }
 
-        game:GetService('Players').player.muscleEvent:FireServer(unpack(v65))
+        player.muscleEvent:FireServer(unpack(v65))
         game:GetService('RunService').RenderStepped:Wait()
 
         if not _G.autolegends then
@@ -2548,7 +2548,7 @@ Folder_AutoGym:AddSwitch('Auto Legends Pullup', function(p66)
                 workspace.machinesFolder:FindFirstChild('Legends Pullup').interactSeat,
             }
 
-            game:GetService('Players').player.muscleEvent:FireServer(unpack(v70))
+            player.muscleEvent:FireServer(unpack(v70))
             game:GetService('RunService').RenderStepped:Wait()
 
             if not _G.autolegends then
@@ -2586,7 +2586,7 @@ Folder_AutoGym:AddSwitch('Auto Legends Squat', function(p71)
                 workspace.machinesFolder:FindFirstChild('Legends Squat').interactSeat,
             }
 
-            game:GetService('Players').player.muscleEvent:FireServer(unpack(v75))
+            player.muscleEvent:FireServer(unpack(v75))
             game:GetService('RunService').RenderStepped:Wait()
 
             if not _G.autolegends then
@@ -2624,7 +2624,7 @@ Folder_AutoGym:AddSwitch('Auto Legends Lift', function(p76)
                 workspace.machinesFolder:FindFirstChild('Legends Lift').interactSeat,
             }
 
-            game:GetService('Players').player.muscleEvent:FireServer(unpack(v80))
+            player.muscleEvent:FireServer(unpack(v80))
             game:GetService('RunService').RenderStepped:Wait()
 
             if not _G.autolegends then
@@ -2933,7 +2933,7 @@ local function onChangeTime(value)
     elseif value == "Day" then
         Lighting.ClockTime = 12
     elseif value == "Midnight" then
-        Lighting.ClockTime = 6
+        Lighting.ClockTime = 0
     end
 end
 
@@ -3006,18 +3006,24 @@ local isPaused = false
 local fileName = "GenesisPlaylist_"..player.Name..".txt"
 local tempIndex = 0
 local currentSound = nil
+local fileApiAvailable = type(isfile) == "function" and type(readfile) == "function" and type(writefile) == "function"
 
-if isfile(fileName) then
-	local data = readfile(fileName)
-	for url in string.gmatch(data, "[^,]+") do
-		table.insert(Playlist, url)
-	end
-else
-	writefile(fileName, "")
+if fileApiAvailable then
+    if isfile(fileName) then
+        local data = readfile(fileName)
+        for url in string.gmatch(data, "[^,]+") do
+            table.insert(Playlist, url)
+        end
+    else
+        writefile(fileName, "")
+    end
 end
 
 local function savePlaylist()
-	writefile(fileName, table.concat(Playlist, ","))
+    if not fileApiAvailable then
+        return
+    end
+    writefile(fileName, table.concat(Playlist, ","))
 end
 
 local function formatTime(sec)
@@ -3030,7 +3036,11 @@ end
 local TimeLabel = extraTab:AddLabel("00:00 / 00:00")
 
 local function loadMP3(url)
-	if url == "" then return end
+    if url == "" then return end
+    if not fileApiAvailable or type(getcustomasset) ~= "function" then
+        warn("[Trayecto] MP3 requiere isfile/readfile/writefile/getcustomasset.")
+        return
+    end
 	tempIndex = tempIndex + 1
 	local tempFile = "GenesisMusic_"..tempIndex..".mp3"
 
@@ -3130,7 +3140,11 @@ extraTab:AddButton("Toggle Loop", function()
 end)
 
 extraTab:AddButton("Add to Playlist", function()
-	if MP3_URL ~= "" then
+    if not fileApiAvailable then
+        warn("[Trayecto] Este executor no tiene soporte de archivos para la playlist.")
+        return
+    end
+    if MP3_URL ~= "" then
 		tempIndex = tempIndex + 1
 		local tempFile = "GenesisMusic_"..tempIndex..".mp3"
 		pcall(function()
@@ -3911,15 +3925,15 @@ Killer:AddSwitch("Auto Whitelist Friends", function(state)
     friendWhitelistActive = state
 
     if state then
-        for _, player in ipairs(Players:GetPlayers()) do
-            if player ~= player and player:IsFriendsWith(player.UserId) then
-                playerWhitelist[player.Name] = true
+        for _, targetPlayer in ipairs(Players:GetPlayers()) do
+            if targetPlayer ~= player and player:IsFriendsWith(targetPlayer.UserId) then
+                playerWhitelist[targetPlayer.Name] = true
             end
         end
 
-        Players.PlayerAdded:Connect(function(player)
-            if friendWhitelistActive and player ~= player and player:IsFriendsWith(player.UserId) then
-                playerWhitelist[player.Name] = true
+        Players.PlayerAdded:Connect(function(targetPlayer)
+            if friendWhitelistActive and targetPlayer ~= player and player:IsFriendsWith(targetPlayer.UserId) then
+                playerWhitelist[targetPlayer.Name] = true
             end
         end)
     else
@@ -3953,10 +3967,6 @@ Killer:AddSwitch("Auto Kill", function(bool)
         while autoKill do
             local character = player.Character or player.CharacterAdded:Wait()
             local rightHand = character:FindFirstChild("RightHand")
-            local leftHand = character:FindFirstChild("LeftHand")
-						local rightHand = character:FindFirstChild("RightHand")
-            local leftHand = character:FindFirstChild("LeftHand")
-						local rightHand = character:FindFirstChild("RightHand")
             local leftHand = character:FindFirstChild("LeftHand")
 
             local punch = player.Backpack:FindFirstChild("Punch")
@@ -4009,23 +4019,23 @@ Killer:AddTextBox("Remove Target", function(name)
     end
 end)
 
-for _, player in ipairs(Players:GetPlayers()) do
-    if player ~= player then
-        targetDropdown:Add(player.Name)
-        targetDropdownItems[player.Name] = true
+for _, targetPlayer in ipairs(Players:GetPlayers()) do
+    if targetPlayer ~= player then
+        targetDropdown:Add(targetPlayer.Name)
+        targetDropdownItems[targetPlayer.Name] = true
     end
 end
 
-Players.PlayerAdded:Connect(function(player)
-    if player ~= player then
-        targetDropdown:Add(player.Name)
-        targetDropdownItems[player.Name] = true
+Players.PlayerAdded:Connect(function(targetPlayer)
+    if targetPlayer ~= player then
+        targetDropdown:Add(targetPlayer.Name)
+        targetDropdownItems[targetPlayer.Name] = true
     end
 end)
 
-Players.PlayerRemoving:Connect(function(player)
-    if targetDropdownItems[player.Name] then
-        targetDropdownItems[player.Name] = nil
+Players.PlayerRemoving:Connect(function(removedPlayer)
+    if targetDropdownItems[removedPlayer.Name] then
+        targetDropdownItems[removedPlayer.Name] = nil
         targetDropdown:Clear()
         for name in pairs(targetDropdownItems) do
             targetDropdown:Add(name)
@@ -4033,7 +4043,7 @@ Players.PlayerRemoving:Connect(function(player)
     end
 
     for i = #targetPlayerNames, 1, -1 do
-        if targetPlayerNames[i] == player.Name then
+        if targetPlayerNames[i] == removedPlayer.Name then
             table.remove(targetPlayerNames, i)
         end
     end
@@ -4092,26 +4102,28 @@ local spyTargetDropdown = Killer:AddDropdown("Select View Target", function(name
     targetPlayerName = name
 end)
 
-for _, player in ipairs(Players:GetPlayers()) do
-    if player ~= player then
-        spyTargetDropdown:Add(player.Name)
+for _, targetPlayer in ipairs(Players:GetPlayers()) do
+    if targetPlayer ~= player then
+        spyTargetDropdown:Add(targetPlayer.Name)
     end
 end
 
-Players.PlayerAdded:Connect(function(player)
-    if player ~= player then
-        spyTargetDropdown:Add(player.Name)
+Players.PlayerAdded:Connect(function(targetPlayer)
+    if targetPlayer ~= player then
+        spyTargetDropdown:Add(targetPlayer.Name)
     end
 end)
 
-Players.PlayerRemoving:Connect(function(player)
-    if player ~= player then
-        spyTargetDropdown:Clear()
-        for _, plr in ipairs(Players:GetPlayers()) do
-            if plr ~= player then
-                spyTargetDropdown:Add(plr.Name)
-            end
+Players.PlayerRemoving:Connect(function(removedPlayer)
+    spyTargetDropdown:Clear()
+    for _, targetPlayer in ipairs(Players:GetPlayers()) do
+        if targetPlayer ~= player then
+            spyTargetDropdown:Add(targetPlayer.Name)
         end
+    end
+    if targetPlayerName == removedPlayer.Name then
+        targetPlayerName = nil
+        spying = false
     end
 end)
 
@@ -4477,27 +4489,27 @@ local followDropdown = Killer:AddDropdown("Seguir Jugador (TP)", function(select
 end)
 
 -- Inicializar lista de jugadores
-for _, player in ipairs(Players:GetPlayers()) do
-    if player ~= player then
-        followDropdown:Add(player.Name)
+for _, targetPlayer in ipairs(Players:GetPlayers()) do
+    if targetPlayer ~= player then
+        followDropdown:Add(targetPlayer.Name)
     end
 end
 
 -- Mantener lista actualizada
-Players.PlayerAdded:Connect(function(player)
-    if player ~= player then
-        followDropdown:Add(player.Name)
+Players.PlayerAdded:Connect(function(targetPlayer)
+    if targetPlayer ~= player then
+        followDropdown:Add(targetPlayer.Name)
     end
 end)
 
-Players.PlayerRemoving:Connect(function(player)
+Players.PlayerRemoving:Connect(function(removedPlayer)
     followDropdown:Clear()
-    for _, plr in ipairs(Players:GetPlayers()) do
-        if plr ~= player then
-            followDropdown:Add(plr.Name)
+    for _, targetPlayer in ipairs(Players:GetPlayers()) do
+        if targetPlayer ~= player then
+            followDropdown:Add(targetPlayer.Name)
         end
     end
-    if followTarget == player.Name then
+    if followTarget == removedPlayer.Name then
         followTarget = nil
         following = false
     end
@@ -4721,7 +4733,7 @@ Killer:AddSwitch("Auto Stomp", function(state)
                     if stomp:FindFirstChild("attackTime") then
                         stomp.attackTime.Value = 0
                     end
-                    player.muscleEvent:FireServer("slam")
+                    player.muscleEvent:FireServer("stomp")
                     stomp:Activate()
                 end
 
@@ -4794,9 +4806,9 @@ Killer:AddSwitch("Aura Kill (Combat)", function(state)
                 end
 
                 -- Buscar vÃ­ctimas dentro del rango
-                for _, player in pairs(Players:GetPlayers()) do
-                    if player ~= player then
-                        local char = player.Character
+                for _, targetPlayer in pairs(Players:GetPlayers()) do
+                    if targetPlayer ~= player then
+                        local char = targetPlayer.Character
                         local root = char and char:FindFirstChild("HumanoidRootPart")
                         local hum = char and char:FindFirstChild("Humanoid")
                         
@@ -5039,5 +5051,3 @@ pcall(function()
         saveTrayectoConfig()
     end)
 end)
-
-
