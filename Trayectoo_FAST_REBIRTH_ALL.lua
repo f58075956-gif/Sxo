@@ -967,39 +967,77 @@ local function tpToRock(rock)
     end
 end
 
--- 👊 AUTO PUNCH
-spawn(function()
-    while task.wait(0) do
-        if getgenv().autoPunch then
-            local remote = player:FindFirstChild("muscleEvent")
+-- 👊 AUTO PUNCH MAX (resilient + adaptive)
+do
+    local punchBusy = false
+    local lastCharacter = nil
 
-            if remote then
-                remote:FireServer("punch","rightHand")
-                remote:FireServer("punch","leftHand")
-				remote:FireServer("punch","rightHand")
-                remote:FireServer("punch","leftHand")
-				remote:FireServer("punch","rightHand")
-                remote:FireServer("punch","leftHand")
-				remote:FireServer("punch","rightHand")
-                remote:FireServer("punch","leftHand")
-				remote:FireServer("punch","rightHand")
-                remote:FireServer("punch","leftHand")
-				remote:FireServer("punch","rightHand")
-                remote:FireServer("punch","leftHand")
-				remote:FireServer("punch","leftHand")
-				remote:FireServer("punch","rightHand")
-                remote:FireServer("punch","leftHand")
-				remote:FireServer("punch","rightHand")
-                remote:FireServer("punch","leftHand")
-				remote:FireServer("punch","rightHand")
-					remote:FireServer("punch","leftHand")
-				remote:FireServer("punch","rightHand")
-                remote:FireServer("punch","leftHand")
-				remote:FireServer("punch","rightHand")
+    local function getMuscleEvent()
+        return player:FindFirstChild("muscleEvent")
+    end
+
+    local function getPunchTool()
+        local char = player.Character
+        if char then
+            local equipped = char:FindFirstChild("Punch")
+            if equipped then return equipped end
+        end
+        local backpack = player:FindFirstChildOfClass("Backpack")
+        return backpack and backpack:FindFirstChild("Punch")
+    end
+
+    local function equipPunch()
+        local char = player.Character
+        local hum = char and char:FindFirstChildOfClass("Humanoid")
+        local backpack = player:FindFirstChildOfClass("Backpack")
+        if not (char and hum and backpack) then return nil end
+
+        local punch = char:FindFirstChild("Punch") or backpack:FindFirstChild("Punch")
+        if punch and punch.Parent ~= char then
+            pcall(function() hum:EquipTool(punch) end)
+        end
+        return char:FindFirstChild("Punch") or punch
+    end
+
+    local function setAttackTime(punch)
+        if punch then
+            local attackTime = punch:FindFirstChild("attackTime")
+            if attackTime and attackTime:IsA("NumberValue") then
+                pcall(function() attackTime.Value = 0 end)
             end
         end
     end
-end)
+
+    task.spawn(function()
+        while true do
+            if getgenv().autoPunch and not punchBusy then
+                punchBusy = true
+
+                local char = player.Character
+                if char ~= lastCharacter then
+                    lastCharacter = char
+                end
+
+                local punch = equipPunch()
+                local remote = getMuscleEvent()
+
+                if punch then
+                    setAttackTime(punch)
+                    pcall(function() punch:Activate() end)
+                end
+
+                if remote then
+                    -- Keep a balanced left/right cadence instead of a huge burst.
+                    pcall(function() remote:FireServer("punch", "rightHand") end)
+                    pcall(function() remote:FireServer("punch", "leftHand") end)
+                end
+
+                punchBusy = false
+            end
+            task.wait()
+        end
+    end)
+end
 
 -- ⚡ FARM ROCK
 local function farmRock(targetDurability)
@@ -1122,25 +1160,17 @@ local function bringRockV3(rock)
     end
 end
 
--- 👊 AUTO PUNCH
+-- 👊 AUTO PUNCH V3 MAX (adaptive)
 spawn(function()
-    while task.wait(0) do
+    while true do
         if getgenv().autoPunchV3 then
             local remote = player:FindFirstChild("muscleEvent")
-
             if remote then
-                remote:FireServer("punch","rightHand")
-                remote:FireServer("punch","leftHand")
-				remote:FireServer("punch","rightHand")
-                remote:FireServer("punch","leftHand")
-				remote:FireServer("punch","rightHand")
-                remote:FireServer("punch","leftHand")
-				remote:FireServer("punch","rightHand")
-                remote:FireServer("punch","leftHand")
-				
-					
+                pcall(function() remote:FireServer("punch","rightHand") end)
+                pcall(function() remote:FireServer("punch","leftHand") end)
             end
         end
+        task.wait()
     end
 end)
 
@@ -5019,7 +5049,7 @@ Killer:AddSwitch("Auto Punch", function(state)
 						punch.attackTime.Value = 0
 					end
 				end
-				task.wait(0.1)
+				task.wait()
 			end
 		end)
 		task.spawn(function()
@@ -5211,39 +5241,11 @@ Killer:AddButton("Tamaño NaN", function()
     ReplicatedStorage:WaitForChild("rEvents"):WaitForChild("changeSpeedSizeRemote"):InvokeServer(unpack(args))
 end)
 -- 📜 Lista de RAWs a ejecutar
-local urls = {
-    "https://raw.githubusercontent.com/SadOz8/Stuffs/refs/heads/main/Crack",
-    "https://raw.githubusercontent.com/SadOz8/Stuffs/refs/heads/main/Crack2",
-    "https://raw.githubusercontent.com/SadOz8/Stuffs/refs/heads/main/Crack3",
-    "https://raw.githubusercontent.com/SadOz8/Stuffs/refs/heads/main/Crack4",
-    "https://raw.githubusercontent.com/SadOz8/Stuffs/refs/heads/main/Crack5",
-    "https://raw.githubusercontent.com/SadOz8/Stuffs/refs/heads/main/Crack6"
-}
-
--- ⚡ Botón que ejecuta todos los scripts remotos
-Killer:AddButton("Pegar Muerto", function()
-    for _, url in ipairs(urls) do
-        spawn(function()
-            local success, response = pcall(function()
-                return game:HttpGet(url)
-            end)
-            if success and response then
-                local loadSuccess, err = pcall(function()
-                    loadstring(response)()
-                end)
-                if not loadSuccess then
-                    warn("[Pegar Muerto] Error ejecutando raw:", url, err)
-                end
-            else
-                warn("[Pegar Muerto] No se pudo cargar:", url)
-            end
-        end)
-    end
+-- Killer remote loaders removed; local Killer features remain.
+Killer:AddButton("Pegar Muerto (remoto desactivado)", function()
+    warn("[Killer] Cargas remotas desactivadas.")
 end)
 
-
--- Sistema de Auto Area Travel
-local autoAreaTravelEnabled = false
 
 Killer:AddSwitch("Auto GODMODE Join Tiny island", function(state)
     autoAreaTravelEnabled = state
@@ -5378,30 +5380,11 @@ Killer:AddSwitch("Auto Stomp", function(state)
     end
 end)
 
-local urls = {
-    "https://raw.githubusercontent.com/xccxk/MAIN/refs/heads/main/1-2-3-ALL-STEPS"
-}
-
--- ⚡ Botón que ejecuta todos los scripts remotos
-Killer:AddSwitch("Pegar Muerto", function()
-    for _, url in ipairs(urls) do
-        spawn(function()
-            local success, response = pcall(function()
-                return game:HttpGet(url)
-            end)
-            if success and response then
-                local loadSuccess, err = pcall(function()
-                    loadstring(response)()
-                end)
-                if not loadSuccess then
-                    warn("[Pegar Muerto] Error ejecutando raw:", url, err)
-                end
-            else
-                warn("[Pegar Muerto] No se pudo cargar:", url)
-            end
-        end)
-    end
+-- Killer remote loader removed; local Killer features remain.
+Killer:AddSwitch("Pegar Muerto (remoto desactivado)", function(state)
+    if state then warn("[Killer] Cargas remotas desactivadas.") end
 end)
+
 Killer:AddTextBox("Tamamaño de Aura", function(text)
     local value = tonumber(text)
     if value then
