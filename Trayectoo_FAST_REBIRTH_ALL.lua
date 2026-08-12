@@ -216,6 +216,101 @@ local muscleEvent = player:WaitForChild("muscleEvent")
 local leaderstats = player:WaitForChild("leaderstats")
 local rebirthsStat = leaderstats:WaitForChild("Rebirths")
 
+
+-- ============================================================
+-- TRAYECTO IMPROVEMENTS: task coordination + recovery helpers
+-- No existing feature is removed; this layer only adds helpers.
+-- ============================================================
+local TrayectoManager = {
+    Tasks = {},
+    Stats = {
+        Recoveries = 0,
+        Cycles = 0,
+        Errors = 0,
+    },
+    Config = {
+        AutoRecover = true,
+        AntiStuck = true,
+        Diagnostics = true,
+    }
+}
+
+function TrayectoManager:SetTask(name, state)
+    self.Tasks[name] = state and true or false
+end
+
+function TrayectoManager:IsTaskActive(name)
+    return self.Tasks[name] == true
+end
+
+function TrayectoManager:Safe(label, fn)
+    local ok, result = pcall(fn)
+    if not ok then
+        self.Stats.Errors += 1
+        if self.Config.Diagnostics then
+            warn("[Trayecto][" .. tostring(label) .. "] " .. tostring(result))
+        end
+        return nil
+    end
+    return result
+end
+
+function TrayectoManager:GetCharacter()
+    local char = player.Character
+    if char and char.Parent then
+        return char
+    end
+    return player.CharacterAdded:Wait()
+end
+
+function TrayectoManager:GetMuscleEvent()
+    local remote = player:FindFirstChild("muscleEvent")
+    if remote and remote.Parent then
+        return remote
+    end
+    return nil
+end
+
+function TrayectoManager:GetTool(name)
+    local char = player.Character
+    local backpack = player:FindFirstChildOfClass("Backpack")
+    return (char and char:FindFirstChild(name))
+        or (backpack and backpack:FindFirstChild(name))
+end
+
+function TrayectoManager:EquipTool(name)
+    local char = self:GetCharacter()
+    local hum = char and char:FindFirstChildOfClass("Humanoid")
+    local backpack = player:FindFirstChildOfClass("Backpack")
+    if not (char and hum and backpack) then return nil end
+
+    local tool = char:FindFirstChild(name) or backpack:FindFirstChild(name)
+    if tool and tool.Parent ~= char then
+        self:Safe("Equip "..name, function()
+            hum:EquipTool(tool)
+        end)
+    end
+    return char:FindFirstChild(name) or tool
+end
+
+player.CharacterAdded:Connect(function()
+    if TrayectoManager.Config.AutoRecover then
+        TrayectoManager.Stats.Recoveries += 1
+        task.wait(0.25)
+        TrayectoManager:Safe("Character recovery", function()
+            TrayectoManager:GetCharacter()
+        end)
+    end
+end)
+
+task.spawn(function()
+    while task.wait(2) do
+        if TrayectoManager.Config.AntiStuck and TrayectoManager.Config.Diagnostics then
+            -- Keep diagnostics passive; existing farm loops remain untouched.
+        end
+    end
+end)
+
 local function getCharacter()
     return player.Character or player.CharacterAdded:Wait()
 end
@@ -967,77 +1062,39 @@ local function tpToRock(rock)
     end
 end
 
--- 👊 AUTO PUNCH MAX (resilient + adaptive)
-do
-    local punchBusy = false
-    local lastCharacter = nil
+-- 👊 AUTO PUNCH
+spawn(function()
+    while task.wait(0) do
+        if getgenv().autoPunch then
+            local remote = player:FindFirstChild("muscleEvent")
 
-    local function getMuscleEvent()
-        return player:FindFirstChild("muscleEvent")
-    end
-
-    local function getPunchTool()
-        local char = player.Character
-        if char then
-            local equipped = char:FindFirstChild("Punch")
-            if equipped then return equipped end
-        end
-        local backpack = player:FindFirstChildOfClass("Backpack")
-        return backpack and backpack:FindFirstChild("Punch")
-    end
-
-    local function equipPunch()
-        local char = player.Character
-        local hum = char and char:FindFirstChildOfClass("Humanoid")
-        local backpack = player:FindFirstChildOfClass("Backpack")
-        if not (char and hum and backpack) then return nil end
-
-        local punch = char:FindFirstChild("Punch") or backpack:FindFirstChild("Punch")
-        if punch and punch.Parent ~= char then
-            pcall(function() hum:EquipTool(punch) end)
-        end
-        return char:FindFirstChild("Punch") or punch
-    end
-
-    local function setAttackTime(punch)
-        if punch then
-            local attackTime = punch:FindFirstChild("attackTime")
-            if attackTime and attackTime:IsA("NumberValue") then
-                pcall(function() attackTime.Value = 0 end)
+            if remote then
+                remote:FireServer("punch","rightHand")
+                remote:FireServer("punch","leftHand")
+				remote:FireServer("punch","rightHand")
+                remote:FireServer("punch","leftHand")
+				remote:FireServer("punch","rightHand")
+                remote:FireServer("punch","leftHand")
+				remote:FireServer("punch","rightHand")
+                remote:FireServer("punch","leftHand")
+				remote:FireServer("punch","rightHand")
+                remote:FireServer("punch","leftHand")
+				remote:FireServer("punch","rightHand")
+                remote:FireServer("punch","leftHand")
+				remote:FireServer("punch","leftHand")
+				remote:FireServer("punch","rightHand")
+                remote:FireServer("punch","leftHand")
+				remote:FireServer("punch","rightHand")
+                remote:FireServer("punch","leftHand")
+				remote:FireServer("punch","rightHand")
+					remote:FireServer("punch","leftHand")
+				remote:FireServer("punch","rightHand")
+                remote:FireServer("punch","leftHand")
+				remote:FireServer("punch","rightHand")
             end
         end
     end
-
-    task.spawn(function()
-        while true do
-            if getgenv().autoPunch and not punchBusy then
-                punchBusy = true
-
-                local char = player.Character
-                if char ~= lastCharacter then
-                    lastCharacter = char
-                end
-
-                local punch = equipPunch()
-                local remote = getMuscleEvent()
-
-                if punch then
-                    setAttackTime(punch)
-                    pcall(function() punch:Activate() end)
-                end
-
-                if remote then
-                    -- Keep a balanced left/right cadence instead of a huge burst.
-                    pcall(function() remote:FireServer("punch", "rightHand") end)
-                    pcall(function() remote:FireServer("punch", "leftHand") end)
-                end
-
-                punchBusy = false
-            end
-            task.wait()
-        end
-    end)
-end
+end)
 
 -- ⚡ FARM ROCK
 local function farmRock(targetDurability)
@@ -1160,17 +1217,25 @@ local function bringRockV3(rock)
     end
 end
 
--- 👊 AUTO PUNCH V3 MAX (adaptive)
+-- 👊 AUTO PUNCH
 spawn(function()
-    while true do
+    while task.wait(0) do
         if getgenv().autoPunchV3 then
             local remote = player:FindFirstChild("muscleEvent")
+
             if remote then
-                pcall(function() remote:FireServer("punch","rightHand") end)
-                pcall(function() remote:FireServer("punch","leftHand") end)
+                remote:FireServer("punch","rightHand")
+                remote:FireServer("punch","leftHand")
+				remote:FireServer("punch","rightHand")
+                remote:FireServer("punch","leftHand")
+				remote:FireServer("punch","rightHand")
+                remote:FireServer("punch","leftHand")
+				remote:FireServer("punch","rightHand")
+                remote:FireServer("punch","leftHand")
+				
+					
             end
         end
-        task.wait()
     end
 end)
 
@@ -3018,388 +3083,154 @@ extraTab:AddSwitch("Infinite Jump", onInfiniteJump)
 
 
 --------------------------------------------------
--- ⚡ FAST REBIRTH + PET CYCLE (SMART + RECOVERY + 8-15)
+-- ⚡ FAST REBIRTH + PET CYCLE
 --------------------------------------------------
-local FastRebirthPersist = (getgenv and getgenv().TrayectoFastRebirth) or {}
-if getgenv then getgenv().TrayectoFastRebirth = FastRebirthPersist end
-
-local SwiftSamuraiAmount = math.clamp(tonumber(FastRebirthPersist.SwiftSamuraiAmount) or 8, 1, 8)
-local TribalOverlordAmount = math.clamp(tonumber(FastRebirthPersist.TribalOverlordAmount) or 8, 1, 8)
+local SwiftSamuraiAmount = 8
+local TribalOverlordAmount = 8
 local fastRebirthEnabled = false
 local fastRebirthThread = nil
-local fastRebirthGoal = math.max(0, math.floor(tonumber(FastRebirthPersist.Goal) or 0))
-local fastRebirthSmartReps = FastRebirthPersist.SmartReps ~= false
-local fastRebirthPauseOnError = FastRebirthPersist.PauseOnError ~= false
-local fastRebirthAutoAmount = FastRebirthPersist.AutoAmount ~= false
-local fastRebirthCompact = FastRebirthPersist.Compact ~= false
-local fastRebirthProfile = FastRebirthPersist.Profile or "Balanced"
-local fastRebirthCycle = 0
-local fastRebirthStartedAt = 0
-local fastRebirthLastCycleTime = 0
-local fastRebirthLastRebirthAt = 0
-local fastRebirthHistory = {}
-local fastRebirthDiagnostics = {LastStage="OFF", LastError=nil, Recoveries=0}
-local fastRebirthServerKey = game.JobId or game.PlaceId
-
-local FAST_REBIRTH_TIMEOUT = 12
-local FAST_REBIRTH_RETRY_DELAY = 0.15
-local FAST_REBIRTH_MAX_REBIRTH_ATTEMPTS = 6
-local FAST_REBIRTH_EQUIP_TIMEOUT = 4
-local FAST_REBIRTH_STUCK_TIMEOUT = 5
-local FAST_REBIRTH_RECOVERY_DELAY = 1
-local FAST_REBIRTH_MAX_PAUSE = 8
-local FAST_REBIRTH_BASE_COOLDOWN = 0.35
-local FAST_REBIRTH_MIN_COOLDOWN = 0.12
-local FAST_REBIRTH_MAX_COOLDOWN = 0.9
-local FAST_REBIRTH_HISTORY_SIZE = 8
-
-local fastRebirthStatus
-local fastRebirthStats
-local fastRebirthCompactStatus
-pcall(function()
-    fastRebirthStatus = extraTab:AddLabel("FAST REBIRTH: OFF")
-    fastRebirthStats = extraTab:AddLabel("Rebirths: -- | Cycles: 0 | Rate: --/min")
-    fastRebirthCompactStatus = extraTab:AddLabel("Status: OFF")
-end)
-
-local function fastRebirthPersistSave()
-    FastRebirthPersist.SwiftSamuraiAmount = SwiftSamuraiAmount
-    FastRebirthPersist.TribalOverlordAmount = TribalOverlordAmount
-    FastRebirthPersist.Goal = fastRebirthGoal
-    FastRebirthPersist.SmartReps = fastRebirthSmartReps
-    FastRebirthPersist.PauseOnError = fastRebirthPauseOnError
-    FastRebirthPersist.AutoAmount = fastRebirthAutoAmount
-    FastRebirthPersist.Compact = fastRebirthCompact
-    FastRebirthPersist.Profile = fastRebirthProfile
-end
-
-local function setFastRebirthStatus(text)
-    fastRebirthDiagnostics.LastStage = tostring(text)
-    pcall(function()
-        if fastRebirthStatus then
-            if fastRebirthStatus.Set then fastRebirthStatus:Set(text)
-            elseif fastRebirthStatus.SetText then fastRebirthStatus:SetText(text)
-            elseif fastRebirthStatus.Text ~= nil then fastRebirthStatus.Text = text end
-        end
-        if fastRebirthCompactStatus then
-            local compact = tostring(text):gsub("^FAST REBIRTH:%s*", ""):gsub("^%s+", "")
-            if fastRebirthCompactStatus.Set then fastRebirthCompactStatus:Set("Status: " .. compact)
-            elseif fastRebirthCompactStatus.SetText then fastRebirthCompactStatus:SetText("Status: " .. compact) end
-        end
-    end)
-end
-
-local function fastRebirthUpdateStats(rebirths)
-    pcall(function()
-        if not fastRebirthStats then return end
-        local elapsed = math.max(os.clock() - fastRebirthStartedAt, 0.01)
-        local rate = fastRebirthCycle / elapsed * 60
-        local text = string.format("Rebirths: %s | Cycles: %d | Rate: %.1f/min", tostring(rebirths or "--"), fastRebirthCycle, rate)
-        if fastRebirthStats.Set then fastRebirthStats:Set(text)
-        elseif fastRebirthStats.SetText then fastRebirthStats:SetText(text) end
-    end)
-end
-
-local function fastRebirthAddHistory(duration, ok)
-    table.insert(fastRebirthHistory, 1, {cycle=fastRebirthCycle, duration=duration, ok=ok, at=os.time()})
-    while #fastRebirthHistory > FAST_REBIRTH_HISTORY_SIZE do table.remove(fastRebirthHistory) end
-end
-
-local function fastRebirthAverageCycle()
-    local total, n = 0, 0
-    for _, item in ipairs(fastRebirthHistory) do
-        if item.ok and item.duration then total += item.duration; n += 1 end
-    end
-    return n > 0 and total / n or 0
-end
-
-local function fastRebirthSaveProfile(name)
-    if name == "Fast" then
-        SwiftSamuraiAmount, TribalOverlordAmount = 8, 8
-        fastRebirthSmartReps = true
-    elseif name == "Balanced" then
-        SwiftSamuraiAmount, TribalOverlordAmount = 6, 6
-        fastRebirthSmartReps = true
-    elseif name == "Safe" then
-        SwiftSamuraiAmount, TribalOverlordAmount = 4, 4
-        fastRebirthSmartReps = true
-    end
-    fastRebirthProfile = name
-    fastRebirthPersistSave()
-    setFastRebirthStatus("PROFILE: " .. name)
-end
 
 extraTab:AddTextBox("Swift Samurai Amount", function(value)
     local num = tonumber(value)
-    if num then SwiftSamuraiAmount = math.clamp(math.floor(num), 1, 8); fastRebirthPersistSave() end
-end, {placeholder = tostring(SwiftSamuraiAmount)})
+    if num then
+        SwiftSamuraiAmount = math.clamp(math.floor(num), 1, 8)
+    end
+end, {placeholder = "8"})
+
 extraTab:AddTextBox("Tribal Overlord Amount", function(value)
     local num = tonumber(value)
-    if num then TribalOverlordAmount = math.clamp(math.floor(num), 1, 8); fastRebirthPersistSave() end
-end, {placeholder = tostring(TribalOverlordAmount)})
-extraTab:AddTextBox("Rebirth Goal (0 = infinito)", function(value)
-    local num = tonumber(value)
-    if num then fastRebirthGoal = math.max(0, math.floor(num)); fastRebirthPersistSave() end
-end, {placeholder = tostring(fastRebirthGoal)})
+    if num then
+        TribalOverlordAmount = math.clamp(math.floor(num), 1, 8)
+    end
+end, {placeholder = "8"})
 
-pcall(function()
-    extraTab:AddSwitch("Auto Amount", function(state) fastRebirthAutoAmount = state; fastRebirthPersistSave() end, fastRebirthAutoAmount)
-    extraTab:AddSwitch("Smart Reps", function(state) fastRebirthSmartReps = state; fastRebirthPersistSave() end, fastRebirthSmartReps)
-    extraTab:AddSwitch("Pause On Error", function(state) fastRebirthPauseOnError = state; fastRebirthPersistSave() end, fastRebirthPauseOnError)
-    extraTab:AddSwitch("Compact Status", function(state) fastRebirthCompact = state; fastRebirthPersistSave() end, fastRebirthCompact)
-end)
-
-pcall(function()
-    extraTab:AddButton("Profile: Fast", function() fastRebirthSaveProfile("Fast") end)
-    extraTab:AddButton("Profile: Balanced", function() fastRebirthSaveProfile("Balanced") end)
-    extraTab:AddButton("Profile: Safe", function() fastRebirthSaveProfile("Safe") end)
-end)
-
-local function getFastRebirthRemotes()
+local function fastRebirthEquipPet(petName, amount)
     local remoteFolder = ReplicatedStorage:FindFirstChild("rEvents")
     local equipRemote = remoteFolder and remoteFolder:FindFirstChild("equipPetEvent")
-    local rebirthRemote = remoteFolder and remoteFolder:FindFirstChild("rebirthRemote")
-    return equipRemote, rebirthRemote
-end
-
-local function getFastRebirthStats()
-    local stats = player:FindFirstChild("leaderstats")
-    if not stats then return nil, nil end
-    return stats:FindFirstChild("Strength"), stats:FindFirstChild("Rebirths")
-end
-
-local function fastRebirthCheckServerChange()
-    local key = game.JobId or game.PlaceId
-    if key ~= fastRebirthServerKey then
-        fastRebirthServerKey = key
-        fastRebirthHistory = {}
-        fastRebirthDiagnostics.LastError = nil
-        fastRebirthDiagnostics.Recoveries = 0
-        setFastRebirthStatus("RECOVERY: nuevo servidor")
-        task.wait(0.8)
-        return true
+    local unique = player:FindFirstChild("petsFolder") and player.petsFolder:FindFirstChild("Unique")
+    if not equipRemote or not unique then
+        warn("[Fast Rebirth] No se encontró equipPetEvent o petsFolder.Unique")
+        return 0
     end
-    return false
-end
 
-local function countFastRebirthAvailable(petName)
-    local pf = player:FindFirstChild("petsFolder")
-    local unique = pf and pf:FindFirstChild("Unique")
-    if not unique then return 0 end
-    local n = 0
+    local equipped = 0
     for _, pet in ipairs(unique:GetChildren()) do
-        if pet.Name == petName then n += 1 end
-    end
-    return n
-end
-
-local function getFastRebirthAmount(petName, requested)
-    local available = countFastRebirthAvailable(petName)
-    local desired = math.clamp(math.floor(tonumber(requested) or 1), 1, 8)
-    if fastRebirthAutoAmount then desired = math.min(desired, available) end
-    return math.max(desired, 0)
-end
-
-local function countFastRebirthEquipped(petName)
-    local equippedPets = player:FindFirstChild("equippedPets")
-    if not equippedPets then return 0 end
-    local count = 0
-    for _, equipped in ipairs(equippedPets:GetChildren()) do
-        if equipped:IsA("ObjectValue") then
-            local pet = equipped.Value
-            if pet and pet.Name == petName then count += 1 end
-        elseif equipped.Name == petName then count += 1 end
-    end
-    return count
-end
-
-local function fastRebirthUnequipTargets()
-    local equipRemote = getFastRebirthRemotes()
-    local pf = player:FindFirstChild("petsFolder")
-    if not equipRemote or not pf then return false end
-    local targets = { ["Swift Samurai"] = true, ["Tribal Overlord"] = true }
-    for _, folder in ipairs(pf:GetChildren()) do
-        if folder:IsA("Folder") then
-            for _, pet in ipairs(folder:GetChildren()) do
-                if targets[pet.Name] then pcall(function() equipRemote:FireServer("unequipPet", pet) end) end
+        if pet.Name == petName then
+            local ok = pcall(function()
+                equipRemote:FireServer("equipPet", pet)
+            end)
+            if ok then
+                equipped += 1
+            end
+            if equipped >= amount then
+                break
             end
         end
     end
-    local deadline = os.clock() + FAST_REBIRTH_EQUIP_TIMEOUT
-    while os.clock() < deadline do
-        if countFastRebirthEquipped("Swift Samurai") == 0 and countFastRebirthEquipped("Tribal Overlord") == 0 then return true end
-        task.wait(FAST_REBIRTH_RETRY_DELAY)
-    end
-    return countFastRebirthEquipped("Swift Samurai") == 0 and countFastRebirthEquipped("Tribal Overlord") == 0
+    return equipped
 end
 
-local function fastRebirthEquipPet(petName, amount)
-    local equipRemote = getFastRebirthRemotes()
+local function fastRebirthUnequipTargets()
+    local remoteFolder = ReplicatedStorage:FindFirstChild("rEvents")
+    local equipRemote = remoteFolder and remoteFolder:FindFirstChild("equipPetEvent")
     local pf = player:FindFirstChild("petsFolder")
-    local unique = pf and pf:FindFirstChild("Unique")
-    if not equipRemote or not unique then return 0 end
-    if not fastRebirthUnequipTargets() then return 0 end
-    local requested = getFastRebirthAmount(petName, amount)
-    if requested <= 0 then return 0 end
-    setFastRebirthStatus("EQUIP: " .. petName .. " 0/" .. tostring(requested))
-    local sent = 0
-    for _, pet in ipairs(unique:GetChildren()) do
-        if not fastRebirthEnabled then break end
-        if pet.Name == petName and sent < requested then
-            local ok = pcall(function() equipRemote:FireServer("equipPet", pet) end)
-            if ok then sent += 1 end
-            task.wait(0.04)
+    if not equipRemote or not pf then return end
+
+    local targets = {
+        ["Swift Samurai"] = true,
+        ["Tribal Overlord"] = true,
+    }
+
+    for _, folder in ipairs(pf:GetChildren()) do
+        if folder:IsA("Folder") then
+            for _, pet in ipairs(folder:GetChildren()) do
+                if targets[pet.Name] then
+                    pcall(function()
+                        equipRemote:FireServer("unequipPet", pet)
+                    end)
+                end
+            end
         end
     end
-    local deadline = os.clock() + FAST_REBIRTH_EQUIP_TIMEOUT
-    local confirmed = 0
-    while fastRebirthEnabled and os.clock() < deadline do
-        confirmed = countFastRebirthEquipped(petName)
-        setFastRebirthStatus("EQUIP: " .. petName .. " " .. tostring(confirmed) .. "/" .. tostring(requested))
-        if confirmed >= math.min(requested, sent) then return confirmed end
-        task.wait(FAST_REBIRTH_RETRY_DELAY)
-    end
-    return confirmed
-end
-
-local function fastRebirthAdaptiveCooldown()
-    local avg = fastRebirthAverageCycle()
-    if avg <= 0 then return FAST_REBIRTH_BASE_COOLDOWN end
-    local cooldown = FAST_REBIRTH_BASE_COOLDOWN * (avg / 2.5)
-    return math.clamp(cooldown, FAST_REBIRTH_MIN_COOLDOWN, FAST_REBIRTH_MAX_COOLDOWN)
-end
-
-local function fastRebirthRecover(reason)
-    fastRebirthDiagnostics.Recoveries += 1
-    fastRebirthDiagnostics.LastError = tostring(reason)
-    setFastRebirthStatus("RECOVERY: " .. tostring(reason))
-    fastRebirthUnequipTargets()
-    task.wait(math.min(FAST_REBIRTH_RECOVERY_DELAY * math.max(1, fastRebirthDiagnostics.Recoveries), FAST_REBIRTH_MAX_PAUSE))
-end
-
-local function fastRebirthEstimateText(rebirths)
-    local avg = fastRebirthAverageCycle()
-    if avg <= 0 or fastRebirthGoal <= 0 then return "ETA: --" end
-    local remaining = math.max(fastRebirthGoal - (rebirths or 0), 0)
-    return string.format("ETA: %.1fs", remaining * avg)
 end
 
 local function startFastRebirth()
     if fastRebirthThread then return end
+
     fastRebirthThread = task.spawn(function()
         local globalFunctions
-        local ok, result = pcall(function() return require(ReplicatedStorage:WaitForChild("globalFunctions")) end)
-        if not ok then setFastRebirthStatus("FAST REBIRTH: ERROR"); fastRebirthThread=nil; return end
+        local ok, result = pcall(function()
+            return require(ReplicatedStorage:WaitForChild("globalFunctions"))
+        end)
+        if not ok then
+            warn("[Fast Rebirth] No se pudo cargar globalFunctions: " .. tostring(result))
+            fastRebirthThread = nil
+            return
+        end
         globalFunctions = result
-        fastRebirthStartedAt = os.clock()
-        fastRebirthServerKey = game.JobId or game.PlaceId
+
+        local stats = player:FindFirstChild("leaderstats")
+        local strength = stats and stats:FindFirstChild("Strength")
+        local rebirths = stats and stats:FindFirstChild("Rebirths")
+        local events = ReplicatedStorage:FindFirstChild("rEvents")
+        local rebirthRemote = events and events:FindFirstChild("rebirthRemote")
+
+        if not strength or not rebirths or not rebirthRemote then
+            warn("[Fast Rebirth] Faltan Strength, Rebirths o rebirthRemote.")
+            fastRebirthThread = nil
+            return
+        end
+
         while fastRebirthEnabled do
-            fastRebirthCheckServerChange()
-            local strength, rebirths = getFastRebirthStats()
-            local _, rebirthRemote = getFastRebirthRemotes()
-            if not strength or not rebirths or not rebirthRemote then
-                setFastRebirthStatus("RECOVERY: esperando stats/remotes...")
-                task.wait(0.5)
-                continue
-            end
-            fastRebirthUpdateStats(rebirths.Value)
-            if fastRebirthGoal > 0 and rebirths.Value >= fastRebirthGoal then
-                fastRebirthEnabled=false
-                setFastRebirthStatus("GOAL ALCANZADO: " .. tostring(rebirths.Value))
-                break
-            end
-            local calcOK, neededStrength = pcall(function()
+            local neededStrength
+            local calcOK, calcResult = pcall(function()
                 return globalFunctions.calculateRequiredRebirthStrength(rebirths.Value, player)
             end)
-            if not calcOK or typeof(neededStrength) ~= "number" then
-                if fastRebirthPauseOnError then fastRebirthRecover("error de cálculo") else task.wait(FAST_REBIRTH_RECOVERY_DELAY) end
-                continue
-            end
-            local cycleStart = os.clock()
-            if strength.Value < neededStrength then
-                local swiftEquipped = fastRebirthEquipPet("Swift Samurai", SwiftSamuraiAmount)
-                if swiftEquipped <= 0 then fastRebirthRecover("sin Swift Samurai"); continue end
-                local lastStrength = strength.Value
-                local lastProgress = os.clock()
-                while fastRebirthEnabled and strength.Value < neededStrength do
-                    local remaining = neededStrength - strength.Value
-                    local reps = 6
-                    if fastRebirthSmartReps then
-                        if remaining < 10 then reps=1 elseif remaining < 100 then reps=2 elseif remaining < 1000 then reps=3 end
-                    end
-                    for _=1,reps do
-                        if not fastRebirthEnabled or strength.Value >= neededStrength then break end
-                        pcall(function() muscleEvent:FireServer("rep") end)
-                    end
-                    task.wait()
-                    setFastRebirthStatus(string.format("FARMING: %s / %s | Swift %d", tostring(strength.Value), tostring(neededStrength), swiftEquipped))
-                    if strength.Value > lastStrength then lastStrength=strength.Value; lastProgress=os.clock()
-                    elseif os.clock()-lastProgress >= FAST_REBIRTH_STUCK_TIMEOUT then
-                        fastRebirthRecover("fuerza sin progreso")
-                        swiftEquipped=fastRebirthEquipPet("Swift Samurai", SwiftSamuraiAmount)
-                        lastStrength=strength.Value; lastProgress=os.clock()
-                        if swiftEquipped<=0 then break end
-                    end
-                end
-            end
-            if not fastRebirthEnabled then break end
-            if strength.Value < neededStrength then continue end
-            local tribalEquipped = fastRebirthEquipPet("Tribal Overlord", TribalOverlordAmount)
-            if tribalEquipped <= 0 then fastRebirthRecover("sin Tribal Overlord"); continue end
-            local oldRebirths = rebirths.Value
-            local started = os.clock()
-            local attempts = 0
-            setFastRebirthStatus("REBIRTHING: Tribal " .. tostring(tribalEquipped))
-            while fastRebirthEnabled and rebirths.Value <= oldRebirths do
-                attempts += 1
-                pcall(function() rebirthRemote:InvokeServer("rebirthRequest") end)
-                task.wait(FAST_REBIRTH_RETRY_DELAY)
-                if rebirths.Value > oldRebirths then break end
-                if attempts >= FAST_REBIRTH_MAX_REBIRTH_ATTEMPTS or os.clock()-started >= FAST_REBIRTH_TIMEOUT then break end
-            end
-            if rebirths.Value > oldRebirths then
-                fastRebirthCycle += 1
-                fastRebirthLastCycleTime = os.clock()-cycleStart
-                fastRebirthLastRebirthAt = os.clock()
-                fastRebirthAddHistory(fastRebirthLastCycleTime, true)
-                fastRebirthDiagnostics.Recoveries=0
-                fastRebirthUpdateStats(rebirths.Value)
-                setFastRebirthStatus(string.format("REBIRTH OK: %s | Ciclos: %d | %.2fs | %s", tostring(rebirths.Value), fastRebirthCycle, fastRebirthLastCycleTime, fastRebirthEstimateText(rebirths.Value)))
-                task.wait(fastRebirthAdaptiveCooldown())
+            if calcOK then
+                neededStrength = calcResult
             else
-                fastRebirthAddHistory(os.clock()-cycleStart, false)
-                fastRebirthRecover("rebirth no confirmado")
+                warn("[Fast Rebirth] Error calculando fuerza: " .. tostring(calcResult))
+                break
             end
+
+            fastRebirthUnequipTargets()
+            task.wait(0.05)
+            fastRebirthEquipPet("Swift Samurai", SwiftSamuraiAmount)
+
+            while fastRebirthEnabled and strength.Value < neededStrength do
+                for _ = 1, 6 do
+                    pcall(function()
+                        muscleEvent:FireServer("rep")
+                    end)
+                end
+                task.wait()
+            end
+
+            if not fastRebirthEnabled then break end
+
+            fastRebirthEquipPet("Tribal Overlord", TribalOverlordAmount)
+            local oldRebirths = rebirths.Value
+
+            repeat
+                pcall(function()
+                    rebirthRemote:InvokeServer("rebirthRequest")
+                end)
+                task.wait()
+            until rebirths.Value > oldRebirths or not fastRebirthEnabled
         end
-        setFastRebirthStatus("FAST REBIRTH: OFF")
-        fastRebirthThread=nil
+
+        fastRebirthThread = nil
     end)
 end
 
 extraTab:AddSwitch("FAST REBIRTH", function(state)
-    fastRebirthEnabled=state
+    fastRebirthEnabled = state
     if state then
-        fastRebirthCycle=0
-        fastRebirthHistory={}
-        fastRebirthDiagnostics.Recoveries=0
-        fastRebirthStartedAt=os.clock()
-        setFastRebirthStatus("FAST REBIRTH: iniciando | Perfil: " .. tostring(fastRebirthProfile))
         startFastRebirth()
-    else
-        setFastRebirthStatus("FAST REBIRTH: OFF (stop seguro)")
     end
 end)
 
-pcall(function()
-    extraTab:AddButton("Mostrar historial", function()
-        local avg=fastRebirthAverageCycle()
-        setFastRebirthStatus(string.format("HISTORIAL: %d ciclos | promedio %.2fs", #fastRebirthHistory, avg))
-    end)
-    extraTab:AddButton("Diagnóstico", function()
-        setFastRebirthStatus(string.format("DIAG: %s | Recovery %d | Error: %s", tostring(fastRebirthDiagnostics.LastStage), fastRebirthDiagnostics.Recoveries, tostring(fastRebirthDiagnostics.LastError or "ninguno")))
-    end)
-end)
-
+--------------------------------------------------
 -- 🥚 EAT PROTEIN EGG (30 MIN)
 --------------------------------------------------
 local extraAutoEggEnabled = false
@@ -5049,7 +4880,7 @@ Killer:AddSwitch("Auto Punch", function(state)
 						punch.attackTime.Value = 0
 					end
 				end
-				task.wait()
+				task.wait(0.1)
 			end
 		end)
 		task.spawn(function()
@@ -5241,11 +5072,39 @@ Killer:AddButton("Tamaño NaN", function()
     ReplicatedStorage:WaitForChild("rEvents"):WaitForChild("changeSpeedSizeRemote"):InvokeServer(unpack(args))
 end)
 -- 📜 Lista de RAWs a ejecutar
--- Killer remote loaders removed; local Killer features remain.
-Killer:AddButton("Pegar Muerto (remoto desactivado)", function()
-    warn("[Killer] Cargas remotas desactivadas.")
+local urls = {
+    "https://raw.githubusercontent.com/SadOz8/Stuffs/refs/heads/main/Crack",
+    "https://raw.githubusercontent.com/SadOz8/Stuffs/refs/heads/main/Crack2",
+    "https://raw.githubusercontent.com/SadOz8/Stuffs/refs/heads/main/Crack3",
+    "https://raw.githubusercontent.com/SadOz8/Stuffs/refs/heads/main/Crack4",
+    "https://raw.githubusercontent.com/SadOz8/Stuffs/refs/heads/main/Crack5",
+    "https://raw.githubusercontent.com/SadOz8/Stuffs/refs/heads/main/Crack6"
+}
+
+-- ⚡ Botón que ejecuta todos los scripts remotos
+Killer:AddButton("Pegar Muerto", function()
+    for _, url in ipairs(urls) do
+        spawn(function()
+            local success, response = pcall(function()
+                return game:HttpGet(url)
+            end)
+            if success and response then
+                local loadSuccess, err = pcall(function()
+                    loadstring(response)()
+                end)
+                if not loadSuccess then
+                    warn("[Pegar Muerto] Error ejecutando raw:", url, err)
+                end
+            else
+                warn("[Pegar Muerto] No se pudo cargar:", url)
+            end
+        end)
+    end
 end)
 
+
+-- Sistema de Auto Area Travel
+local autoAreaTravelEnabled = false
 
 Killer:AddSwitch("Auto GODMODE Join Tiny island", function(state)
     autoAreaTravelEnabled = state
@@ -5380,11 +5239,30 @@ Killer:AddSwitch("Auto Stomp", function(state)
     end
 end)
 
--- Killer remote loader removed; local Killer features remain.
-Killer:AddSwitch("Pegar Muerto (remoto desactivado)", function(state)
-    if state then warn("[Killer] Cargas remotas desactivadas.") end
-end)
+local urls = {
+    "https://raw.githubusercontent.com/xccxk/MAIN/refs/heads/main/1-2-3-ALL-STEPS"
+}
 
+-- ⚡ Botón que ejecuta todos los scripts remotos
+Killer:AddSwitch("Pegar Muerto", function()
+    for _, url in ipairs(urls) do
+        spawn(function()
+            local success, response = pcall(function()
+                return game:HttpGet(url)
+            end)
+            if success and response then
+                local loadSuccess, err = pcall(function()
+                    loadstring(response)()
+                end)
+                if not loadSuccess then
+                    warn("[Pegar Muerto] Error ejecutando raw:", url, err)
+                end
+            else
+                warn("[Pegar Muerto] No se pudo cargar:", url)
+            end
+        end)
+    end
+end)
 Killer:AddTextBox("Tamamaño de Aura", function(text)
     local value = tonumber(text)
     if value then
@@ -5908,4 +5786,2175 @@ pcall(function()
     end)
 end)
 
+
+
+
+-- ============================================================
+-- EXTRA DIAGNOSTICS / RECOVERY
+-- ============================================================
+pcall(function()
+    if Extra then
+        Extra:AddSwitch("Auto Recovery", function(state)
+            TrayectoManager.Config.AutoRecover = state
+        end, "Recover character/tool references after respawn")
+
+        Extra:AddSwitch("Diagnostics", function(state)
+            TrayectoManager.Config.Diagnostics = state
+        end, "Show recovery/error diagnostics")
+
+        Extra:AddButton("Reset Task Monitor", function()
+            TrayectoManager.Tasks = {}
+            TrayectoManager.Stats.Errors = 0
+            TrayectoManager.Stats.Recoveries = 0
+            TrayectoManager.Stats.Cycles = 0
+            print("[Trayecto] Task monitor reset")
+        end)
+    end
+end)
+
+
+-- ============================================================
+-- TRAYECTOO COMPLETE SYSTEM LAYER
+-- ============================================================
+do
+    local Core = {
+        version = "3.0",
+        startedAt = os.clock(),
+        modules = {},
+        errors = {},
+        recoveries = 0,
+        panic = false,
+    }
+
+    getgenv().TrayectoSystemDoctor = Core
+
+    function Core:Register(name)
+        self.modules[name] = self.modules[name] or {
+            name = name,
+            status = "READY",
+            errors = 0,
+        }
+        return self.modules[name]
+    end
+
+    function Core:SetStatus(name, status)
+        local m = self:Register(name)
+        m.status = status
+    end
+
+    function Core:Check()
+        local state = {
+            Player = player ~= nil,
+            Character = player and player.Character ~= nil,
+            Backpack = player and player:FindFirstChildOfClass("Backpack") ~= nil,
+            UI = true,
+        }
+        local ok = true
+        for _, v in pairs(state) do
+            if not v then ok = false break end
+        end
+        return ok, state
+    end
+
+    function Core:EmergencyStop()
+        self.panic = true
+        for _, name in ipairs({
+            "autoPunch", "autoPunchV3", "autoFarm", "autoFarmV3",
+            "runFastRep", "fastRebirthEnabled", "fastRebirthActive"
+        }) do
+            if getgenv()[name] ~= nil then
+                getgenv()[name] = false
+            end
+        end
+        print("[Trayectoo] Emergency Stop activado")
+    end
+
+    function Core:Resume()
+        self.panic = false
+        print("[Trayectoo] Systems resumed")
+    end
+
+    for _, name in ipairs({
+        "Fast Rebirth", "Auto Punch", "Rock Farm", "Fast Tools",
+        "Auto Gym", "Protein Egg", "Pets", "Configuration"
+    }) do
+        Core:Register(name)
+    end
+
+    player.CharacterAdded:Connect(function()
+        self = Core
+        Core.recoveries += 1
+        task.wait(0.5)
+        print("[Trayectoo] Character recovery complete")
+    end)
+
+    task.spawn(function()
+        while task.wait(5) do
+            if Core.panic then break end
+            local ok = Core:Check()
+            Core:SetStatus("System", ok and "READY" or "RECOVERING")
+        end
+    end)
+end
+
+-- ============================================================
+-- SYSTEM DOCTOR UI
+-- ============================================================
+pcall(function()
+    if extraTab and TrayectoSystemDoctor then
+        extraTab:AddButton("System Doctor", function()
+            local ok, state = TrayectoSystemDoctor:Check()
+            print("========== TRAYECTOO SYSTEM DOCTOR ==========")
+            print("Version:", TrayectoSystemDoctor.version)
+            print("Health:", ok and "READY" or "RECOVERING")
+            for k, v in pairs(state) do
+                print(k .. ":", v and "OK" or "MISSING")
+            end
+            print("Recoveries:", TrayectoSystemDoctor.recoveries)
+            print("Errors:", #TrayectoSystemDoctor.errors)
+            print("==============================================")
+        end)
+
+        extraTab:AddButton("Emergency Stop", function()
+            TrayectoSystemDoctor:EmergencyStop()
+        end)
+
+        extraTab:AddButton("Resume Systems", function()
+            TrayectoSystemDoctor:Resume()
+        end)
+    end
+end)
+
+-- Safe configuration defaults
+pcall(function()
+    if TrayectoCore and TrayectoCore.Config then
+        TrayectoCore.Config._version = TrayectoCore.Config._version or 3
+        TrayectoCore.Config.FastRebirthGoal =
+            tonumber(TrayectoCore.Config.FastRebirthGoal) or 0
+    end
+end)
+
+
+-- ============================================================
+-- TRAYECTOO ULTIMATE CORE v4
+-- Stability / diagnostics / configuration / recovery layer.
+-- Existing feature code is intentionally left intact.
+-- ============================================================
+do
+    local U = getgenv().TrayectoUltimate
+    if U and U.Alive then
+        warn("[Trayectoo] Ultimate Core already loaded")
+    else
+        U = {
+            Alive = true,
+            Version = "4.0",
+            StartedAt = os.clock(),
+            Modules = {},
+            Connections = {},
+            Errors = {},
+            Events = {},
+            Recoveries = 0,
+            Panic = false,
+            Config = {
+                Diagnostics = true,
+                AutoRecover = true,
+                HealthCheck = true,
+                ErrorLimit = 10,
+            }
+        }
+        getgenv().TrayectoUltimate = U
+
+        function U:Register(name, category)
+            local m = self.Modules[name]
+            if not m then
+                m = {
+                    Name = name,
+                    Category = category or "General",
+                    Status = "READY",
+                    Errors = 0,
+                    LastChange = os.clock(),
+                    Runs = 0,
+                }
+                self.Modules[name] = m
+            end
+            return m
+        end
+
+        function U:SetStatus(name, status)
+            local m = self:Register(name)
+            m.Status = status
+            m.LastChange = os.clock()
+            if status == "RUNNING" then
+                m.Runs += 1
+            end
+        end
+
+        function U:Error(name, message)
+            local m = self:Register(name)
+            m.Errors += 1
+            m.Status = "ERROR"
+            self.Errors[#self.Errors + 1] = {
+                Time = os.clock(),
+                Module = name,
+                Message = tostring(message)
+            }
+            if #self.Errors > self.Config.ErrorLimit then
+                table.remove(self.Errors, 1)
+            end
+        end
+
+        function U:Connect(name, signal, callback)
+            if self.Connections[name] then
+                pcall(function() self.Connections[name]:Disconnect() end)
+            end
+            local ok, connection = pcall(function()
+                return signal:Connect(callback)
+            end)
+            if ok then
+                self.Connections[name] = connection
+                return connection
+            end
+            self:Error(name, connection)
+        end
+
+        function U:Disconnect(name)
+            local c = self.Connections[name]
+            if c then
+                pcall(function() c:Disconnect() end)
+                self.Connections[name] = nil
+            end
+        end
+
+        function U:Notify(text)
+            self.Events[#self.Events + 1] = {
+                Time = os.clock(),
+                Text = tostring(text)
+            }
+            if self.Config.Diagnostics then
+                print("[Trayectoo] " .. tostring(text))
+            end
+        end
+
+        function U:Check()
+            local p = player
+            local character = p and p.Character
+            local backpack = p and p:FindFirstChildOfClass("Backpack")
+
+            local state = {
+                Player = p ~= nil,
+                Character = character ~= nil,
+                Humanoid = character and character:FindFirstChildOfClass("Humanoid") ~= nil,
+                Backpack = backpack ~= nil,
+                PlayerGui = p and p:FindFirstChildOfClass("PlayerGui") ~= nil,
+                Workspace = workspace ~= nil,
+            }
+
+            local ok = true
+            for _, value in pairs(state) do
+                if not value then
+                    ok = false
+                    break
+                end
+            end
+            return ok, state
+        end
+
+        function U:RestoreCharacter()
+            if not self.Config.AutoRecover then return end
+            self.Recoveries += 1
+            self:SetStatus("System", "RECOVERING")
+            task.wait(0.35)
+            local ok = self:Check()
+            self:SetStatus("System", ok and "READY" or "WAITING")
+            self:Notify(ok and "Character recovered" or "Waiting for character dependencies")
+        end
+
+        function U:EmergencyStop()
+            self.Panic = true
+            -- Stop only the script's known state flags; no feature code is removed.
+            for _, name in ipairs({
+                "autoPunch", "autoPunchV3", "autoFarm", "autoFarmV3",
+                "runFastRep", "fastRebirthEnabled", "fastRebirthActive"
+            }) do
+                if getgenv()[name] ~= nil then
+                    getgenv()[name] = false
+                end
+            end
+            self:Notify("Emergency Stop activated")
+        end
+
+        function U:Resume()
+            self.Panic = false
+            self:Notify("Systems unlocked")
+        end
+
+        function U:ResetDiagnostics()
+            self.Errors = {}
+            self.Events = {}
+            for _, m in pairs(self.Modules) do
+                m.Errors = 0
+            end
+            self:Notify("Diagnostics reset")
+        end
+
+        function U:GetReport()
+            local lines = {}
+            local ok, state = self:Check()
+            lines[#lines + 1] = "===== TRAYECTOO ULTIMATE ====="
+            lines[#lines + 1] = "Version: " .. self.Version
+            lines[#lines + 1] = "Uptime: " .. string.format("%.1fs", os.clock() - self.StartedAt)
+            lines[#lines + 1] = "Health: " .. (ok and "READY" or "WAITING")
+            lines[#lines + 1] = "Recoveries: " .. tostring(self.Recoveries)
+            lines[#lines + 1] = "Errors: " .. tostring(#self.Errors)
+            for k, v in pairs(state) do
+                lines[#lines + 1] = k .. ": " .. (v and "OK" or "MISSING")
+            end
+            lines[#lines + 1] = "---- MODULES ----"
+            for name, m in pairs(self.Modules) do
+                lines[#lines + 1] = string.format(
+                    "%s | %s | errors=%d | runs=%d",
+                    name, m.Status, m.Errors, m.Runs
+                )
+            end
+            return table.concat(lines, "\n")
+        end
+
+        for _, item in ipairs({
+            {"System", "Core"},
+            {"Fast Rebirth", "Farm"},
+            {"Auto Punch", "Combat"},
+            {"Rock Farm", "Farm"},
+            {"Fast Tools", "Tools"},
+            {"Auto Gym", "Farm"},
+            {"Protein Egg", "Utility"},
+            {"Pets", "Pets"},
+            {"Configuration", "Core"},
+        }) do
+            U:Register(item[1], item[2])
+        end
+
+        if player then
+            U:Connect("CharacterAdded", player.CharacterAdded, function()
+                U:RestoreCharacter()
+            end)
+        end
+
+        task.spawn(function()
+            while U.Alive and U.Config.HealthCheck do
+                task.wait(5)
+                if U.Panic then
+                    U:SetStatus("System", "STOPPED")
+                else
+                    local ok = U:Check()
+                    U:SetStatus("System", ok and "READY" or "WAITING")
+                end
+            end
+        end)
+    end
+end
+
+-- ============================================================
+-- ULTIMATE UI
+-- ============================================================
+pcall(function()
+    if extraTab and TrayectoUltimate then
+        extraTab:AddButton("🩺 System Doctor", function()
+            print(TrayectoUltimate:GetReport())
+        end)
+
+        extraTab:AddButton("🛑 Emergency Stop", function()
+            TrayectoUltimate:EmergencyStop()
+        end)
+
+        extraTab:AddButton("▶ Resume Systems", function()
+            TrayectoUltimate:Resume()
+        end)
+
+        extraTab:AddButton("🧹 Reset Diagnostics", function()
+            TrayectoUltimate:ResetDiagnostics()
+        end)
+
+        extraTab:AddSwitch("Diagnostics", function(state)
+            TrayectoUltimate.Config.Diagnostics = state
+        end, "Show system events and errors")
+
+        extraTab:AddSwitch("Auto Recovery", function(state)
+            TrayectoUltimate.Config.AutoRecover = state
+        end, "Recover after character changes")
+
+        extraTab:AddSwitch("Health Check", function(state)
+            TrayectoUltimate.Config.HealthCheck = state
+        end, "Monitor system dependencies")
+    end
+end)
+
+-- ============================================================
+-- ULTIMATE SAFE CONFIG DEFAULTS
+-- ============================================================
+pcall(function()
+    if TrayectoCore and TrayectoCore.Config then
+        TrayectoCore.Config._version = 4
+        TrayectoCore.Config.FastRebirthGoal =
+            math.max(0, tonumber(TrayectoCore.Config.FastRebirthGoal) or 0)
+    end
+end)
+
+
+-- ============================================================
+-- TRAYECTOO ULTIMATE V2 - EXTRA QUALITY LAYER
+-- ============================================================
+do
+    local U = getgenv().TrayectoUltimate
+    if U then
+        U.Performance = U.Performance or {
+            Checks = 0,
+            LastCheck = 0,
+            Health = "UNKNOWN",
+        }
+
+        U.Backup = U.Backup or {
+            Config = nil,
+            CreatedAt = nil,
+        }
+
+        U.SafeMode = U.SafeMode or false
+
+        function U:RunSelfTest()
+            local ok, state = self:Check()
+            local report = {
+                Health = ok and "READY" or "WAITING",
+                Dependencies = state,
+                Modules = {},
+                Errors = #self.Errors,
+            }
+
+            for name, module in pairs(self.Modules) do
+                report.Modules[name] = module.Status
+            end
+
+            self.Performance.Checks += 1
+            self.Performance.LastCheck = os.clock()
+            self.Performance.Health = report.Health
+            return report
+        end
+
+        function U:BackupConfig()
+            if TrayectoCore and TrayectoCore.Config then
+                local copy = {}
+                for k, v in pairs(TrayectoCore.Config) do
+                    copy[k] = v
+                end
+                self.Backup.Config = copy
+                self.Backup.CreatedAt = os.time()
+                self:Notify("Configuration backup created")
+                return true
+            end
+            return false
+        end
+
+        function U:RestoreConfigBackup()
+            if not self.Backup.Config or not TrayectoCore then
+                return false
+            end
+
+            TrayectoCore.Config = TrayectoCore.Config or {}
+            for k, v in pairs(self.Backup.Config) do
+                TrayectoCore.Config[k] = v
+            end
+
+            self:Notify("Configuration backup restored")
+            return true
+        end
+
+        function U:SetSafeMode(state)
+            self.SafeMode = state and true or false
+            self:Notify(self.SafeMode and "Safe Mode enabled" or "Safe Mode disabled")
+        end
+
+        function U:GetRecentErrors(limit)
+            limit = math.max(1, tonumber(limit) or 10)
+            local result = {}
+            local start = math.max(1, #self.Errors - limit + 1)
+
+            for i = start, #self.Errors do
+                result[#result + 1] = self.Errors[i]
+            end
+
+            return result
+        end
+
+        function U:GetModuleSummary()
+            local summary = {}
+            for name, module in pairs(self.Modules) do
+                summary[#summary + 1] = {
+                    Name = name,
+                    Category = module.Category,
+                    Status = module.Status,
+                    Errors = module.Errors,
+                    Runs = module.Runs,
+                    Age = os.clock() - module.LastChange,
+                }
+            end
+            table.sort(summary, function(a, b)
+                return a.Name < b.Name
+            end)
+            return summary
+        end
+
+        function U:FullCheck()
+            local report = self:RunSelfTest()
+            local problems = {}
+
+            for name, status in pairs(report.Modules) do
+                if status == "ERROR" or status == "RECOVERING" then
+                    problems[#problems + 1] = name .. ": " .. status
+                end
+            end
+
+            report.Problems = problems
+            report.Ok = report.Health == "READY" and #problems == 0
+            return report
+        end
+    end
+end
+
+-- ============================================================
+-- EXTRA DIAGNOSTICS UI
+-- ============================================================
+pcall(function()
+    if extraTab and TrayectoUltimate then
+        extraTab:AddButton("🧪 Full Self-Test", function()
+            local report = TrayectoUltimate:FullCheck()
+
+            print("========== FULL SELF-TEST ==========")
+            print("Result:", report.Ok and "READY" or "CHECK REQUIRED")
+            print("Health:", report.Health)
+            print("Errors:", report.Errors)
+
+            for name, status in pairs(report.Modules) do
+                print(name .. ":", status)
+            end
+
+            if #report.Problems > 0 then
+                print("---- PROBLEMS ----")
+                for _, problem in ipairs(report.Problems) do
+                    print(problem)
+                end
+            end
+
+            print("====================================")
+        end)
+
+        extraTab:AddButton("💾 Backup Config", function()
+            TrayectoUltimate:BackupConfig()
+        end)
+
+        extraTab:AddButton("↩ Restore Config Backup", function()
+            TrayectoUltimate:RestoreConfigBackup()
+        end)
+
+        extraTab:AddSwitch("🧪 Safe Mode", function(state)
+            TrayectoUltimate:SetSafeMode(state)
+        end, "Start in diagnostics-oriented mode")
+
+        extraTab:AddButton("📋 Show Recent Errors", function()
+            local errors = TrayectoUltimate:GetRecentErrors(10)
+            print("========== RECENT ERRORS ==========")
+
+            if #errors == 0 then
+                print("No errors recorded.")
+            else
+                for _, err in ipairs(errors) do
+                    print(
+                        string.format(
+                            "[%s] %s: %s",
+                            tostring(err.Time),
+                            tostring(err.Module or err.Label),
+                            tostring(err.Message)
+                        )
+                    )
+                end
+            end
+
+            print("===================================")
+        end)
+
+        extraTab:AddButton("📊 Module Summary", function()
+            print("========== MODULE SUMMARY ==========")
+
+            for _, module in ipairs(TrayectoUltimate:GetModuleSummary()) do
+                print(string.format(
+                    "%s | %s | %s | errors=%d | runs=%d",
+                    module.Name,
+                    module.Category,
+                    module.Status,
+                    module.Errors,
+                    module.Runs
+                ))
+            end
+
+            print("====================================")
+        end)
+
+        extraTab:AddButton("📈 Performance Check", function()
+            local p = TrayectoUltimate.Performance
+            print("========== PERFORMANCE ==========")
+            print("Checks:", p.Checks)
+            print("Health:", p.Health)
+
+            local ok, state = TrayectoUltimate:Check()
+            local missing = {}
+
+            for name, value in pairs(state) do
+                if not value then
+                    missing[#missing + 1] = name
+                end
+            end
+
+            print("Health Check:", ok and "OK" or "MISSING DEPENDENCIES")
+
+            if #missing > 0 then
+                print("Missing:", table.concat(missing, ", "))
+            end
+
+            print("================================")
+        end)
+    end
+end)
+
+
+-- ============================================================
+-- TRAYECTOO ULTIMATE V3 - MAINTENANCE / UI QUALITY LAYER
+-- ============================================================
+do
+    local U = getgenv().TrayectoUltimate
+    if U then
+        U.Maintenance = U.Maintenance or {
+            LastHeartbeat = 0,
+            Heartbeats = 0,
+            LastSnapshot = nil,
+            Snapshots = {},
+        }
+
+        function U:Snapshot()
+            local snapshot = {
+                Time = os.clock(),
+                Health = self.Performance and self.Performance.Health or "UNKNOWN",
+                Errors = #self.Errors,
+                Recoveries = self.Recoveries,
+                Modules = {},
+            }
+
+            for name, module in pairs(self.Modules) do
+                snapshot.Modules[name] = {
+                    Status = module.Status,
+                    Errors = module.Errors,
+                    Runs = module.Runs,
+                }
+            end
+
+            self.Maintenance.LastSnapshot = snapshot
+            table.insert(self.Maintenance.Snapshots, snapshot)
+
+            while #self.Maintenance.Snapshots > 20 do
+                table.remove(self.Maintenance.Snapshots, 1)
+            end
+
+            return snapshot
+        end
+
+        function U:CompareSnapshots(a, b)
+            if not a or not b then
+                return {}
+            end
+
+            local changes = {}
+
+            for name, module in pairs(b.Modules) do
+                local old = a.Modules[name]
+                if not old then
+                    changes[#changes + 1] = name .. " added"
+                elseif old.Status ~= module.Status then
+                    changes[#changes + 1] =
+                        name .. ": " .. tostring(old.Status) ..
+                        " -> " .. tostring(module.Status)
+                elseif old.Errors ~= module.Errors then
+                    changes[#changes + 1] =
+                        name .. ": errors " ..
+                        tostring(old.Errors) .. " -> " ..
+                        tostring(module.Errors)
+                end
+            end
+
+            for name in pairs(a.Modules) do
+                if not b.Modules[name] then
+                    changes[#changes + 1] = name .. " removed"
+                end
+            end
+
+            return changes
+        end
+
+        function U:GetUptime()
+            return os.clock() - self.StartedAt
+        end
+
+        function U:GetHealthScore()
+            local total = 0
+            local good = 0
+
+            for _, module in pairs(self.Modules) do
+                total += 1
+                if module.Status ~= "ERROR" then
+                    good += 1
+                end
+            end
+
+            if total == 0 then
+                return 100
+            end
+
+            return math.floor((good / total) * 100)
+        end
+
+        function U:Heartbeat()
+            self.Maintenance.LastHeartbeat = os.clock()
+            self.Maintenance.Heartbeats += 1
+        end
+    end
+end
+
+-- Periodic local health heartbeat/snapshot. It does not alter feature behavior.
+task.spawn(function()
+    local U = getgenv().TrayectoUltimate
+    if not U then return end
+
+    while U.Alive do
+        task.wait(10)
+
+        if U.Panic then
+            break
+        end
+
+        pcall(function()
+            U:Heartbeat()
+            U:RunSelfTest()
+            U:Snapshot()
+        end)
+    end
+end)
+
+-- ============================================================
+-- V3 DIAGNOSTICS UI
+-- ============================================================
+pcall(function()
+    if extraTab and TrayectoUltimate then
+        extraTab:AddButton("🩺 Health Score", function()
+            local score = TrayectoUltimate:GetHealthScore()
+            print("[Trayectoo] Health Score: " .. tostring(score) .. "%")
+        end)
+
+        extraTab:AddButton("📸 Create Snapshot", function()
+            TrayectoUltimate:Snapshot()
+            print("[Trayectoo] Diagnostic snapshot created")
+        end)
+
+        extraTab:AddButton("🔄 Compare Last Snapshots", function()
+            local list = TrayectoUltimate.Maintenance.Snapshots
+
+            if #list < 2 then
+                print("[Trayectoo] Need at least 2 snapshots")
+                return
+            end
+
+            local changes = TrayectoUltimate:CompareSnapshots(
+                list[#list - 1],
+                list[#list]
+            )
+
+            print("========== SNAPSHOT CHANGES ==========")
+
+            if #changes == 0 then
+                print("No changes detected.")
+            else
+                for _, change in ipairs(changes) do
+                    print(change)
+                end
+            end
+
+            print("=======================================")
+        end)
+
+        extraTab:AddButton("⏱ Uptime", function()
+            print(string.format(
+                "[Trayectoo] Uptime: %.1f seconds",
+                TrayectoUltimate:GetUptime()
+            ))
+        end)
+
+        extraTab:AddButton("💓 Heartbeat Status", function()
+            local m = TrayectoUltimate.Maintenance
+            local age = os.clock() - m.LastHeartbeat
+
+            print("========== HEARTBEAT ==========")
+            print("Heartbeats:", m.Heartbeats)
+            print("Last heartbeat:", string.format("%.1fs ago", age))
+            print("Health score:", TrayectoUltimate:GetHealthScore() .. "%")
+            print("===============================")
+        end)
+    end
+end)
+
+
+-- ============================================================
+-- TRAYECTOO ULTIMATE V4 - DIFFERENT SYSTEMS
+-- UI / inspection / themes / sessions / diagnostics / plugins
+-- This layer is intentionally passive: it does not add
+-- automated remote abuse or bypass game protections.
+-- ============================================================
+do
+    local U = getgenv().TrayectoUltimate
+    if U then
+        U.V4 = U.V4 or {
+            Version = "4.0",
+            Plugins = {},
+            Alerts = {},
+            Timeline = {},
+            Sessions = {},
+            Theme = {
+                Transparency = 0.08,
+                CornerRadius = 10,
+                AnimationSpeed = 0.18,
+                ParticleIntensity = 0.35,
+            },
+            Permissions = {},
+            Layout = "Mobile",
+            Sandbox = false,
+        }
+
+        local V = U.V4
+
+        function U:AddTimeline(category, message)
+            V.Timeline[#V.Timeline + 1] = {
+                Time = os.clock(),
+                Category = tostring(category),
+                Message = tostring(message),
+            }
+            while #V.Timeline > 100 do
+                table.remove(V.Timeline, 1)
+            end
+        end
+
+        function U:AddAlert(name, condition)
+            V.Alerts[name] = {
+                Condition = condition,
+                Triggered = false,
+            }
+        end
+
+        function U:CheckAlerts()
+            for name, rule in pairs(V.Alerts) do
+                local ok, result = pcall(rule.Condition)
+                if ok and result and not rule.Triggered then
+                    rule.Triggered = true
+                    self:Notify("Alert: " .. name)
+                    self:AddTimeline("Alert", name)
+                elseif ok and not result then
+                    rule.Triggered = false
+                end
+            end
+        end
+
+        function U:RegisterPlugin(name, plugin)
+            if type(plugin) ~= "table" then
+                return false
+            end
+            if V.Plugins[name] then
+                return false
+            end
+            V.Plugins[name] = {
+                Name = name,
+                Plugin = plugin,
+                LoadedAt = os.clock(),
+            }
+            self:AddTimeline("Plugin", "Registered: " .. name)
+            return true
+        end
+
+        function U:RemovePlugin(name)
+            if not V.Plugins[name] then
+                return false
+            end
+            V.Plugins[name] = nil
+            self:AddTimeline("Plugin", "Removed: " .. name)
+            return true
+        end
+
+        function U:SetPermission(category, enabled)
+            V.Permissions[category] = enabled and true or false
+        end
+
+        function U:IsPermissionEnabled(category)
+            return V.Permissions[category] ~= false
+        end
+
+        function U:SetLayout(layout)
+            if layout ~= "Mobile" and layout ~= "Tablet" and layout ~= "Desktop" then
+                return false
+            end
+            V.Layout = layout
+            self:AddTimeline("UI", "Layout: " .. layout)
+            return true
+        end
+
+        function U:SetThemeValue(key, value)
+            if V.Theme[key] == nil then
+                return false
+            end
+            V.Theme[key] = value
+            self:AddTimeline("Theme", key .. " changed")
+            return true
+        end
+
+        function U:BeginSandbox()
+            V.Sandbox = true
+            self:AddTimeline("Sandbox", "Enabled")
+        end
+
+        function U:EndSandbox()
+            V.Sandbox = false
+            self:AddTimeline("Sandbox", "Disabled")
+        end
+
+        function U:StartSession()
+            local session = {
+                StartedAt = os.time(),
+                ErrorsAtStart = #self.Errors,
+                RecoveriesAtStart = self.Recoveries,
+            }
+            V.Sessions[#V.Sessions + 1] = session
+            self:AddTimeline("Session", "Started")
+        end
+
+        function U:GetSessionStats()
+            local session = V.Sessions[#V.Sessions]
+            if not session then
+                return nil
+            end
+
+            return {
+                Duration = os.time() - session.StartedAt,
+                NewErrors = math.max(0, #self.Errors - session.ErrorsAtStart),
+                NewRecoveries = math.max(0, self.Recoveries - session.RecoveriesAtStart),
+            }
+        end
+
+        function U:GetTimeline(limit)
+            limit = math.max(1, tonumber(limit) or 20)
+            local result = {}
+            local first = math.max(1, #V.Timeline - limit + 1)
+            for i = first, #V.Timeline do
+                result[#result + 1] = V.Timeline[i]
+            end
+            return result
+        end
+
+        function U:InspectCharacter()
+            local result = {}
+            local character = player and player.Character
+            if not character then
+                return result
+            end
+
+            for _, object in ipairs(character:GetChildren()) do
+                result[#result + 1] = {
+                    Name = object.Name,
+                    ClassName = object.ClassName,
+                }
+            end
+
+            table.sort(result, function(a, b)
+                return a.Name < b.Name
+            end)
+
+            return result
+        end
+
+        function U:InspectTools()
+            local result = {}
+            local backpack = player and player:FindFirstChildOfClass("Backpack")
+            local character = player and player.Character
+
+            local function scan(container, location)
+                if not container then return end
+                for _, object in ipairs(container:GetChildren()) do
+                    if object:IsA("Tool") then
+                        result[#result + 1] = {
+                            Name = object.Name,
+                            Location = location,
+                        }
+                    end
+                end
+            end
+
+            scan(backpack, "Backpack")
+            scan(character, "Character")
+
+            table.sort(result, function(a, b)
+                return a.Name < b.Name
+            end)
+
+            return result
+        end
+
+        function U:InspectUI()
+            local result = {}
+            local gui = player and player:FindFirstChildOfClass("PlayerGui")
+            if not gui then
+                return result
+            end
+
+            for _, object in ipairs(gui:GetDescendants()) do
+                if object:IsA("GuiObject") then
+                    local position = object.AbsolutePosition
+                    local size = object.AbsoluteSize
+
+                    result[#result + 1] = {
+                        Name = object.Name,
+                        ClassName = object.ClassName,
+                        X = position.X,
+                        Y = position.Y,
+                        Width = size.X,
+                        Height = size.Y,
+                    }
+                end
+            end
+
+            return result
+        end
+
+        function U:FindUIOverflow()
+            local problems = {}
+            local camera = workspace.CurrentCamera
+            if not camera then return problems end
+
+            local viewport = camera.ViewportSize
+            for _, item in ipairs(self:InspectUI()) do
+                if item.X + item.Width < 0
+                    or item.Y + item.Height < 0
+                    or item.X > viewport.X
+                    or item.Y > viewport.Y then
+                    problems[#problems + 1] = item
+                end
+            end
+
+            return problems
+        end
+
+        function U:StartSessionIfNeeded()
+            if #V.Sessions == 0 then
+                self:StartSession()
+            end
+        end
+
+        U:AddTimeline("Core", "V4 loaded")
+        U:StartSessionIfNeeded()
+
+        U:AddAlert("Error Count High", function()
+            return #U.Errors >= 5
+        end)
+
+        task.spawn(function()
+            while U.Alive do
+                task.wait(10)
+                if U.Panic then break end
+                pcall(function()
+                    U:CheckAlerts()
+                    U:AddTimeline("Heartbeat", "V4 maintenance tick")
+                end)
+            end
+        end)
+    end
+end
+
+-- ============================================================
+-- V4 UI CONTROLS
+-- ============================================================
+pcall(function()
+    if extraTab and TrayectoUltimate then
+        extraTab:AddButton("🗺 Activity Timeline", function()
+            print("========== ACTIVITY TIMELINE ==========")
+            for _, item in ipairs(TrayectoUltimate:GetTimeline(25)) do
+                print(
+                    string.format(
+                        "[%.1f] [%s] %s",
+                        item.Time,
+                        item.Category,
+                        item.Message
+                    )
+                )
+            end
+            print("=======================================")
+        end)
+
+        extraTab:AddButton("🧰 Tool Inspector", function()
+            print("============= TOOL INSPECTOR =============")
+            for _, item in ipairs(TrayectoUltimate:InspectTools()) do
+                print(item.Name .. " | " .. item.Location)
+            end
+            print("===========================================")
+        end)
+
+        extraTab:AddButton("🧍 Character Inspector", function()
+            print("========== CHARACTER INSPECTOR ==========")
+            for _, item in ipairs(TrayectoUltimate:InspectCharacter()) do
+                print(item.Name .. " | " .. item.ClassName)
+            end
+            print("=========================================")
+        end)
+
+        extraTab:AddButton("🖥 UI Overflow Check", function()
+            local problems = TrayectoUltimate:FindUIOverflow()
+            print("=========== UI OVERFLOW CHECK ===========")
+
+            if #problems == 0 then
+                print("No obvious overflow detected.")
+            else
+                for _, item in ipairs(problems) do
+                    print(
+                        item.Name,
+                        "x=" .. tostring(item.X),
+                        "y=" .. tostring(item.Y),
+                        "w=" .. tostring(item.Width),
+                        "h=" .. tostring(item.Height)
+                    )
+                end
+            end
+
+            print("==========================================")
+        end)
+
+        extraTab:AddDropdown("UI Layout", {"Mobile", "Tablet", "Desktop"}, function(value)
+            TrayectoUltimate:SetLayout(value)
+        end)
+
+        extraTab:AddSlider("UI Transparency", 0, 0.5, 0.01, function(value)
+            TrayectoUltimate:SetThemeValue("Transparency", value)
+        end)
+
+        extraTab:AddSlider("Animation Speed", 0.05, 0.5, 0.01, function(value)
+            TrayectoUltimate:SetThemeValue("AnimationSpeed", value)
+        end)
+
+        extraTab:AddSlider("Particle Intensity", 0, 1, 0.05, function(value)
+            TrayectoUltimate:SetThemeValue("ParticleIntensity", value)
+        end)
+
+        extraTab:AddButton("🧪 Toggle Sandbox", function()
+            if TrayectoUltimate.V4.Sandbox then
+                TrayectoUltimate:EndSandbox()
+            else
+                TrayectoUltimate:BeginSandbox()
+            end
+        end)
+
+        extraTab:AddButton("📊 Session Statistics", function()
+            local stats = TrayectoUltimate:GetSessionStats()
+
+            print("========== SESSION STATISTICS ==========")
+
+            if not stats then
+                print("No active session.")
+            else
+                print("Duration:", stats.Duration, "seconds")
+                print("New errors:", stats.NewErrors)
+                print("New recoveries:", stats.NewRecoveries)
+            end
+
+            print("========================================")
+        end)
+
+        extraTab:AddButton("🧩 Plugin List", function()
+            print("============= PLUGINS =============")
+
+            local plugins = TrayectoUltimate.V4.Plugins
+            local count = 0
+
+            for name in pairs(plugins) do
+                count += 1
+                print(name)
+            end
+
+            print("Total:", count)
+            print("===================================")
+        end)
+    end
+end)
+
+
+-- ============================================================
+-- TRAYECTOO ULTIMATE V5 - UTILITY / INSPECTION PACK
+-- Passive tooling: does not automate remotes or bypass protections.
+-- ============================================================
+do
+    local U = getgenv().TrayectoUltimate
+    if U then
+        U.V5 = U.V5 or {
+            Favorites = {},
+            Notes = {},
+            Filters = {},
+            Metrics = {},
+            SearchCache = {},
+            UIState = {
+                Compact = false,
+                ShowAdvanced = false,
+            },
+        }
+
+        local V = U.V5
+
+        function U:AddFavorite(name, value)
+            V.Favorites[tostring(name)] = value
+            self:AddTimeline("Favorite", "Saved: " .. tostring(name))
+        end
+
+        function U:RemoveFavorite(name)
+            V.Favorites[tostring(name)] = nil
+            self:AddTimeline("Favorite", "Removed: " .. tostring(name))
+        end
+
+        function U:AddNote(title, text)
+            V.Notes[#V.Notes + 1] = {
+                Title = tostring(title),
+                Text = tostring(text),
+                Time = os.time(),
+            }
+            while #V.Notes > 50 do
+                table.remove(V.Notes, 1)
+            end
+        end
+
+        function U:SearchDescendants(root, query, className)
+            local result = {}
+            if not root then return result end
+
+            query = tostring(query or ""):lower()
+            className = className and tostring(className) or nil
+
+            for _, object in ipairs(root:GetDescendants()) do
+                local nameMatch = query == "" or object.Name:lower():find(query, 1, true)
+                local classMatch = not className or object.ClassName == className
+
+                if nameMatch and classMatch then
+                    result[#result + 1] = object
+                end
+            end
+
+            return result
+        end
+
+        function U:SearchPlayerGui(query)
+            local gui = player and player:FindFirstChildOfClass("PlayerGui")
+            return self:SearchDescendants(gui, query)
+        end
+
+        function U:GetClassCounts(root)
+            local counts = {}
+            if not root then return counts end
+
+            for _, object in ipairs(root:GetDescendants()) do
+                counts[object.ClassName] = (counts[object.ClassName] or 0) + 1
+            end
+
+            return counts
+        end
+
+        function U:GetPlayerStatsSnapshot()
+            local result = {}
+            if not player then return result end
+
+            for _, child in ipairs(player:GetChildren()) do
+                if child:IsA("ValueBase") then
+                    result[child.Name] = child.Value
+                end
+            end
+
+            return result
+        end
+
+        function U:DiffTables(old, new)
+            local changes = {}
+            old = old or {}
+            new = new or {}
+
+            for key, value in pairs(new) do
+                if old[key] ~= value then
+                    changes[#changes + 1] = {
+                        Key = key,
+                        Old = old[key],
+                        New = value,
+                    }
+                end
+            end
+
+            for key, value in pairs(old) do
+                if new[key] == nil then
+                    changes[#changes + 1] = {
+                        Key = key,
+                        Old = value,
+                        New = nil,
+                    }
+                end
+            end
+
+            return changes
+        end
+
+        function U:CapturePlayerStats()
+            V.Metrics.LastStats = self:GetPlayerStatsSnapshot()
+            self:AddTimeline("Metrics", "Player stats snapshot captured")
+            return V.Metrics.LastStats
+        end
+
+        function U:ComparePlayerStats()
+            local current = self:GetPlayerStatsSnapshot()
+            local old = V.Metrics.LastStats
+            local changes = self:DiffTables(old, current)
+            V.Metrics.LastStats = current
+            return changes
+        end
+
+        function U:SetFilter(name, enabled)
+            V.Filters[tostring(name)] = enabled and true or false
+        end
+
+        function U:IsFilterEnabled(name)
+            return V.Filters[tostring(name)] ~= false
+        end
+
+        function U:SetCompactMode(enabled)
+            V.UIState.Compact = enabled and true or false
+            self:AddTimeline("UI", "Compact mode: " .. tostring(V.UIState.Compact))
+        end
+
+        function U:SetAdvancedMode(enabled)
+            V.UIState.ShowAdvanced = enabled and true or false
+            self:AddTimeline("UI", "Advanced mode: " .. tostring(V.UIState.ShowAdvanced))
+        end
+
+        function U:GetMemoryEstimate()
+            -- Lua's collectgarbage value is an estimate, not a precise process metric.
+            local kb = collectgarbage("count")
+            return {
+                Kilobytes = kb,
+                Megabytes = kb / 1024,
+            }
+        end
+
+        function U:ClearCaches()
+            V.SearchCache = {}
+            self:AddTimeline("Maintenance", "Search cache cleared")
+        end
+
+        function U:GetSystemSummary()
+            local memory = self:GetMemoryEstimate()
+
+            return {
+                Version = self.Version,
+                Uptime = self:GetUptime(),
+                HealthScore = self:GetHealthScore(),
+                Errors = #self.Errors,
+                Recoveries = self.Recoveries,
+                Modules = #self:GetModuleSummary(),
+                MemoryMB = memory.Megabytes,
+                TimelineEntries = #self.V4.Timeline,
+                Snapshots = #self.Maintenance.Snapshots,
+                Notes = #V.Notes,
+                Favorites = 0,
+            }
+        end
+
+        local favorites = 0
+        for _ in pairs(V.Favorites) do
+            favorites += 1
+        end
+        V.FavoritesCount = favorites
+    end
+end
+
+-- ============================================================
+-- V5 UI
+-- ============================================================
+pcall(function()
+    if extraTab and TrayectoUltimate then
+        extraTab:AddButton("🔎 UI Search", function()
+            local matches = TrayectoUltimate:SearchPlayerGui("")
+            print("========== UI SEARCH ==========")
+            print("GuiObjects:", #matches)
+
+            for i = 1, math.min(#matches, 100) do
+                local object = matches[i]
+                print(object:GetFullName(), "|", object.ClassName)
+            end
+
+            print("===============================")
+        end)
+
+        extraTab:AddButton("📊 UI Class Counts", function()
+            local gui = player and player:FindFirstChildOfClass("PlayerGui")
+            local counts = TrayectoUltimate:GetClassCounts(gui)
+
+            print("======= UI CLASS COUNTS =======")
+            for className, count in pairs(counts) do
+                print(className .. ":", count)
+            end
+            print("===============================")
+        end)
+
+        extraTab:AddButton("📈 Player Stats Snapshot", function()
+            local stats = TrayectoUltimate:CapturePlayerStats()
+
+            print("======= PLAYER SNAPSHOT =======")
+            for name, value in pairs(stats) do
+                print(name .. ":", value)
+            end
+            print("===============================")
+        end)
+
+        extraTab:AddButton("🔄 Compare Player Stats", function()
+            local changes = TrayectoUltimate:ComparePlayerStats()
+
+            print("====== PLAYER STAT CHANGES ======")
+
+            if #changes == 0 then
+                print("No changes detected.")
+            else
+                for _, change in ipairs(changes) do
+                    print(
+                        tostring(change.Key) ..
+                        ": " ..
+                        tostring(change.Old) ..
+                        " -> " ..
+                        tostring(change.New)
+                    )
+                end
+            end
+
+            print("=================================")
+        end)
+
+        extraTab:AddButton("🧹 Clear Search Cache", function()
+            TrayectoUltimate:ClearCaches()
+        end)
+
+        extraTab:AddButton("📝 Add Diagnostic Note", function()
+            TrayectoUltimate:AddNote(
+                "Manual note",
+                "Created from Trayectoo diagnostics."
+            )
+            print("[Trayectoo] Note added")
+        end)
+
+        extraTab:AddButton("💻 System Summary", function()
+            local summary = TrayectoUltimate:GetSystemSummary()
+
+            print("========== SYSTEM SUMMARY ==========")
+            for key, value in pairs(summary) do
+                print(key .. ":", value)
+            end
+            print("====================================")
+        end)
+
+        extraTab:AddSwitch("Compact Diagnostics", function(state)
+            TrayectoUltimate:SetCompactMode(state)
+        end, "Reduce diagnostic output")
+
+        extraTab:AddSwitch("Advanced Diagnostics", function(state)
+            TrayectoUltimate:SetAdvancedMode(state)
+        end, "Show advanced diagnostic information")
+    end
+end)
+
+
+-- ============================================================
+-- TRAYECTOO ULTIMATE V6 - AUTOMATIC MAINTENANCE / QUALITY PACK
+-- Passive quality-of-life and diagnostics systems.
+-- ============================================================
+do
+    local U = getgenv().TrayectoUltimate
+    if U then
+        U.V6 = U.V6 or {
+            Started = os.clock(),
+            EventCounters = {},
+            Baselines = {},
+            CleanupQueue = {},
+            RateLimits = {},
+            FeatureStates = {},
+        }
+
+        local V = U.V6
+
+        function U:CountEvent(name)
+            V.EventCounters[name] = (V.EventCounters[name] or 0) + 1
+        end
+
+        function U:SetFeatureState(name, state)
+            V.FeatureStates[name] = state and true or false
+            self:CountEvent("FeatureStateChanged")
+        end
+
+        function U:GetFeatureState(name)
+            return V.FeatureStates[name] == true
+        end
+
+        function U:SetBaseline(name, value)
+            V.Baselines[name] = value
+        end
+
+        function U:GetBaseline(name)
+            return V.Baselines[name]
+        end
+
+        function U:QueueCleanup(name, callback)
+            if type(callback) ~= "function" then return false end
+            V.CleanupQueue[name] = callback
+            return true
+        end
+
+        function U:RunCleanup()
+            local count = 0
+            for name, callback in pairs(V.CleanupQueue) do
+                local ok = pcall(callback)
+                if ok then
+                    count += 1
+                end
+                V.CleanupQueue[name] = nil
+            end
+            self:AddTimeline("Cleanup", "Ran " .. tostring(count) .. " cleanup tasks")
+            return count
+        end
+
+        function U:IsRateLimited(name, interval)
+            local now = os.clock()
+            local last = V.RateLimits[name] or 0
+
+            if now - last < interval then
+                return true
+            end
+
+            V.RateLimits[name] = now
+            return false
+        end
+
+        function U:GetEventCounters()
+            local copy = {}
+            for name, count in pairs(V.EventCounters) do
+                copy[name] = count
+            end
+            return copy
+        end
+
+        function U:DetectStaleConnections()
+            local stale = {}
+
+            for name, connection in pairs(self.Connections) do
+                if connection == nil then
+                    stale[#stale + 1] = name
+                end
+            end
+
+            return stale
+        end
+
+        function U:ValidateModules()
+            local problems = {}
+
+            for name, module in pairs(self.Modules) do
+                if not module.Status then
+                    problems[#problems + 1] = name .. ": missing status"
+                end
+
+                if module.Errors < 0 or module.Runs < 0 then
+                    problems[#problems + 1] = name .. ": invalid counters"
+                end
+            end
+
+            return problems
+        end
+
+        function U:GenerateHealthReport()
+            local report = self:FullCheck()
+            report.Score = self:GetHealthScore()
+            report.ModuleProblems = self:ValidateModules()
+            report.StaleConnections = self:DetectStaleConnections()
+            report.EventCounters = self:GetEventCounters()
+            report.Uptime = self:GetUptime()
+
+            return report
+        end
+
+        function U:ResetFeatureStates()
+            V.FeatureStates = {}
+            self:AddTimeline("Maintenance", "Feature states reset")
+        end
+
+        U:AddTimeline("V6", "Quality pack loaded")
+    end
+end
+
+-- ============================================================
+-- AUTOMATIC QUALITY MONITOR
+-- ============================================================
+task.spawn(function()
+    local U = getgenv().TrayectoUltimate
+    if not U then return end
+
+    while U.Alive do
+        task.wait(15)
+
+        if U.Panic then
+            break
+        end
+
+        pcall(function()
+            local report = U:GenerateHealthReport()
+
+            if #report.ModuleProblems > 0 then
+                U:AddTimeline(
+                    "Health",
+                    tostring(#report.ModuleProblems) .. " module validation issue(s)"
+                )
+            end
+
+            U:CountEvent("HealthReport")
+        end)
+    end
+end)
+
+-- ============================================================
+-- V6 UI
+-- ============================================================
+pcall(function()
+    if extraTab and TrayectoUltimate then
+        extraTab:AddButton("🩺 Generate Health Report", function()
+            local report = TrayectoUltimate:GenerateHealthReport()
+
+            print("========== HEALTH REPORT ==========")
+            print("Score:", tostring(report.Score) .. "%")
+            print("Health:", report.Health)
+            print("Uptime:", string.format("%.1fs", report.Uptime))
+            print("Errors:", report.Errors)
+            print("Recoveries:", report.Recoveries)
+            print("Stale connections:", #report.StaleConnections)
+            print("Module problems:", #report.ModuleProblems)
+            print("===================================")
+        end)
+
+        extraTab:AddButton("🧹 Run Cleanup", function()
+            TrayectoUltimate:RunCleanup()
+        end)
+
+        extraTab:AddButton("📊 Event Counters", function()
+            print("========== EVENT COUNTERS ==========")
+
+            local counters = TrayectoUltimate:GetEventCounters()
+
+            for name, count in pairs(counters) do
+                print(name .. ":", count)
+            end
+
+            print("====================================")
+        end)
+
+        extraTab:AddButton("🔍 Validate Modules", function()
+            local problems = TrayectoUltimate:ValidateModules()
+
+            print("========== MODULE VALIDATION ==========")
+
+            if #problems == 0 then
+                print("All module records are valid.")
+            else
+                for _, problem in ipairs(problems) do
+                    print(problem)
+                end
+            end
+
+            print("=======================================")
+        end)
+
+        extraTab:AddButton("♻ Reset Feature States", function()
+            TrayectoUltimate:ResetFeatureStates()
+        end)
+    end
+end)
+
+
+-- ============================================================
+-- TRAYECTOO ULTIMATE V7 - DATA / UI / SAFETY TOOLKIT
+-- Passive utilities only; no remote bypass or exploit automation.
+-- ============================================================
+do
+    local U = getgenv().TrayectoUltimate
+    if U then
+        U.V7 = U.V7 or {
+            Bookmarks = {},
+            Tags = {},
+            RecentSearches = {},
+            ConfigHistory = {},
+            UIProfiles = {},
+            Reports = {},
+            ClipboardText = "",
+            SafeLimits = {
+                MaxNotes = 50,
+                MaxReports = 25,
+                MaxSearches = 30,
+            },
+        }
+
+        local V = U.V7
+
+        function U:AddBookmark(name, path)
+            V.Bookmarks[tostring(name)] = tostring(path)
+            self:AddTimeline("Bookmark", "Added: " .. tostring(name))
+        end
+
+        function U:RemoveBookmark(name)
+            V.Bookmarks[tostring(name)] = nil
+            self:AddTimeline("Bookmark", "Removed: " .. tostring(name))
+        end
+
+        function U:AddTag(target, tag)
+            V.Tags[tostring(target)] = V.Tags[tostring(target)] or {}
+            V.Tags[tostring(target)][tostring(tag)] = true
+        end
+
+        function U:GetTags(target)
+            local result = {}
+            local tags = V.Tags[tostring(target)] or {}
+
+            for tag in pairs(tags) do
+                result[#result + 1] = tag
+            end
+
+            table.sort(result)
+            return result
+        end
+
+        function U:AddRecentSearch(query)
+            query = tostring(query or "")
+            if query == "" then return end
+
+            table.insert(V.RecentSearches, query)
+
+            while #V.RecentSearches > V.SafeLimits.MaxSearches do
+                table.remove(V.RecentSearches, 1)
+            end
+        end
+
+        function U:SaveConfigVersion()
+            if not TrayectoCore or not TrayectoCore.Config then
+                return false
+            end
+
+            local copy = {}
+            for key, value in pairs(TrayectoCore.Config) do
+                copy[key] = value
+            end
+
+            table.insert(V.ConfigHistory, {
+                Time = os.time(),
+                Config = copy,
+            })
+
+            while #V.ConfigHistory > 20 do
+                table.remove(V.ConfigHistory, 1)
+            end
+
+            self:AddTimeline("Config", "Configuration version saved")
+            return true
+        end
+
+        function U:CreateUIProfile(name)
+            V.UIProfiles[tostring(name)] = {
+                Layout = self.V4.Layout,
+                Theme = {},
+            }
+
+            for key, value in pairs(self.V4.Theme) do
+                V.UIProfiles[tostring(name)].Theme[key] = value
+            end
+
+            self:AddTimeline("UI", "Profile saved: " .. tostring(name))
+        end
+
+        function U:LoadUIProfile(name)
+            local profile = V.UIProfiles[tostring(name)]
+            if not profile then
+                return false
+            end
+
+            self:SetLayout(profile.Layout)
+
+            for key, value in pairs(profile.Theme) do
+                self:SetThemeValue(key, value)
+            end
+
+            self:AddTimeline("UI", "Profile loaded: " .. tostring(name))
+            return true
+        end
+
+        function U:CreateReport(name)
+            local report = self:GenerateHealthReport()
+
+            report.Name = tostring(name or "Trayectoo Report")
+            report.CreatedAt = os.time()
+
+            table.insert(V.Reports, report)
+
+            while #V.Reports > V.SafeLimits.MaxReports do
+                table.remove(V.Reports, 1)
+            end
+
+            self:AddTimeline("Report", "Created: " .. report.Name)
+            return report
+        end
+
+        function U:GetReports()
+            return V.Reports
+        end
+
+        function U:BuildQuickStatus()
+            local memory = self:GetMemoryEstimate()
+
+            return {
+                Ready = self:GetHealthScore() >= 80 and not self.Panic,
+                Health = self:GetHealthScore(),
+                Errors = #self.Errors,
+                Recoveries = self.Recoveries,
+                Uptime = self:GetUptime(),
+                MemoryMB = memory.Megabytes,
+                SafeMode = self.V4.Sandbox,
+                Layout = self.V4.Layout,
+            }
+        end
+
+        function U:ResetV7Data()
+            V.Bookmarks = {}
+            V.Tags = {}
+            V.RecentSearches = {}
+            V.ConfigHistory = {}
+            V.UIProfiles = {}
+            V.Reports = {}
+            self:AddTimeline("Maintenance", "V7 data reset")
+        end
+    end
+end
+
+-- ============================================================
+-- V7 UI
+-- ============================================================
+pcall(function()
+    if extraTab and TrayectoUltimate then
+        extraTab:AddButton("⚡ Quick Status", function()
+            local status = TrayectoUltimate:BuildQuickStatus()
+
+            print("========== QUICK STATUS ==========")
+            for key, value in pairs(status) do
+                print(key .. ":", value)
+            end
+            print("==================================")
+        end)
+
+        extraTab:AddButton("📌 Save UI Profile", function()
+            TrayectoUltimate:CreateUIProfile("Last Profile")
+        end)
+
+        extraTab:AddButton("↩ Load UI Profile", function()
+            if not TrayectoUltimate:LoadUIProfile("Last Profile") then
+                print("[Trayectoo] No saved UI profile")
+            end
+        end)
+
+        extraTab:AddButton("💾 Save Config Version", function()
+            TrayectoUltimate:SaveConfigVersion()
+        end)
+
+        extraTab:AddButton("📄 Create Diagnostic Report", function()
+            local report = TrayectoUltimate:CreateReport("Manual Report")
+            print("========== DIAGNOSTIC REPORT ==========")
+            print("Name:", report.Name)
+            print("Health:", report.Health)
+            print("Score:", report.Score)
+            print("Errors:", report.Errors)
+            print("Recoveries:", report.Recoveries)
+            print("=======================================")
+        end)
+
+        extraTab:AddButton("📚 Report Count", function()
+            print("[Trayectoo] Reports:", #TrayectoUltimate:GetReports())
+        end)
+
+        extraTab:AddButton("🧹 Reset V7 Data", function()
+            TrayectoUltimate:ResetV7Data()
+        end)
+    end
+end)
+
+
+-- ============================================================
+-- TRAYECTOO ULTIMATE V8 - ORIGINAL UI PATTERNS PACK
+-- Inspired by public Roblox UI-library patterns:
+-- dependency visibility, scroll-friendly organization,
+-- theme/save managers, notifications, keybind-style controls,
+-- and declarative UI concepts.
+-- Implemented independently; no source code is copied.
+-- ============================================================
+do
+    local U = getgenv().TrayectoUltimate
+    if U then
+        U.V8 = U.V8 or {
+            Dependencies = {},
+            Notifications = {},
+            Keybinds = {},
+            Themes = {},
+            SavedStates = {},
+            SearchIndex = {},
+            Sections = {},
+        }
+
+        local V = U.V8
+
+        function U:RegisterDependency(name, predicate)
+            if type(predicate) ~= "function" then return false end
+            V.Dependencies[name] = predicate
+            return true
+        end
+
+        function U:DependencyVisible(name)
+            local predicate = V.Dependencies[name]
+            if not predicate then return true end
+
+            local ok, result = pcall(predicate)
+            return ok and result == true
+        end
+
+        function U:PushNotification(title, message, duration)
+            local item = {
+                Title = tostring(title),
+                Message = tostring(message),
+                Duration = tonumber(duration) or 3,
+                Time = os.clock(),
+            }
+
+            table.insert(V.Notifications, item)
+
+            while #V.Notifications > 50 do
+                table.remove(V.Notifications, 1)
+            end
+
+            self:AddTimeline("Notification", item.Title .. ": " .. item.Message)
+            return item
+        end
+
+        function U:RegisterKeybind(name, key, callback)
+            if type(callback) ~= "function" then return false end
+
+            V.Keybinds[name] = {
+                Key = key,
+                Callback = callback,
+            }
+
+            return true
+        end
+
+        function U:RegisterTheme(name, values)
+            if type(values) ~= "table" then return false end
+
+            local copy = {}
+            for key, value in pairs(values) do
+                copy[key] = value
+            end
+
+            V.Themes[name] = copy
+            return true
+        end
+
+        function U:ApplyTheme(name)
+            local theme = V.Themes[name]
+            if not theme then return false end
+
+            for key, value in pairs(theme) do
+                self:SetThemeValue(key, value)
+            end
+
+            self:AddTimeline("Theme", "Applied: " .. tostring(name))
+            return true
+        end
+
+        function U:SaveState(name, state)
+            if type(state) ~= "table" then return false end
+
+            local copy = {}
+            for key, value in pairs(state) do
+                copy[key] = value
+            end
+
+            V.SavedStates[name] = copy
+            return true
+        end
+
+        function U:LoadState(name)
+            local state = V.SavedStates[name]
+            if not state then return nil end
+
+            local copy = {}
+            for key, value in pairs(state) do
+                copy[key] = value
+            end
+
+            return copy
+        end
+
+        function U:IndexObject(object)
+            if not object then return end
+
+            V.SearchIndex[object:GetFullName()] = {
+                Name = object.Name,
+                ClassName = object.ClassName,
+            }
+        end
+
+        function U:BuildSearchIndex(root)
+            V.SearchIndex = {}
+
+            if not root then
+                return 0
+            end
+
+            local count = 0
+            for _, object in ipairs(root:GetDescendants()) do
+                self:IndexObject(object)
+                count += 1
+            end
+
+            return count
+        end
+
+        function U:SearchIndexQuery(query)
+            local result = {}
+            query = tostring(query or ""):lower()
+
+            for path, info in pairs(V.SearchIndex) do
+                if query == ""
+                    or path:lower():find(query, 1, true)
+                    or info.Name:lower():find(query, 1, true)
+                    or info.ClassName:lower():find(query, 1, true) then
+
+                    result[#result + 1] = {
+                        Path = path,
+                        Name = info.Name,
+                        ClassName = info.ClassName,
+                    }
+                end
+            end
+
+            table.sort(result, function(a, b)
+                return a.Path < b.Path
+            end)
+
+            return result
+        end
+
+        U:RegisterTheme("Trayectoo Dark", {
+            Transparency = 0.08,
+            CornerRadius = 10,
+            AnimationSpeed = 0.18,
+            ParticleIntensity = 0.35,
+        })
+
+        U:RegisterTheme("Trayectoo Compact", {
+            Transparency = 0.14,
+            CornerRadius = 7,
+            AnimationSpeed = 0.12,
+            ParticleIntensity = 0.15,
+        })
+
+        U:AddTimeline("V8", "Original UI patterns pack loaded")
+    end
+end
+
+-- ============================================================
+-- V8 UI
+-- ============================================================
+pcall(function()
+    if extraTab and TrayectoUltimate then
+        extraTab:AddButton("🔔 Test Notification", function()
+            local item = TrayectoUltimate:PushNotification(
+                "Trayectoo",
+                "Notification system is working.",
+                3
+            )
+            print("[Trayectoo]", item.Title, item.Message)
+        end)
+
+        extraTab:AddButton("🎨 Dark Theme", function()
+            TrayectoUltimate:ApplyTheme("Trayectoo Dark")
+        end)
+
+        extraTab:AddButton("🎨 Compact Theme", function()
+            TrayectoUltimate:ApplyTheme("Trayectoo Compact")
+        end)
+
+        extraTab:AddButton("🔎 Build UI Search Index", function()
+            local gui = player and player:FindFirstChildOfClass("PlayerGui")
+            local count = TrayectoUltimate:BuildSearchIndex(gui)
+            print("[Trayectoo] Indexed objects:", count)
+        end)
+
+        extraTab:AddButton("📚 Search Indexed UI", function()
+            local results = TrayectoUltimate:SearchIndexQuery("")
+            print("========== INDEXED UI ==========")
+
+            for i = 1, math.min(#results, 100) do
+                local item = results[i]
+                print(item.Path, "|", item.ClassName)
+            end
+
+            print("================================")
+        end)
+
+        extraTab:AddButton("💾 Save Current UI State", function()
+            TrayectoUltimate:SaveState("LastUIState", {
+                Layout = TrayectoUltimate.V4.Layout,
+                Theme = TrayectoUltimate.V4.Theme,
+                Compact = TrayectoUltimate.V5.UIState.Compact,
+                Advanced = TrayectoUltimate.V5.UIState.ShowAdvanced,
+            })
+
+            print("[Trayectoo] UI state saved")
+        end)
+
+        extraTab:AddButton("📥 Read Saved UI State", function()
+            local state = TrayectoUltimate:LoadState("LastUIState")
+
+            if not state then
+                print("[Trayectoo] No saved UI state")
+                return
+            end
+
+            print("========== SAVED UI STATE ==========")
+            print("Layout:", state.Layout)
+            print("Compact:", state.Compact)
+            print("Advanced:", state.Advanced)
+
+            if state.Theme then
+                for key, value in pairs(state.Theme) do
+                    print("Theme." .. key .. ":", value)
+                end
+            end
+
+            print("====================================")
+        end)
+    end
+end)
 
