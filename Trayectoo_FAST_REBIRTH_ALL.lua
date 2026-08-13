@@ -7958,3 +7958,1613 @@ pcall(function()
     end
 end)
 
+
+
+-- ============================================================
+-- TRAYECTOO V9 - GITHUB-INSPIRED QUALITY PACK
+-- Added without replacing the existing GUI or existing features.
+-- Features: live performance monitor, rock analyzer, session
+-- statistics, server info and safe diagnostics.
+-- ============================================================
+
+pcall(function()
+    local AnalyzerTab = window:AddTab("Analyzer")
+    local PerfFolder = AnalyzerTab:AddFolder("⚡ Performance Monitor")
+    local RockFolder = AnalyzerTab:AddFolder("🪨 Rock Analyzer")
+    local SessionFolder = AnalyzerTab:AddFolder("📊 Session")
+    local ServerFolder = AnalyzerTab:AddFolder("🌐 Server Info")
+
+    local perfRunning = false
+    local perfThread = nil
+
+    local perfData = {
+        Samples = 0,
+        FPSMin = math.huge,
+        FPSMax = 0,
+        FPSSum = 0,
+        PingMin = math.huge,
+        PingMax = 0,
+        PingSum = 0,
+        Started = os.clock(),
+    }
+
+    local function getPingSafe()
+        local ok, value = pcall(function()
+            local ps = Stats:FindFirstChild("PerformanceStats")
+            local ping = ps and ps:FindFirstChild("Ping")
+            return ping and ping:GetValue() or 0
+        end)
+        return ok and tonumber(value) or 0
+    end
+
+    local function resetPerformance()
+        perfData = {
+            Samples = 0,
+            FPSMin = math.huge,
+            FPSMax = 0,
+            FPSSum = 0,
+            PingMin = math.huge,
+            PingMax = 0,
+            PingSum = 0,
+            Started = os.clock(),
+        }
+    end
+
+    local perfLabel = PerfFolder:AddLabel("FPS: -- | Ping: --")
+    local perfAvgLabel = PerfFolder:AddLabel("Avg FPS: -- | Avg Ping: --")
+
+    local function updatePerformance()
+        local last = os.clock()
+
+        while perfRunning do
+            task.wait(1)
+
+            local now = os.clock()
+            local dt = math.max(now - last, 0.001)
+            last = now
+
+            -- This loop measures scheduler cadence, not true render FPS.
+            -- Keep it as a scheduler-rate metric to avoid misleading labels.
+            local fps = 1 / dt
+            local ping = getPingSafe()
+
+            perfData.Samples += 1
+            perfData.FPSSum += fps
+            perfData.FPSMin = math.min(perfData.FPSMin, fps)
+            perfData.FPSMax = math.max(perfData.FPSMax, fps)
+
+            if ping > 0 then
+                perfData.PingSum += ping
+                perfData.PingMin = math.min(perfData.PingMin, ping)
+                perfData.PingMax = math.max(perfData.PingMax, ping)
+            end
+
+            local avgFPS = perfData.FPSSum / perfData.Samples
+            local avgPing = perfData.PingSum / math.max(perfData.Samples, 1)
+
+            pcall(function()
+                perfLabel.Text = string.format(
+                    "FPS: %.0f | Ping: %.0f ms",
+                    fps,
+                    ping
+                )
+                perfAvgLabel.Text = string.format(
+                    "Avg FPS: %.0f | Avg Ping: %.0f ms",
+                    avgFPS,
+                    avgPing
+                )
+            end)
+        end
+    end
+
+    PerfFolder:AddSwitch("Live Performance", function(state)
+        perfRunning = state
+
+        if state then
+            resetPerformance()
+            if perfThread then
+                return
+            end
+
+            perfThread = task.spawn(function()
+                updatePerformance()
+                perfThread = nil
+            end)
+        end
+    end)
+
+    PerfFolder:AddButton("📈 Performance Report", function()
+        local samples = perfData.Samples
+
+        if samples == 0 then
+            print("[Trayectoo V9] No performance samples yet.")
+            return
+        end
+
+        print("========== PERFORMANCE REPORT ==========")
+        print(string.format("Samples: %d", samples))
+        print(string.format("FPS Min: %.0f", perfData.FPSMin))
+        print(string.format("FPS Avg: %.0f", perfData.FPSSum / samples))
+        print(string.format("FPS Max: %.0f", perfData.FPSMax))
+
+        if perfData.PingMax > 0 then
+            print(string.format("Ping Min: %.0f ms", perfData.PingMin))
+            print(string.format("Ping Avg: %.0f ms", perfData.PingSum / samples))
+            print(string.format("Ping Max: %.0f ms", perfData.PingMax))
+        end
+
+        print("=========================================")
+    end)
+
+    PerfFolder:AddButton("🔄 Reset Performance", function()
+        resetPerformance()
+        perfLabel.Text = "FPS: -- | Ping: --"
+        perfAvgLabel.Text = "Avg FPS: -- | Avg Ping: --"
+    end)
+
+    -- Rock Analyzer: reads the game's existing machine/rock data.
+    local rockLabel = RockFolder:AddLabel("Rock: scanning...")
+    local durabilityLabel = RockFolder:AddLabel("Durability: --")
+    local rockCountLabel = RockFolder:AddLabel("Detected rocks: --")
+
+    local function scanRocks()
+        local results = {}
+        local machines = workspace:FindFirstChild("machinesFolder")
+
+        if not machines then
+            return results
+        end
+
+        for _, obj in ipairs(machines:GetDescendants()) do
+            if obj.Name == "neededDurability" and obj:IsA("ValueBase") then
+                local machine = obj.Parent
+                local rock = machine and machine:FindFirstChild("Rock")
+
+                if rock then
+                    results[#results + 1] = {
+                        Durability = tonumber(obj.Value) or 0,
+                        Name = machine.Name,
+                        Rock = rock,
+                    }
+                end
+            end
+        end
+
+        table.sort(results, function(a, b)
+            return a.Durability < b.Durability
+        end)
+
+        return results
+    end
+
+    local function updateRockAnalyzer()
+        local rocks = scanRocks()
+        rockCountLabel.Text = "Detected rocks: " .. tostring(#rocks)
+
+        if #rocks == 0 then
+            rockLabel.Text = "Rock: none detected"
+            durabilityLabel.Text = "Durability: --"
+            return
+        end
+
+        local first = rocks[1]
+        rockLabel.Text = "Lowest rock: " .. tostring(first.Name)
+        durabilityLabel.Text = "Durability: " .. tostring(first.Durability)
+    end
+
+    RockFolder:AddButton("🔍 Scan Rocks", updateRockAnalyzer)
+
+    RockFolder:AddButton("📋 Rock Ranking", function()
+        local rocks = scanRocks()
+
+        print("============== ROCK RANKING ==============")
+
+        if #rocks == 0 then
+            print("No rocks detected.")
+        else
+            for i, item in ipairs(rocks) do
+                print(
+                    string.format(
+                        "#%d | %s | durability=%s",
+                        i,
+                        tostring(item.Name),
+                        tostring(item.Durability)
+                    )
+                )
+            end
+        end
+
+        print("===========================================")
+    end)
+
+    -- Session statistics based only on local leaderstats.
+    local sessionStarted = os.clock()
+    local startStrength = 0
+    local startRebirths = 0
+
+    pcall(function()
+        local strength = leaderstats:FindFirstChild("Strength")
+        if strength then
+            startStrength = tonumber(strength.Value) or 0
+        end
+        startRebirths = tonumber(rebirthsStat.Value) or 0
+    end)
+
+    local sessionLabel = SessionFolder:AddLabel("Session: 0s")
+    local gainsLabel = SessionFolder:AddLabel("Strength gained: 0 | Rebirths: 0")
+
+    task.spawn(function()
+        while true do
+            task.wait(1)
+
+            local elapsed = os.clock() - sessionStarted
+            local strengthGain = 0
+            local rebirthGain = 0
+
+            pcall(function()
+                local strength = leaderstats:FindFirstChild("Strength")
+                strengthGain = (tonumber(strength and strength.Value) or 0) - startStrength
+                rebirthGain = (tonumber(rebirthsStat.Value) or 0) - startRebirths
+            end)
+
+            sessionLabel.Text = string.format(
+                "Session: %02d:%02d:%02d",
+                math.floor(elapsed / 3600),
+                math.floor((elapsed % 3600) / 60),
+                math.floor(elapsed % 60)
+            )
+
+            gainsLabel.Text = string.format(
+                "Strength gained: %s | Rebirths: %d",
+                tostring(strengthGain),
+                rebirthGain
+            )
+        end
+    end)
+
+    SessionFolder:AddButton("🔄 Reset Session Baseline", function()
+        sessionStarted = os.clock()
+
+        pcall(function()
+            local strength = leaderstats:FindFirstChild("Strength")
+            startStrength = tonumber(strength and strength.Value) or 0
+            startRebirths = tonumber(rebirthsStat.Value) or 0
+        end)
+
+        print("[Trayectoo V9] Session baseline reset.")
+    end)
+
+    ServerFolder:AddLabel("PlaceId: " .. tostring(game.PlaceId))
+    ServerFolder:AddLabel("JobId: " .. tostring(game.JobId))
+    ServerFolder:AddLabel("Players: " .. tostring(#Players:GetPlayers()))
+
+    ServerFolder:AddButton("🔄 Refresh Server Info", function()
+        print("============= SERVER INFO =============")
+        print("PlaceId:", game.PlaceId)
+        print("JobId:", game.JobId)
+        print("Players:", #Players:GetPlayers())
+        print("Max Players:", Players.MaxPlayers)
+        print("=======================================")
+    end)
+
+    Players.PlayerAdded:Connect(function()
+        pcall(function()
+            ServerFolder:AddLabel("Players now: " .. tostring(#Players:GetPlayers()))
+        end)
+    end)
+
+    AnalyzerTab:Show()
+end)
+
+
+
+
+-- ============================================================
+-- TRAYECTOO V10 - SECOND QUALITY PACK
+-- Local analytics / diagnostics only.
+-- ============================================================
+
+pcall(function()
+    local V10Tab = window:AddTab("V10 Tools")
+
+    -- ---------------- PET RANKING ----------------
+    local PetFolderV10 = V10Tab:AddFolder("🐾 Pet Ranking")
+
+    local function getPetObjects()
+        local folder = player and player:FindFirstChild("petsFolder")
+        if not folder then return {} end
+
+        local result = {}
+        for _, pet in ipairs(folder:GetChildren()) do
+            if pet:IsA("Folder") or pet:IsA("Model") or pet:IsA("Configuration") then
+                result[#result + 1] = pet
+            end
+        end
+        return result
+    end
+
+    local function readNumber(parent, names)
+        for _, name in ipairs(names) do
+            local obj = parent:FindFirstChild(name, true)
+            if obj and obj:IsA("ValueBase") then
+                local n = tonumber(obj.Value)
+                if n then return n end
+            end
+        end
+        return 0
+    end
+
+    PetFolderV10:AddButton("🏆 Analyze Pets", function()
+        local pets = getPetObjects()
+
+        table.sort(pets, function(a, b)
+            local av = readNumber(a, {"Strength", "strength", "Multiplier", "multiplier", "Power"})
+            local bv = readNumber(b, {"Strength", "strength", "Multiplier", "multiplier", "Power"})
+            return av > bv
+        end)
+
+        print("=============== PET RANKING ===============")
+
+        if #pets == 0 then
+            print("No pet objects detected.")
+        else
+            for i, pet in ipairs(pets) do
+                local value = readNumber(
+                    pet,
+                    {"Strength", "strength", "Multiplier", "multiplier", "Power"}
+                )
+                print(string.format("#%d | %s | value=%s", i, pet.Name, tostring(value)))
+            end
+        end
+
+        print("============================================")
+    end)
+
+    -- ---------------- ROCK DPS ----------------
+    local DPSFolder = V10Tab:AddFolder("🪨 Rock DPS Analyzer")
+
+    local dpsSamples = {}
+    local dpsRunning = false
+    local lastDurability = nil
+    local lastSampleTime = nil
+
+    local dpsLabel = DPSFolder:AddLabel("DPS: -- | Samples: 0")
+
+    local function findDurabilityValue()
+        local candidates = {
+            "Durability",
+            "durability",
+            "Health",
+            "HP",
+            "Hitpoints",
+        }
+
+        for _, name in ipairs(candidates) do
+            local obj = workspace:FindFirstChild(name, true)
+            if obj and obj:IsA("ValueBase") and tonumber(obj.Value) then
+                return obj
+            end
+        end
+
+        return nil
+    end
+
+    local function averageDPS()
+        if #dpsSamples == 0 then return 0 end
+
+        local total = 0
+        for _, value in ipairs(dpsSamples) do
+            total += value
+        end
+        return total / #dpsSamples
+    end
+
+    DPSFolder:AddSwitch("Measure DPS", function(state)
+        dpsRunning = state
+
+        if not state then
+            lastDurability = nil
+            lastSampleTime = nil
+            return
+        end
+
+        task.spawn(function()
+            while dpsRunning do
+                task.wait(0.5)
+
+                local value = findDurabilityValue()
+                if value then
+                    local current = tonumber(value.Value) or 0
+                    local now = os.clock()
+
+                    if lastDurability ~= nil and lastSampleTime then
+                        local damage = math.max(0, lastDurability - current)
+                        local elapsed = math.max(now - lastSampleTime, 0.001)
+                        local dps = damage / elapsed
+
+                        if dps > 0 then
+                            dpsSamples[#dpsSamples + 1] = dps
+                            while #dpsSamples > 30 do
+                                table.remove(dpsSamples, 1)
+                            end
+
+                            dpsLabel.Text = string.format(
+                                "DPS: %.2f | Samples: %d",
+                                averageDPS(),
+                                #dpsSamples
+                            )
+                        end
+                    end
+
+                    lastDurability = current
+                    lastSampleTime = now
+                end
+            end
+        end)
+    end)
+
+    DPSFolder:AddButton("🧹 Reset DPS", function()
+        table.clear(dpsSamples)
+        lastDurability = nil
+        lastSampleTime = nil
+        dpsLabel.Text = "DPS: -- | Samples: 0"
+    end)
+
+    -- ---------------- STATS / H ----------------
+    local StatsFolderV10 = V10Tab:AddFolder("📈 Stats Per Hour")
+
+    local statsStart = os.clock()
+    local startStr = 0
+    local startDur = 0
+    local startReb = 0
+
+    local rateLabel = StatsFolderV10:AddLabel("Strength/h: -- | Durability/h: --")
+    local rebRateLabel = StatsFolderV10:AddLabel("Rebirths/h: --")
+
+    local function resetRates()
+        statsStart = os.clock()
+
+        pcall(function()
+            local s = leaderstats and leaderstats:FindFirstChild("Strength")
+            startStr = tonumber(s and s.Value) or 0
+
+            local d = player and player:FindFirstChild("Durability")
+            startDur = tonumber(d and d.Value) or 0
+
+            startReb = tonumber(rebirthsStat and rebirthsStat.Value) or 0
+        end)
+    end
+
+    resetRates()
+
+    StatsFolderV10:AddButton("🔄 Reset Rates", resetRates)
+
+    task.spawn(function()
+        while true do
+            task.wait(2)
+
+            local elapsedHours = math.max((os.clock() - statsStart) / 3600, 1 / 3600)
+            local strength = 0
+            local durability = 0
+            local rebirths = 0
+
+            pcall(function()
+                local s = leaderstats and leaderstats:FindFirstChild("Strength")
+                strength = tonumber(s and s.Value) or startStr
+
+                local d = player and player:FindFirstChild("Durability")
+                durability = tonumber(d and d.Value) or startDur
+
+                rebirths = tonumber(rebirthsStat and rebirthsStat.Value) or startReb
+            end)
+
+            rateLabel.Text = string.format(
+                "Strength/h: %.2f | Durability/h: %.2f",
+                math.max(0, strength - startStr) / elapsedHours,
+                math.max(0, durability - startDur) / elapsedHours
+            )
+
+            rebRateLabel.Text = string.format(
+                "Rebirths/h: %.2f",
+                math.max(0, rebirths - startReb) / elapsedHours
+            )
+        end
+    end)
+
+    -- ---------------- ETA ----------------
+    local ETAFolder = V10Tab:AddFolder("⏱ ETA Calculator")
+
+    local targetValue = 0
+    local targetBox = ETAFolder:AddTextBox(
+        "Target Strength",
+        function(value)
+            targetValue = tonumber(value) or 0
+        end
+    )
+
+    local etaLabel = ETAFolder:AddLabel("ETA: --")
+
+    ETAFolder:AddButton("🧮 Calculate ETA", function()
+        local current = 0
+
+        pcall(function()
+            local s = leaderstats and leaderstats:FindFirstChild("Strength")
+            current = tonumber(s and s.Value) or 0
+        end)
+
+        if targetValue <= current then
+            etaLabel.Text = "ETA: Already reached"
+            return
+        end
+
+        local elapsed = math.max(os.clock() - statsStart, 1)
+        local gained = math.max(0, current - startStr)
+
+        if gained <= 0 then
+            etaLabel.Text = "ETA: Need more samples"
+            return
+        end
+
+        local perSecond = gained / elapsed
+        local seconds = (targetValue - current) / perSecond
+
+        etaLabel.Text = string.format(
+            "ETA: %02d:%02d:%02d",
+            math.floor(seconds / 3600),
+            math.floor((seconds % 3600) / 60),
+            math.floor(seconds % 60)
+        )
+    end)
+
+    -- ---------------- BEST ROCK ----------------
+    local BestRockFolder = V10Tab:AddFolder("🏆 Best Available Rock")
+
+    local bestRockLabel = BestRockFolder:AddLabel("Best rock: scanning...")
+
+    local function getPlayerStrength()
+        local value = 0
+        pcall(function()
+            local s = leaderstats and leaderstats:FindFirstChild("Strength")
+            value = tonumber(s and s.Value) or 0
+        end)
+        return value
+    end
+
+    BestRockFolder:AddButton("🔎 Find Best Rock", function()
+        local strength = getPlayerStrength()
+        local best = nil
+
+        local machines = workspace:FindFirstChild("machinesFolder")
+
+        if machines then
+            for _, obj in ipairs(machines:GetDescendants()) do
+                if obj.Name == "neededDurability"
+                    and obj:IsA("ValueBase")
+                    and tonumber(obj.Value) then
+
+                    local durability = tonumber(obj.Value)
+
+                    if durability <= strength then
+                        if not best or durability > best.Durability then
+                            best = {
+                                Name = obj.Parent and obj.Parent.Name or "Unknown",
+                                Durability = durability,
+                            }
+                        end
+                    end
+                end
+            end
+        end
+
+        if best then
+            bestRockLabel.Text = string.format(
+                "Best rock: %s | %s",
+                best.Name,
+                tostring(best.Durability)
+            )
+            print("[Trayectoo V10] Best rock:", best.Name, best.Durability)
+        else
+            bestRockLabel.Text = "Best rock: none detected"
+        end
+    end)
+
+    -- ---------------- OBJECT SCANNER ----------------
+    local ScanFolder = V10Tab:AddFolder("🔍 Object Scanner")
+
+    local scanName = ""
+    ScanFolder:AddTextBox("Object name", function(value)
+        scanName = tostring(value)
+    end)
+
+    ScanFolder:AddButton("🔍 Scan Workspace", function()
+        if scanName == "" then
+            print("[Trayectoo V10] Enter an object name first.")
+            return
+        end
+
+        local found = 0
+
+        for _, obj in ipairs(workspace:GetDescendants()) do
+            if string.lower(obj.Name) == string.lower(scanName) then
+                found += 1
+                print(
+                    string.format(
+                        "#%d | %s | %s",
+                        found,
+                        obj:GetFullName(),
+                        obj.ClassName
+                    )
+                )
+            end
+        end
+
+        print("[Trayectoo V10] Objects found:", found)
+    end)
+
+    -- ---------------- ERROR DASHBOARD ----------------
+    local ErrorFolder = V10Tab:AddFolder("🩺 Error Dashboard")
+
+    local errorLabel = ErrorFolder:AddLabel("Errors: 0")
+
+    local function refreshErrors()
+        if TrayectoUltimate then
+            errorLabel.Text = "Errors: " .. tostring(#TrayectoUltimate.Errors)
+        end
+    end
+
+    ErrorFolder:AddButton("🔄 Refresh Errors", refreshErrors)
+
+    ErrorFolder:AddButton("📋 Print Errors", function()
+        if not TrayectoUltimate then return end
+
+        print("============== ERROR DASHBOARD ==============")
+
+        if #TrayectoUltimate.Errors == 0 then
+            print("No recorded errors.")
+        else
+            for i, err in ipairs(TrayectoUltimate.Errors) do
+                print(
+                    string.format(
+                        "#%d | %s | %s",
+                        i,
+                        tostring(err.Module or err.Label),
+                        tostring(err.Message)
+                    )
+                )
+            end
+        end
+
+        print("==============================================")
+    end)
+
+    -- ---------------- SESSION HISTORY ----------------
+    local HistoryFolder = V10Tab:AddFolder("💾 Session History")
+
+    local history = {}
+    local historyLabel = HistoryFolder:AddLabel("Sessions stored: 0")
+
+    HistoryFolder:AddButton("💾 Save Current Session", function()
+        local duration = os.clock() - statsStart
+
+        local record = {
+            Time = os.time(),
+            Duration = duration,
+            StrengthStart = startStr,
+            DurabilityStart = startDur,
+            RebirthsStart = startReb,
+        }
+
+        history[#history + 1] = record
+
+        while #history > 20 do
+            table.remove(history, 1)
+        end
+
+        historyLabel.Text = "Sessions stored: " .. tostring(#history)
+        print("[Trayectoo V10] Session saved.")
+    end)
+
+    HistoryFolder:AddButton("📋 Show History", function()
+        print("============== SESSION HISTORY ==============")
+
+        for i, session in ipairs(history) do
+            print(
+                string.format(
+                    "#%d | duration=%.1fs | strengthStart=%s | rebirthsStart=%s",
+                    i,
+                    session.Duration,
+                    tostring(session.StrengthStart),
+                    tostring(session.RebirthsStart)
+                )
+            )
+        end
+
+        print("=============================================")
+    end)
+
+    -- ---------------- LIVE DASHBOARD ----------------
+    local DashboardFolder = V10Tab:AddFolder("📊 Live Dashboard")
+
+    local dashboard = DashboardFolder:AddLabel("Loading dashboard...")
+
+    task.spawn(function()
+        while true do
+            task.wait(2)
+
+            local strength = 0
+            local durability = 0
+            local rebirths = 0
+            local ping = 0
+
+            pcall(function()
+                local s = leaderstats and leaderstats:FindFirstChild("Strength")
+                strength = tonumber(s and s.Value) or 0
+
+                local d = player and player:FindFirstChild("Durability")
+                durability = tonumber(d and d.Value) or 0
+
+                rebirths = tonumber(rebirthsStat and rebirthsStat.Value) or 0
+            end)
+
+            pcall(function()
+                local ps = Stats:FindFirstChild("PerformanceStats")
+                local p = ps and ps:FindFirstChild("Ping")
+                ping = tonumber(p and p:GetValue()) or 0
+            end)
+
+            dashboard.Text = string.format(
+                "Strength: %s\nDurability: %s\nRebirths: %s\nPing: %d ms",
+                tostring(strength),
+                tostring(durability),
+                tostring(rebirths),
+                ping
+            )
+        end
+    end)
+
+    -- ---------------- LOCAL PERFORMANCE MODE ----------------
+    local ModeFolder = V10Tab:AddFolder("⚙️ Performance Mode")
+    local performanceMode = false
+
+    ModeFolder:AddSwitch("Low Visual Load", function(state)
+        performanceMode = state
+
+        -- Only changes local visual effects; it does not modify
+        -- game remotes or other players.
+        pcall(function()
+            local lighting = game:GetService("Lighting")
+
+            if state then
+                lighting.GlobalShadows = false
+                lighting.FogEnd = math.min(lighting.FogEnd, 500)
+            else
+                lighting.GlobalShadows = true
+            end
+        end)
+
+        print(
+            "[Trayectoo V10] Performance Mode:",
+            performanceMode and "ON" or "OFF"
+        )
+    end)
+
+    V10Tab:Show()
+end)
+
+
+
+
+-- ============================================================
+-- TRAYECTOO V10 IMPROVED - STABILITY / QUALITY LAYER
+-- Focus: lower overhead, bounded memory, safer scanning,
+-- better number formatting, diagnostics and cleanup.
+-- ============================================================
+
+pcall(function()
+    local QualityTab = window:AddTab("V10 Improved")
+    local QualityFolder = QualityTab:AddFolder("🛠 Quality Control")
+    local MonitorFolder = QualityTab:AddFolder("📡 Smart Monitor")
+    local CacheFolder = QualityTab:AddFolder("🗂 Smart Cache")
+    local CleanupFolder = QualityTab:AddFolder("🧹 Cleanup")
+
+    local Quality = {
+        running = true,
+        connections = {},
+        cache = {},
+        scanInterval = 3,
+        historyLimit = 60,
+    }
+
+    local function connect(signal, callback)
+        local ok, connection = pcall(function()
+            return signal:Connect(callback)
+        end)
+
+        if ok and connection then
+            Quality.connections[#Quality.connections + 1] = connection
+        end
+
+        return connection
+    end
+
+    local function disconnectAll()
+        for _, connection in ipairs(Quality.connections) do
+            pcall(function()
+                connection:Disconnect()
+            end)
+        end
+        table.clear(Quality.connections)
+    end
+
+    local function formatNumber(n)
+        n = tonumber(n) or 0
+
+        local negative = n < 0
+        n = math.abs(n)
+
+        local suffixes = {
+            {1e12, "T"},
+            {1e9, "B"},
+            {1e6, "M"},
+            {1e3, "K"},
+        }
+
+        for _, item in ipairs(suffixes) do
+            if n >= item[1] then
+                local value = n / item[1]
+                return string.format(
+                    negative and "-%.2f%s" or "%.2f%s",
+                    value,
+                    item[2]
+                )
+            end
+        end
+
+        return string.format(negative and "-%.0f" or "%.0f", n)
+    end
+
+    local function getStat(name)
+        local ok, value = pcall(function()
+            local obj = leaderstats and leaderstats:FindFirstChild(name)
+            return tonumber(obj and obj.Value) or 0
+        end)
+
+        return ok and value or 0
+    end
+
+    local function getPlayerValue(name)
+        local ok, value = pcall(function()
+            local obj = player and player:FindFirstChild(name)
+            return tonumber(obj and obj.Value) or 0
+        end)
+
+        return ok and value or 0
+    end
+
+    -- ---------------- QUALITY CONTROL ----------------
+
+    local qualityLabel = QualityFolder:AddLabel("State: Running")
+    local intervalLabel = QualityFolder:AddLabel("Monitor interval: 3s")
+
+    QualityFolder:AddSwitch("Smart Monitor", function(state)
+        Quality.running = state
+        qualityLabel.Text = "State: " .. (state and "Running" or "Paused")
+    end)
+
+    QualityFolder:AddTextBox("Interval (seconds)", function(value)
+        local n = tonumber(value)
+
+        if n then
+            Quality.scanInterval = math.clamp(n, 1, 30)
+            intervalLabel.Text =
+                "Monitor interval: " .. tostring(Quality.scanInterval) .. "s"
+        end
+    end)
+
+    -- ---------------- SMART MONITOR ----------------
+
+    local monitorLabel = MonitorFolder:AddLabel(
+        "Strength: -- | Durability: -- | Rebirths: --"
+    )
+
+    local rateLabel = MonitorFolder:AddLabel(
+        "Strength/h: -- | Durability/h: -- | Rebirths/h: --"
+    )
+
+    local monitorStart = os.clock()
+    local baseStrength = getStat("Strength")
+    local baseDurability = getPlayerValue("Durability")
+    local baseRebirths = getStat("Rebirths")
+
+    local function resetMonitor()
+        monitorStart = os.clock()
+        baseStrength = getStat("Strength")
+        baseDurability = getPlayerValue("Durability")
+        baseRebirths = getStat("Rebirths")
+    end
+
+    MonitorFolder:AddButton("🔄 Reset Monitor", resetMonitor)
+
+    task.spawn(function()
+        while Quality.running do
+            task.wait(Quality.scanInterval)
+
+            local strength = getStat("Strength")
+            local durability = getPlayerValue("Durability")
+            local rebirths = getStat("Rebirths")
+
+            local hours = math.max(
+                (os.clock() - monitorStart) / 3600,
+                1 / 3600
+            )
+
+            monitorLabel.Text = string.format(
+                "Strength: %s | Durability: %s | Rebirths: %s",
+                formatNumber(strength),
+                formatNumber(durability),
+                formatNumber(rebirths)
+            )
+
+            rateLabel.Text = string.format(
+                "Strength/h: %s | Durability/h: %s | Rebirths/h: %.2f",
+                formatNumber(math.max(0, strength - baseStrength) / hours),
+                formatNumber(math.max(0, durability - baseDurability) / hours),
+                math.max(0, rebirths - baseRebirths) / hours
+            )
+        end
+    end)
+
+    -- ---------------- SMART CACHE ----------------
+
+    local cacheLabel = CacheFolder:AddLabel("Cache: empty")
+
+    local function scanMachineFolder()
+        local result = {}
+        local machines = workspace:FindFirstChild("machinesFolder")
+
+        if not machines then
+            return result
+        end
+
+        for _, obj in ipairs(machines:GetDescendants()) do
+            if obj.Name == "neededDurability" and obj:IsA("ValueBase") then
+                local value = tonumber(obj.Value)
+
+                if value then
+                    result[#result + 1] = {
+                        name = obj.Parent and obj.Parent.Name or obj.Name,
+                        durability = value,
+                        instance = obj.Parent,
+                    }
+                end
+            end
+        end
+
+        table.sort(result, function(a, b)
+            return a.durability < b.durability
+        end)
+
+        return result
+    end
+
+    local function refreshCache()
+        local rocks = scanMachineFolder()
+
+        Quality.cache.rocks = rocks
+        Quality.cache.updated = os.clock()
+
+        cacheLabel.Text = string.format(
+            "Cache: %d rocks | updated %.1fs ago",
+            #rocks,
+            0
+        )
+
+        return rocks
+    end
+
+    CacheFolder:AddButton("🔄 Refresh Rock Cache", refreshCache)
+
+    CacheFolder:AddButton("📋 Print Cached Rocks", function()
+        local rocks = Quality.cache.rocks or {}
+
+        print("============= CACHED ROCKS =============")
+
+        for i, rock in ipairs(rocks) do
+            print(
+                string.format(
+                    "#%d | %s | durability=%s",
+                    i,
+                    tostring(rock.name),
+                    tostring(rock.durability)
+                )
+            )
+        end
+
+        print("=========================================")
+    end)
+
+    task.spawn(function()
+        while Quality.running do
+            task.wait(Quality.scanInterval)
+
+            local rocks = refreshCache()
+
+            if Quality.cache.updated then
+                cacheLabel.Text = string.format(
+                    "Cache: %d rocks | ready",
+                    #rocks
+                )
+            end
+        end
+    end)
+
+    -- ---------------- CLEANUP ----------------
+
+    local cleanupLabel = CleanupFolder:AddLabel("Tracked connections: 0")
+
+    CleanupFolder:AddButton("🧹 Disconnect Quality Layer", function()
+        Quality.running = false
+        disconnectAll()
+        cleanupLabel.Text = "Quality layer stopped"
+        qualityLabel.Text = "State: Stopped"
+    end)
+
+    CleanupFolder:AddButton("🗑 Clear Cached Data", function()
+        table.clear(Quality.cache)
+        cacheLabel.Text = "Cache: empty"
+    end)
+
+    CleanupFolder:AddButton("📊 Diagnostics", function()
+        print("=========== TRAYECTOO V10 DIAGNOSTICS ===========")
+        print("Quality running:", Quality.running)
+        print("Monitor interval:", Quality.scanInterval)
+
+        local rocks = Quality.cache.rocks or {}
+        print("Cached rocks:", #rocks)
+        print("Tracked connections:", #Quality.connections)
+
+        print("PlaceId:", game.PlaceId)
+        print("JobId:", game.JobId)
+        print("Players:", #Players:GetPlayers())
+        print("==================================================")
+    end)
+
+    cleanupLabel.Text =
+        "Tracked connections: " .. tostring(#Quality.connections)
+
+    QualityTab:Show()
+end)
+
+
+-- ============================================================
+-- TRAYECTOO AI ADVANCED - AUTO DIAGNOSTICS + VERSION HISTORY
+-- Safe workflow: diagnose -> ask AI -> save version -> apply/revert.
+-- AI-generated code is NEVER executed automatically.
+-- ============================================================
+pcall(function()
+    if not window then return end
+    local HttpService = game:GetService("HttpService")
+    local LogService = game:GetService("LogService")
+    local AITab = window:AddTab("🤖 AI Advanced")
+    local DiagFolder = AITab:AddFolder("🩺 Auto Diagnostics")
+    local AIFolder = AITab:AddFolder("🧠 AI Code Doctor")
+    local HistoryFolder = AITab:AddFolder("🕘 Version History")
+    local FileFolder = AITab:AddFolder("📁 Files / Safety")
+
+    local AI = {
+        Endpoint = "https://api.openai.com/v1/chat/completions",
+        FCCEndpoint = "http://127.0.0.1:8082/v1/messages",
+        FCCAuthToken = "freecc",
+        FCCModel = "fcc/auto",
+        Model = "gpt-4o-mini",
+        Key = "",
+        Source = "Trayectoo_COMPLETE_ULTIMATE_V10_IMPROVED.lua",
+        Output = "Trayectoo_AI_WORKING.lua",
+        Backup = "Trayectoo_AI_BACKUP.lua",
+        History = "Trayectoo_AI_History.json",
+        Errors = {}, MaxErrors = 40, RestoreVersion = nil,
+    }
+
+    local function safeText(v, max)
+        v = tostring(v or "")
+        max = max or 12000
+        return #v > max and v:sub(1, max) .. "\n...[truncated]..." or v
+    end
+    local function hasFiles()
+        return type(isfile)=="function" and type(readfile)=="function" and type(writefile)=="function"
+    end
+    local function saveText(path, text)
+        if not hasFiles() then return false, "File APIs unavailable" end
+        local ok, err = pcall(function() writefile(path, text) end)
+        return ok, ok and nil or tostring(err)
+    end
+    local function readText(path)
+        if not hasFiles() or not isfile(path) then return nil, "File not found: "..tostring(path) end
+        local ok, data = pcall(readfile, path)
+        return ok and data or nil, ok and nil or tostring(data)
+    end
+    local function requestFunction()
+        if type(request)=="function" then return request end
+        if syn and type(syn.request)=="function" then return syn.request end
+        if http and type(http.request)=="function" then return http.request end
+        if fluxus and type(fluxus.request)=="function" then return fluxus.request end
+    end
+    local function postJSON(url, body, headers)
+        local req = requestFunction()
+        if not req then return nil, "No executor HTTP request function" end
+        local ok, response = pcall(req, {Url=url, Method="POST", Headers=headers, Body=HttpService:JSONEncode(body)})
+        if not ok or type(response)~="table" then return nil, tostring(response) end
+        local status = tonumber(response.StatusCode or response.Status or 0) or 0
+        local raw = response.Body or response.body or ""
+        if status >= 400 then return nil, "HTTP "..status..": "..safeText(raw,1000) end
+        local dok, decoded = pcall(HttpService.JSONDecode, HttpService, raw)
+        return dok and decoded or nil, dok and nil or "Invalid JSON response"
+    end
+    local function pushError(msg, source)
+        table.insert(AI.Errors, 1, {time=os.date("%Y-%m-%d %H:%M:%S"), message=safeText(msg,2500), source=safeText(source,600)})
+        while #AI.Errors > AI.MaxErrors do table.remove(AI.Errors) end
+    end
+
+    local diagLabel = DiagFolder:AddLabel("Errors captured: 0")
+    local diagLast = DiagFolder:AddLabel("Last error: none")
+    local function refreshDiagnostics()
+        diagLabel.Text = "Errors captured: "..#AI.Errors
+        diagLast.Text = AI.Errors[1] and "Last: "..safeText(AI.Errors[1].message,180) or "Last error: none"
+    end
+    pcall(function()
+        LogService.MessageOut:Connect(function(message, messageType)
+            if tostring(messageType):find("Error") then
+                pushError(message,"LogService.MessageOut")
+                refreshDiagnostics()
+            end
+        end)
+    end)
+    DiagFolder:AddButton("🔄 Refresh diagnostics", refreshDiagnostics)
+    DiagFolder:AddButton("🧹 Clear captured errors", function() AI.Errors={}; refreshDiagnostics() end)
+    DiagFolder:AddButton("📋 Print diagnostic report", function()
+        print("========== TRAYECTOO AI DIAGNOSTICS ==========")
+        for i,e in ipairs(AI.Errors) do print("#"..i,e.time,e.source); print(e.message) end
+        print("==============================================")
+    end)
+
+    AIFolder:AddTextBox("API Endpoint", function(v) if tostring(v)~="" then AI.Endpoint=tostring(v) end end)
+    AIFolder:AddTextBox("Model", function(v) if tostring(v)~="" then AI.Model=tostring(v) end end)
+    AIFolder:AddTextBox("API Key", function(v) AI.Key=tostring(v or "") end)
+    AIFolder:AddTextBox("Source file", function(v) if tostring(v)~="" then AI.Source=tostring(v) end end)
+    AIFolder:AddTextBox("AI output file", function(v) if tostring(v)~="" then AI.Output=tostring(v) end end)
+    local statusLabel = AIFolder:AddLabel("AI status: idle")
+
+    -- ========================================================
+    -- GENERAL ONLINE ASSISTANT
+    -- Available to normal users; separate from Code Doctor.
+    -- ========================================================
+    local AssistantFolder = AITab:AddFolder("🤖 General Assistant")
+    local AssistantMode = "AUTO" -- LOCAL / FCC / ONLINE / AUTO
+    local LocalRules = {
+        ["hola"] = "¡Hola! Soy el asistente de Trayectoo. Puedo ayudarte con la GUI, funciones y errores comunes.",
+        ["ayuda"] = "Podés preguntarme qué hace una opción, cómo solucionar un error o cómo funciona el script.",
+        ["gui"] = "La GUI está organizada por pestañas y carpetas. Si una función no aparece, revisá que la pestaña se haya creado correctamente.",
+        ["error"] = "Puedo ayudarte a revisar errores capturados. Abrí 🩺 Auto Diagnostics para ver los últimos errores.",
+        ["internet"] = "El modo ONLINE necesita un endpoint compatible y, normalmente, una API Key.",
+        ["api"] = "Si no configurás una API, el modo LOCAL sigue funcionando con el conocimiento y reglas incorporadas en el script.",
+    }
+
+    local function localAssistant(question)
+        local q = string.lower(tostring(question or ""))
+        for keyword, answer in pairs(LocalRules) do
+            if q:find(keyword, 1, true) then
+                return answer
+            end
+        end
+
+        if q:find("qué hace", 1, true) or q:find("que hace", 1, true) then
+            return "Puedo explicarte las funciones principales de la GUI. Decime el nombre de la opción que querés entender."
+        end
+
+        if q:find("no funciona", 1, true) or q:find("no anda", 1, true) then
+            return "Probá 🩺 Auto Diagnostics → Refresh diagnostics. Si hay errores, el modo Code Doctor puede analizarlos."
+        end
+
+        return "Estoy en modo LOCAL. Puedo ayudarte con funciones conocidas de la GUI y errores comunes. Para respuestas más avanzadas, cambiá a ONLINE."
+    end
+
+    AssistantFolder:AddSwitch("🧩 FCC Local", function(state)
+        if state then
+            AssistantMode = "FCC"
+            assistantLabel.Text = "🤖 Assistant: FCC LOCAL"
+        end
+    end)
+
+    AssistantFolder:AddSwitch("🌐 Online", function(state)
+        if state then
+            AssistantMode = "ONLINE"
+            assistantLabel.Text = "🤖 Assistant: ONLINE"
+        end
+    end)
+
+    AssistantFolder:AddSwitch("🧠 Local", function(state)
+        if state then
+            AssistantMode = "LOCAL"
+            assistantLabel.Text = "🤖 Assistant: LOCAL"
+        end
+    end)
+
+    AssistantFolder:AddSwitch("🔄 Auto", function(state)
+        if state then
+            AssistantMode = "AUTO"
+            assistantLabel.Text = "🤖 Assistant: AUTO"
+        end
+    end)
+
+    AssistantFolder:AddLabel("Modo actual: AUTO")
+    
+    local assistantQuestion = ""
+    local assistantLabel = AssistantFolder:AddLabel("🤖 Assistant: ready")
+    local assistantHistory = {}
+
+    AssistantFolder:AddTextBox("💬 Ask anything", function(v)
+        assistantQuestion = tostring(v or "")
+    end)
+
+    local function assistantMessages()
+        local messages = {
+            {
+                role = "system",
+                content = table.concat({
+                    "You are Trayectoo's general in-game assistant.",
+                    "You are NOT an admin-only assistant.",
+                    "Help regular users with questions about the menu, features, gameplay concepts, troubleshooting and general information.",
+                    "Do not claim to have performed actions that you did not perform.",
+                    "Do not reveal API keys, credentials, tokens or private data.",
+                    "Keep answers clear and useful."
+                }, "\n")
+            }
+        }
+
+        for _, message in ipairs(assistantHistory) do
+            messages[#messages + 1] = message
+        end
+
+        return messages
+    end
+
+    -- ========================================================
+    -- FREE CLAUDE CODE BRIDGE
+    -- Lua client for the FCC Anthropic-compatible local server.
+    -- The FCC Python backend must run separately on localhost.
+    -- ========================================================
+    local function postFCC(question)
+        local req = requestFunction()
+        if not req then return nil, "No executor HTTP request function" end
+
+        local messages = {}
+        for _, message in ipairs(assistantHistory) do
+            if message.role == "user" or message.role == "assistant" then
+                messages[#messages + 1] = {
+                    role = message.role,
+                    content = message.content
+                }
+            end
+        end
+        messages[#messages + 1] = {role = "user", content = tostring(question)}
+
+        local headers = {
+            ["Content-Type"] = "application/json",
+            ["Authorization"] = "Bearer " .. tostring(AI.FCCAuthToken or "")
+        }
+
+        local ok, response = pcall(req, {
+            Url = AI.FCCEndpoint,
+            Method = "POST",
+            Headers = headers,
+            Body = HttpService:JSONEncode({
+                model = AI.FCCModel,
+                max_tokens = 1200,
+                messages = messages
+            })
+        })
+
+        if not ok or type(response) ~= "table" then
+            return nil, tostring(response)
+        end
+
+        local status = tonumber(response.StatusCode or response.Status or 0) or 0
+        local raw = response.Body or response.body or ""
+        if status >= 400 then
+            return nil, "FCC HTTP " .. tostring(status) .. ": " .. safeText(raw, 500)
+        end
+
+        local decodedOK, decoded = pcall(HttpService.JSONDecode, HttpService, raw)
+        if not decodedOK or type(decoded) ~= "table" then
+            return nil, "FCC returned invalid JSON"
+        end
+
+        if type(decoded.content) == "table" then
+            for _, block in ipairs(decoded.content) do
+                if type(block) == "table" and block.type == "text" then
+                    return tostring(block.text or ""), nil
+                end
+            end
+        end
+
+        return nil, "FCC returned no text"
+    end
+
+    local function askGeneralAssistant(question)
+        local headers = {["Content-Type"] = "application/json"}
+
+        if AI.Key ~= "" then
+            headers["Authorization"] = "Bearer " .. AI.Key
+        end
+
+        local messages = assistantMessages()
+        messages[#messages + 1] = {
+            role = "user",
+            content = question
+        }
+
+        local response, err = postJSON(AI.Endpoint, {
+            model = AI.Model,
+            temperature = 0.3,
+            messages = messages
+        }, headers)
+
+        if not response then
+            return nil, err
+        end
+
+        local answer = extractAIText(response)
+
+        if answer then
+            assistantHistory[#assistantHistory + 1] = {
+                role = "user",
+                content = question
+            }
+
+            assistantHistory[#assistantHistory + 1] = {
+                role = "assistant",
+                content = safeText(answer, 12000)
+            }
+
+            while #assistantHistory > 20 do
+                table.remove(assistantHistory, 1)
+            end
+        end
+
+        return answer
+    end
+
+    AssistantFolder:AddButton("💬 Send message", function()
+        if assistantQuestion == "" then
+            assistantLabel.Text = "🤖 Assistant: escribí una pregunta primero"
+            return
+        end
+
+        local question = assistantQuestion
+        assistantLabel.Text = "🤖 Assistant: pensando..."
+
+        task.spawn(function()
+            if AssistantMode == "LOCAL" then
+                assistantLabel.Text = "🤖 Assistant: " .. safeText(localAssistant(question), 500)
+                return
+            end
+
+            if AssistantMode == "FCC" then
+                local answer, err = postFCC(question)
+                if answer then
+                    assistantHistory[#assistantHistory + 1] = {role="user", content=question}
+                    assistantHistory[#assistantHistory + 1] = {role="assistant", content=safeText(answer,12000)}
+                    while #assistantHistory > 20 do table.remove(assistantHistory,1) end
+                    assistantLabel.Text = "🤖 Assistant [FCC]: " .. safeText(answer, 500)
+                else
+                    assistantLabel.Text = "🤖 Assistant [FCC]: " .. safeText(err, 180)
+                end
+                return
+            end
+
+            local answer, err = askGeneralAssistant(question)
+
+            if answer then
+                assistantLabel.Text = "🤖 Assistant: " .. safeText(answer, 500)
+                print("========== TRAYECTOO ONLINE ASSISTANT ==========")
+                print(answer)
+                print("=================================================")
+                return
+            end
+
+            if AssistantMode == "AUTO" then
+                local fallback = localAssistant(question)
+                assistantLabel.Text = "🤖 Assistant [LOCAL]: " .. safeText(fallback, 500)
+                return
+            end
+
+            assistantLabel.Text = "🤖 Assistant: error - " .. safeText(err, 180)
+        end)
+    end)
+
+    AssistantFolder:AddButton("🧹 Clear chat", function()
+        table.clear(assistantHistory)
+        assistantLabel.Text = "🤖 Assistant: chat cleared"
+    end)
+
+    AssistantFolder:AddButton("🌐 Test Internet", function()
+        assistantLabel.Text = "🤖 Assistant: testing connection..."
+
+        task.spawn(function()
+            local headers = {["Content-Type"] = "application/json"}
+
+            if AI.Key ~= "" then
+                headers["Authorization"] = "Bearer " .. AI.Key
+            end
+
+            local response, err = postJSON(AI.Endpoint, {
+                model = AI.Model,
+                temperature = 0,
+                messages = {
+                    {
+                        role = "user",
+                        content = "Reply with exactly: TRAYECTOO_ONLINE_OK"
+                    }
+                }
+            }, headers)
+
+            if response then
+                assistantLabel.Text = "🤖 Assistant: 🌐 ONLINE"
+            else
+                assistantLabel.Text =
+                    "🤖 Assistant: ❌ " .. safeText(err, 180)
+            end
+        end)
+    end)
+
+
+    AssistantFolder:AddLabel("🧩 Claude Code project: integrated as a reference for the assistant workflow.")
+    AssistantFolder:AddLabel("ℹ️ LOCAL works without API. AUTO falls back to LOCAL if ONLINE fails.")
+
+    AssistantFolder:AddTextBox("FCC URL", function(v)
+        if tostring(v) ~= "" then AI.FCCEndpoint = tostring(v) end
+    end)
+
+    AssistantFolder:AddTextBox("FCC Auth Token", function(v)
+        AI.FCCAuthToken = tostring(v or "")
+    end)
+
+    AssistantFolder:AddTextBox("FCC Model", function(v)
+        if tostring(v) ~= "" then AI.FCCModel = tostring(v) end
+    end)
+
+    AssistantFolder:AddLabel("ℹ️ FCC Local uses the Free Claude Code server on localhost.")
+    AssistantFolder:AddLabel("ℹ️ LOCAL = built-in; FCC = Free Claude Code; ONLINE = external API; AUTO = fallback.")
+
+    AssistantFolder:AddLabel(
+        "ℹ️ General Assistant is available to all users."
+    )
+
+    local function buildPrompt(source)
+        local errors={}
+        for i=1,math.min(#AI.Errors,12) do
+            local e=AI.Errors[i]
+            errors[#errors+1]=string.format("[%s] %s | %s",e.time,e.source,e.message)
+        end
+        if #errors==0 then errors[1]="No captured runtime errors; inspect structure/API compatibility." end
+        return table.concat({
+            "You are a senior Roblox Luau code maintainer.",
+            "Diagnose concrete bugs and produce a complete corrected script.",
+            "Preserve existing GUI APIs such as AddWindow/AddTab/AddFolder/AddButton/AddSwitch/AddTextBox.",
+            "Do not invent APIs. Keep existing behavior unless a fix requires a change.",
+            "Do not add credential theft, destructive persistence, or automatic execution of generated code.",
+            "Captured diagnostics:",table.concat(errors,"\n"),
+            "SOURCE CODE:\n"..safeText(source,90000)
+        },"\n")
+    end
+    local function askAI(source)
+        if AI.Key=="" then return nil,"API key is empty" end
+        return postJSON(AI.Endpoint,{model=AI.Model,temperature=0.1,messages={
+            {role="system",content="You are a careful Luau code doctor. Output valid Luau only when asked for code."},
+            {role="user",content=buildPrompt(source)}
+        }},{["Content-Type"]="application/json",["Authorization"]="Bearer "..AI.Key})
+    end
+    local function extractAIText(r)
+        return r and r.choices and r.choices[1] and r.choices[1].message and r.choices[1].message.content or nil
+    end
+    local function stripCodeFence(t)
+        t=tostring(t or ""):gsub("^%s*```[%w_%-]*%s*",""):gsub("%s*```%s*$","")
+        return t
+    end
+    local function validate(code)
+        local compiler=loadstring or load
+        local ok, result=pcall(function() return compiler(code) end)
+        return ok and result~=nil, result
+    end
+
+    AIFolder:AddButton("🧠 Diagnose + generate fixed version", function()
+        if not hasFiles() then statusLabel.Text="AI status: file API unavailable"; return end
+        local source,err=readText(AI.Source)
+        if not source then statusLabel.Text="AI status: "..safeText(err,150); return end
+        statusLabel.Text="AI status: analyzing..."
+        task.spawn(function()
+            local response,reqErr=askAI(source)
+            if not response then statusLabel.Text="AI status: "..safeText(reqErr,180); return end
+            local generated=stripCodeFence(extractAIText(response))
+            if not generated or generated=="" then statusLabel.Text="AI status: no code returned"; return end
+            local good,compileErr=validate(generated)
+            if not good then
+                pushError("AI output syntax check failed: "..tostring(compileErr),"AI validator")
+                refreshDiagnostics(); statusLabel.Text="AI status: syntax check FAILED"; return
+            end
+            local ok,saveErr=saveText(AI.Output,generated)
+            if ok then statusLabel.Text="AI status: saved "..AI.Output else statusLabel.Text="AI status: "..safeText(saveErr,150) end
+        end)
+    end)
+    AIFolder:AddButton("🧪 Validate current AI output", function()
+        local code,err=readText(AI.Output)
+        if not code then statusLabel.Text="Validation: "..safeText(err,150); return end
+        local good,result=validate(code)
+        statusLabel.Text=good and "Validation: syntax OK" or "Validation: FAILED - "..safeText(result,150)
+        if not good then pushError("Output validation failed: "..tostring(result),"AI validator"); refreshDiagnostics() end
+    end)
+
+    local historyLabel=HistoryFolder:AddLabel("History: ready")
+    local historyCache={}
+    local function loadHistory()
+        historyCache={}; local raw=readText(AI.History)
+        if raw then local ok,data=pcall(HttpService.JSONDecode,HttpService,raw); if ok and type(data)=="table" then historyCache=data end end
+        return historyCache
+    end
+    local function saveHistory()
+        saveText(AI.History,HttpService:JSONEncode(historyCache))
+        historyLabel.Text="History versions: "..#historyCache
+    end
+    local function createSnapshot(label,content)
+        if not content or content=="" then return false end
+        local id=#historyCache+1
+        local path="Trayectoo_AI_V"..string.format("%03d",id)..".lua"
+        local ok=saveText(path,content); if not ok then return false end
+        historyCache[#historyCache+1]={id=id,time=os.date("%Y-%m-%d %H:%M:%S"),label=label,path=path}
+        saveHistory(); return true
+    end
+    loadHistory(); historyLabel.Text="History versions: "..#historyCache
+    HistoryFolder:AddButton("💾 Save AI output as new version", function()
+        local code=readText(AI.Output)
+        if code and createSnapshot("AI proposed version",code) then historyLabel.Text="Saved version "..#historyCache end
+    end)
+    HistoryFolder:AddButton("📜 Print version history", function()
+        loadHistory(); print("=========== TRAYECTOO AI HISTORY ===========")
+        for _,v in ipairs(historyCache) do print(string.format("V%03d | %s | %s | %s",v.id,v.time,v.label,v.path)) end
+        print("============================================")
+    end)
+    HistoryFolder:AddTextBox("Version number to restore", function(v) AI.RestoreVersion=tonumber(v) end)
+    HistoryFolder:AddButton("↩️ Restore selected version", function()
+        loadHistory(); local n=tonumber(AI.RestoreVersion); local item=n and historyCache[n]
+        if not item then historyLabel.Text="Restore: invalid version"; return end
+        local code,err=readText(item.path); if not code then historyLabel.Text="Restore: "..safeText(err,140); return end
+        local ok=saveText(AI.Output,code); historyLabel.Text=ok and "Restored V"..string.format("%03d",n).." to AI output" or "Restore failed"
+    end)
+
+    local safetyLabel=FileFolder:AddLabel("Apply is manual. Generated code is never executed automatically.")
+    FileFolder:AddButton("📦 Backup source before applying", function()
+        local code,err=readText(AI.Source); if not code then safetyLabel.Text="Backup failed: "..safeText(err,140); return end
+        local ok=saveText(AI.Backup,code); safetyLabel.Text=ok and "Backup saved: "..AI.Backup or "Backup failed"
+    end)
+    FileFolder:AddButton("✅ APPLY AI VERSION", function()
+        local current,err=readText(AI.Source); local generated,outErr=readText(AI.Output)
+        if not current then safetyLabel.Text="Apply failed: "..safeText(err,140); return end
+        if not generated then safetyLabel.Text="Apply failed: "..safeText(outErr,140); return end
+        local good=validate(generated); if not good then safetyLabel.Text="Apply blocked: syntax check failed"; return end
+        if not saveText(AI.Backup,current) then safetyLabel.Text="Apply blocked: backup failed"; return end
+        createSnapshot("Before AI apply",current)
+        local ok,writeErr=saveText(AI.Source,generated)
+        safetyLabel.Text=ok and "Applied AI version. Backup: "..AI.Backup or "Apply failed: "..safeText(writeErr,140)
+    end)
+    FileFolder:AddButton("↩️ REVERT last applied version", function()
+        local backup,err=readText(AI.Backup); if not backup then safetyLabel.Text="Revert failed: "..safeText(err,140); return end
+        local current=readText(AI.Source); if current then createSnapshot("Before revert",current) end
+        local ok,writeErr=saveText(AI.Source,backup)
+        safetyLabel.Text=ok and "Reverted source from backup" or "Revert failed: "..safeText(writeErr,140)
+    end)
+    FileFolder:AddButton("📌 Show active file paths", function()
+        print("========== TRAYECTOO AI FILES ==========")
+        print("Source:",AI.Source); print("AI output:",AI.Output); print("Backup:",AI.Backup); print("History:",AI.History)
+        print("=========================================")
+    end)
+end)
