@@ -210,6 +210,17 @@ bd.Theme = {
     Overlay = Color3.fromRGB(0,0,0)
 }
 bd.Themes = {}
+function bd:CreateTheme(name, values)
+    name = tostring(name or "Custom")
+    values = type(values) == "table" and values or {}
+    local theme = {}
+    for key, value in pairs(self.Theme) do theme[key] = value end
+    for key, value in pairs(values) do theme[key] = value end
+    self.Themes = self.Themes or {}
+    self.Themes[name] = theme
+    return theme
+end
+
 bd:CreateTheme("MidnightGold", {
     Main = Color3.fromRGB(212,175,55),
     Background = Color3.fromRGB(12,12,15),
@@ -608,16 +619,7 @@ function bd:Validate()
     return #problems == 0, problems
 end
 
-function bd:CreateTheme(name, values)
-    name = tostring(name or "Custom")
-    values = type(values) == "table" and values or {}
-    local theme = {}
-    for key, value in pairs(self.Theme) do theme[key] = value end
-    for key, value in pairs(values) do theme[key] = value end
-    self.Themes = self.Themes or {}
-    self.Themes[name] = theme
-    return theme
-end
+
 
 function bd:UseTheme(name)
     if not self.Themes or not self.Themes[name] then return false end
