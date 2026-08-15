@@ -3367,7 +3367,15 @@ farmTab:AddButton("anti afk", function()
             end)
             if success and response then
                 local loadSuccess, err = pcall(function()
-                    loadstring(response)()
+                    local compiler = loadstring or load
+if type(compiler) ~= "function" then
+    error("[Trayectoo] loadstring/load no está disponible")
+end
+local chunk, compileErr = compiler(response)
+if type(chunk) ~= "function" then
+    error("[Trayectoo] Error de sintaxis en script remoto: " .. tostring(compileErr))
+end
+chunk()
                 end)
                 if not loadSuccess then
                     warn("[Pegar Muerto] Error ejecutando raw:", url, err)
@@ -7421,7 +7429,15 @@ Killer:AddButton("Pegar Muerto", function()
             end)
             if success and response then
                 local loadSuccess, err = pcall(function()
-                    loadstring(response)()
+                    local compiler = loadstring or load
+if type(compiler) ~= "function" then
+    error("[Trayectoo] loadstring/load no está disponible")
+end
+local chunk, compileErr = compiler(response)
+if type(chunk) ~= "function" then
+    error("[Trayectoo] Error de sintaxis en script remoto: " .. tostring(compileErr))
+end
+chunk()
                 end)
                 if not loadSuccess then
                     warn("[Pegar Muerto] Error ejecutando raw:", url, err)
@@ -7583,7 +7599,15 @@ Killer:AddSwitch("Pegar Muerto", function()
             end)
             if success and response then
                 local loadSuccess, err = pcall(function()
-                    loadstring(response)()
+                    local compiler = loadstring or load
+if type(compiler) ~= "function" then
+    error("[Trayectoo] loadstring/load no está disponible")
+end
+local chunk, compileErr = compiler(response)
+if type(chunk) ~= "function" then
+    error("[Trayectoo] Error de sintaxis en script remoto: " .. tostring(compileErr))
+end
+chunk()
                 end)
                 if not loadSuccess then
                     warn("[Pegar Muerto] Error ejecutando raw:", url, err)
