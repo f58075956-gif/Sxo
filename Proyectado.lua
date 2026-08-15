@@ -388,6 +388,93 @@ local function GetErrorLog()
     return copy
 end
 
+
+-- ============================================================
+-- TRAYECTOO ERROR DETECTOR / CONSOLE LOGGER
+-- Detecta errores de ejecución que lleguen al LogService y los
+-- deja claramente marcados en la consola sin provocar un bucle.
+-- ============================================================
+local TrayectooErrorDetector = {
+    Enabled = true,
+    Errors = {},
+    MaxErrors = 200,
+    _busy = false,
+    _connection = nil,
+}
+
+function TrayectooErrorDetector:Log(kind, message)
+    if not self.Enabled then return end
+    message = tostring(message or "Unknown error")
+    self.Errors[#self.Errors + 1] = {
+        Time = os.time(),
+        Kind = tostring(kind or "ERROR"),
+        Message = message,
+    }
+    while #self.Errors > self.MaxErrors do
+        table.remove(self.Errors, 1)
+    end
+
+    -- No usamos warn() aquí porque LogService puede capturar el warn
+    -- y volver a entrar en este detector.
+    print(string.format("[Trayectoo][%s] %s", tostring(kind or "ERROR"), message))
+end
+
+function TrayectooErrorDetector:Install()
+    if self._connection then return true end
+    local ok, logService = pcall(function()
+        return game:GetService("LogService")
+    end)
+    if not ok or not logService then
+        print("[Trayectoo][ERROR DETECTOR] LogService no disponible")
+        return false
+    end
+
+    local connected, connection = pcall(function()
+        return logService.MessageOut:Connect(function(message, messageType)
+            if self._busy or not self.Enabled then return end
+            local isError = false
+            pcall(function()
+                isError = messageType == Enum.MessageType.MessageError
+            end)
+            if not isError then return end
+
+            self._busy = true
+            local text = tostring(message or "Unknown error")
+            self.Errors[#self.Errors + 1] = {
+                Time = os.time(),
+                Kind = "RUNTIME",
+                Message = text,
+            }
+            while #self.Errors > self.MaxErrors do
+                table.remove(self.Errors, 1)
+            end
+            print("[Trayectoo][RUNTIME ERROR] " .. text)
+            self._busy = false
+        end)
+    end)
+
+    if connected and connection then
+        self._connection = connection
+        print("[Trayectoo][ERROR DETECTOR] activo")
+        return true
+    end
+
+    print("[Trayectoo][ERROR DETECTOR] no se pudo conectar a LogService")
+    return false
+end
+
+function TrayectooErrorDetector:GetErrors()
+    return self.Errors
+end
+
+function TrayectooErrorDetector:Clear()
+    table.clear(self.Errors)
+end
+
+pcall(function()
+    TrayectooErrorDetector:Install()
+end)
+
 local function SafeCallback(callback, ...)
     if type(callback) ~= "function" then
         local message = "callback inválido: " .. tostring(callback)
@@ -1265,7 +1352,7 @@ function bd:Destroy()
     if b and b.Parent then b:Destroy() end
 end
 
-bd.ClearErrorLog = ClearErrorLog;bd.GetErrorLog = GetErrorLog;bd.SafeCallback = SafeCallback;bd.GetLastError = function() return ErrorLog[#ErrorLog] end
+bd.ClearErrorLog = ClearErrorLog;bd.GetErrorLog = GetErrorLog;bd.SafeCallback = SafeCallback;bd.GetLastError = function() return ErrorLog[#ErrorLog] end;bd.ErrorDetector = TrayectooErrorDetector;bd.GetRuntimeErrors = function() return TrayectooErrorDetector:GetErrors() end;bd.ClearRuntimeErrors = function() TrayectooErrorDetector:Clear() end
 
 
 
