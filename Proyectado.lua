@@ -502,7 +502,30 @@ if type(gethui) == "function" then
     local ok, hui = pcall(gethui)
     if ok and hui then guiParent = hui end
 end
-b.Parent = guiParent; c.Name="Prefabs"c.Parent=b;c.BackgroundColor3=Color3.new(1,1,1)c.Size=UDim2.new(0,100,0,100)c.Visible=false;d.Name="Label"d.Parent=c;d.BackgroundColor3=Color3.new(1,1,1)d.BackgroundTransparency=1;d.Size=UDim2.new(0,200,0,20)d.Font=Enum.Font.Gotham;d.Text="Hello, world 123"d.TextColor3=Color3.new(1,1,1)G_glow(d);d.TextSize=16;d.TextXAlignment=Enum.TextXAlignment.Left;e.Name="Window"e.Parent=c;e.Active=true;e.BackgroundColor3=Color3.new(1,1,1)e.BackgroundTransparency=1;e.ClipsDescendants=true;e.Position=UDim2.new(0,20,0,20)e.Selectable=true;e.Size=UDim2.new(0,200,0,200)e.Image="rbxassetid://2851926732"e.ImageColor3=Color3.fromRGB(24,24,28)e.ScaleType=Enum.ScaleType.Slice;e.SliceCenter=Rect.new(12,12,12,12)local techStroke=Instance.new("UIStroke")techStroke.Parent=e;techStroke.Thickness=1;techStroke.Transparency=0.45;techStroke.ApplyStrokeMode=Enum.ApplyStrokeMode.Border;local techCorner=Instance.new("UICorner");techCorner.CornerRadius=UDim.new(0,12);techCorner.Parent=e;local techStrokeGrad=Instance.new("UIGradient")techStrokeGrad.Parent=techStroke;techStrokeGrad.Color=ColorSequence.new({ColorSequenceKeypoint.new(0,Color3.fromRGB(70,70,78)),ColorSequenceKeypoint.new(0.5,Color3.fromRGB(95,95,105)),ColorSequenceKeypoint.new(1,Color3.fromRGB(70,70,78))})f.Name="Resizer"f.Parent=e;f.Active=true;f.BackgroundColor3=Color3.new(1,1,1)f.BackgroundTransparency=1;f.BorderSizePixel=0;f.Position=UDim2.new(1,-20,1,-20)f.Size=UDim2.new(0,20,0,20)g.Name="Bar"g.Parent=e;local barCorner=Instance.new("UICorner");barCorner.CornerRadius=UDim.new(0,8);barCorner.Parent=g;g.BackgroundColor3=Color3.fromRGB(32,32,36)g.BorderSizePixel=0;g.Position=UDim2.new(0,0,0,0)g.Size=UDim2.new(1,0,0,40)local techBarGrad=Instance.new("UIGradient")techBarGrad.Parent=g;techBarGrad.Color=ColorSequence.new({ColorSequenceKeypoint.new(0,Color3.fromRGB(32,32,36)),ColorSequenceKeypoint.new(0.5,Color3.fromRGB(42,42,48)),ColorSequenceKeypoint.new(1,Color3.fromRGB(32,32,36))})h.Name="Toggle"h.Parent=g;h.BackgroundColor3=Color3.new(1,1,1)h.BackgroundTransparency=1;h.Position=UDim2.new(0,5,0,-2)h.Rotation=0;h.Size=UDim2.new(0,20,0,20)h.ZIndex=2;h.Image="https://www.roblox.com/Thumbs/Asset.ashx?width=420&height=420&assetId=117051021868712"i.Name="Base"i.Parent=g;i.BackgroundColor3=Color3.new(1,1,1)i.BorderSizePixel=0;i.Position=UDim2.new(0,0,0.800000012,0)i.Size=UDim2.new(1,0,0,10)i.Image="rbxassetid://2851926732"i.ImageColor3=Color3.new(1,1,1)i.ScaleType=Enum.ScaleType.Slice;i.SliceCenter=Rect.new(12,12,12,12)j.Name="Top"j.Parent=g;j.BackgroundColor3=Color3.new(1,1,1)j.BackgroundTransparency=1;j.Position=UDim2.new(0,0,0,-5)j.Size=UDim2.new(1,0,0,10)j.Image="rbxassetid://2851926732"j.ImageColor3=Color3.new(1,1,1)j.ScaleType=Enum.ScaleType.Slice;j.SliceCenter=Rect.new(12,12,12,12)k.Name="Tabs"k.Parent=e;k.BackgroundColor3=Color3.new(1,1,1)k.BackgroundTransparency=1;k.Position=UDim2.new(0,156,0,32)k.Size=UDim2.new(1,-168,1,-44)k.ClipsDescendants=true;l.Name="Title"l.Parent=e;l.BackgroundColor3=Color3.new(1,1,1)l.BackgroundTransparency=1;l.Position=UDim2.new(0,30,0,10)l.Size=UDim2.new(0,200,0,20)l.Font=Enum.Font.Gotham;l.Text="Gamer Time"l.TextColor3=Color3.new(1,1,1)G_glow(l);l.TextSize=14;l.TextXAlignment=Enum.TextXAlignment.Left;m.Name="TabSelection"m.Parent=e;m.BackgroundColor3=Color3.new(1,1,1)m.BackgroundTransparency=1;m.Position=UDim2.new(0,15,0,50)m.Size=UDim2.new(0,120,1,-65)m.Visible=true;m.Image="rbxassetid://2851929490"m.ImageColor3=Color3.fromRGB(30,30,36)m.ScaleType=Enum.ScaleType.Slice;m.SliceCenter=Rect.new(4,4,4,4)n.Name="TabScrolling"n.Parent=m;n.BackgroundTransparency=1;n.BorderSizePixel=0;n.Size=UDim2.new(1,0,1,0)n.CanvasSize=UDim2.new(0,0,0,0)n.ScrollBarThickness=0;n.ScrollingDirection=Enum.ScrollingDirection.Y;o.Name="TabButtons"o.Parent=n;o.BackgroundColor3=Color3.new(1,1,1)o.BackgroundTransparency=1;o.Size=UDim2.new(1,0,0,0)o.ClipsDescendants=true;p.Parent=o;p.FillDirection=Enum.FillDirection.Vertical;p.SortOrder=Enum.SortOrder.LayoutOrder;p.Padding=UDim.new(0,4)q.Parent=m;q.BackgroundColor3=Color3.new(1,1,1)q.BorderColor3=Color3.fromRGB(70,70,78)q.BorderSizePixel=0;q.Position=UDim2.new(1,-1,0,0)q.Size=UDim2.new(0,1,1,0)r.Name="Tab"r.Parent=c;r.BackgroundColor3=Color3.new(1,1,1)r.BackgroundTransparency=1;r.Size=UDim2.new(1,0,1,0)r.Visible=false;s.Parent=r;s.SortOrder=Enum.SortOrder.LayoutOrder;s.Padding=UDim.new(0,5)t.Parent=c;t.BackgroundColor3=Color3.new(1,1,1)t.BackgroundTransparency=1;t.BorderSizePixel=0;t.Size=UDim2.new(1,0,0,20)t.ZIndex=2;t.Font=Enum.Font.Gotham;t.PlaceholderColor3=Color3.fromRGB(150,150,160)t.PlaceholderText="Input Text"t.Text=""t.TextColor3=Color3.fromRGB(225,225,230)G_glow(t);t.TextSize=14;u.Name="TextBox_Roundify_4px"u.Parent=t;u.BackgroundColor3=Color3.new(1,1,1)u.BackgroundTransparency=1;u.Size=UDim2.new(1,0,1,0)u.Image="rbxassetid://2851929490"u.ImageColor3=Color3.fromRGB(32,32,38)u.ScaleType=Enum.ScaleType.Slice;u.SliceCenter=Rect.new(4,4,4,4)v.Name="Slider"v.Parent=c;v.BackgroundColor3=Color3.new(1,1,1)v.BackgroundTransparency=1;v.Position=UDim2.new(0,0,0.178571433,0)v.Size=UDim2.new(1,0,0,20)v.Image="rbxassetid://2851929490"v.ImageColor3=Color3.fromRGB(30,30,36)v.ScaleType=Enum.ScaleType.Slice;v.SliceCenter=Rect.new(4,4,4,4)w.Name="Title"w.Parent=v;w.BackgroundColor3=Color3.new(1,1,1)w.BackgroundTransparency=1;w.Position=UDim2.new(0.5,0,0.5,-10)w.Size=UDim2.new(0,0,0,20)w.ZIndex=2;w.Font=Enum.Font.Gotham;w.Text="Slider"w.TextColor3=Color3.fromRGB(225,225,230)G_glow(w);w.TextSize=14;x.Name="Indicator"x.Parent=v;x.BackgroundColor3=Color3.new(1,1,1)x.BackgroundTransparency=1;x.Size=UDim2.new(0,0,0,20)x.Image="rbxassetid://2851929490"x.ImageColor3=Color3.fromRGB(218,184,92)x.ScaleType=Enum.ScaleType.Slice;x.SliceCenter=Rect.new(4,4,4,4)y.Name="Value"y.Parent=v;y.BackgroundColor3=Color3.new(1,1,1)y.BackgroundTransparency=1;y.Position=UDim2.new(1,-55,0.5,-10)y.Size=UDim2.new(0,50,0,20)y.Font=Enum.Font.Gotham;y.Text="0%"y.TextColor3=Color3.fromRGB(225,225,230)G_glow(y);y.TextSize=14;z.Parent=v;z.BackgroundColor3=Color3.new(1,1,1)z.BackgroundTransparency=1;z.Position=UDim2.new(1,-20,-0.75,0)z.Size=UDim2.new(0,26,0,50)z.Font=Enum.Font.Gotham;z.Text="]"z.TextColor3=Color3.new(0.627451,0.627451,0.627451)G_glow(z);z.TextSize=14;A.Parent=v;A.BackgroundColor3=Color3.new(1,1,1)A.BackgroundTransparency=1;A.Position=UDim2.new(1,-65,-0.75,0)A.Size=UDim2.new(0,26,0,50)A.Font=Enum.Font.Gotham;A.Text="["A.TextColor3=Color3.new(0.627451,0.627451,0.627451)G_glow(A);A.TextSize=14;B.Name="Circle"B.Parent=c;B.BackgroundColor3=Color3.new(1,1,1)B.BackgroundTransparency=1;B.Image="rbxassetid://266543268"B.ImageTransparency=0.5;C.Parent=c;C.FillDirection=Enum.FillDirection.Horizontal;C.SortOrder=Enum.SortOrder.LayoutOrder;C.Padding=UDim.new(0,20)D.Name="Dropdown"D.Parent=c;D.BackgroundColor3=Color3.new(1,1,1)D.BackgroundTransparency=1;D.BorderSizePixel=0;D.Position=UDim2.new(-0.055555556,0,0.0833333284,0)D.Size=UDim2.new(0,200,0,20)D.ZIndex=2;D.Font=Enum.Font.Gotham;D.Text="      Dropdown"D.TextColor3=Color3.fromRGB(225,225,230)G_glow(D);D.TextSize=14;D.TextXAlignment=Enum.TextXAlignment.Left;E.Name="Indicator"E.Parent=D;E.BackgroundColor3=Color3.new(1,1,1)E.BackgroundTransparency=1;E.Position=UDim2.new(0.899999976,-10,0.100000001,0)E.Rotation=-90;E.Size=UDim2.new(0,15,0,15)E.ZIndex=2;E.Image="https://www.roblox.com/Thumbs/Asset.ashx?width=420&height=420&assetId=4744658743"F.Name="Box"F.Parent=D;F.BackgroundColor3=Color3.new(1,1,1)F.BackgroundTransparency=1;F.Position=UDim2.new(0,0,0,25)F.Size=UDim2.new(1,0,0,150)F.ZIndex=3;F.Image="rbxassetid://2851929490"F.ImageColor3=Color3.fromRGB(18,18,21)F.ScaleType=Enum.ScaleType.Slice;F.SliceCenter=Rect.new(4,4,4,4)G.Name="Objects"G.Parent=F;G.BackgroundColor3=Color3.new(1,1,1)G.BackgroundTransparency=1;G.BorderSizePixel=0;G.Size=UDim2.new(1,0,1,0)G.ZIndex=3;G.CanvasSize=UDim2.new(0,0,0,0)G.ScrollBarThickness=4;G.ScrollBarImageColor3=Color3.fromRGB(218,184,92)H.Parent=G;H.SortOrder=Enum.SortOrder.LayoutOrder;I.Name="TextButton_Roundify_4px"I.Parent=D;I.BackgroundColor3=Color3.new(1,1,1)I.BackgroundTransparency=1;I.Size=UDim2.new(1,0,1,0)I.Image="rbxassetid://2851929490"I.ImageColor3=Color3.fromRGB(32,32,38)I.ScaleType=Enum.ScaleType.Slice;I.SliceCenter=Rect.new(4,4,4,4)J.Name="TabButton"J.Parent=c;J.BackgroundColor3=Color3.fromRGB(218,184,92)J.BackgroundTransparency=1;J.BorderSizePixel=0;J.Position=UDim2.new(0,0,0,0)J.Size=UDim2.new(1,0,0,34)J.ZIndex=2;J.Font=Enum.Font.Gotham;J.Text="Test tab"J.TextColor3=Color3.fromRGB(225,225,230)J.TextXAlignment=Enum.TextXAlignment.Left;G_glow(J);J.TextSize=14;K.Name="TextButton_Roundify_4px"K.Parent=J;K.BackgroundColor3=Color3.new(1,1,1)K.BackgroundTransparency=1;K.Size=UDim2.new(1,0,1,0)K.Image="rbxassetid://2851929490"K.ImageColor3=Color3.fromRGB(32,32,38)K.ScaleType=Enum.ScaleType.Slice;K.SliceCenter=Rect.new(4,4,4,4)L.Name="Folder"L.Parent=c;L.BackgroundColor3=Color3.new(1,1,1)L.BackgroundTransparency=1;L.Position=UDim2.new(0,0,0,50)L.Size=UDim2.new(1,0,0,20)L.Image="rbxassetid://2851929490"L.ImageColor3=Color3.fromRGB(10,10,12)L.ScaleType=Enum.ScaleType.Slice;L.SliceCenter=Rect.new(4,4,4,4)M.Name="Button"M.Parent=L;M.BackgroundColor3=Color3.fromRGB(218,184,92)M.BackgroundTransparency=1;M.BorderSizePixel=0;M.Size=UDim2.new(1,0,0,20)M.ZIndex=2;M.Font=Enum.Font.Gotham;M.Text="      Folder"M.TextColor3=Color3.new(1,1,1)G_glow(M);M.TextSize=14;M.TextXAlignment=Enum.TextXAlignment.Left;N.Name="TextButton_Roundify_4px"N.Parent=M;N.BackgroundColor3=Color3.new(1,1,1)N.BackgroundTransparency=1;N.Size=UDim2.new(1,0,1,0)N.Image="rbxassetid://2851929490"N.ImageColor3=Color3.fromRGB(218,184,92)N.ScaleType=Enum.ScaleType.Slice;N.SliceCenter=Rect.new(4,4,4,4)O.Name="Toggle"O.Parent=M;O.BackgroundColor3=Color3.new(1,1,1)O.BackgroundTransparency=1;O.Position=UDim2.new(0,5,0,0)O.Size=UDim2.new(0,20,0,20)O.Image="https://www.roblox.com/Thumbs/Asset.ashx?width=420&height=420&assetId=4731371541"P.Name="Objects"P.Parent=L;P.BackgroundColor3=Color3.new(1,1,1)P.BackgroundTransparency=1;P.Position=UDim2.new(0,10,0,25)P.Size=UDim2.new(1,-10,1,-25)P.Visible=false;Q.Parent=P;Q.SortOrder=Enum.SortOrder.LayoutOrder;Q.Padding=UDim.new(0,5)R.Name="HorizontalAlignment"R.Parent=c;R.BackgroundColor3=Color3.new(1,1,1)R.BackgroundTransparency=1;R.Size=UDim2.new(1,0,0,20)S.Parent=R;S.FillDirection=Enum.FillDirection.Horizontal;S.SortOrder=Enum.SortOrder.LayoutOrder;S.Padding=UDim.new(0,5)T.Name="Console"T.Parent=c;T.BackgroundColor3=Color3.new(1,1,1)T.BackgroundTransparency=1;T.Size=UDim2.new(1,0,0,200)T.Image="rbxassetid://2851928141"T.ImageColor3=Color3.fromRGB(18,18,21)T.ScaleType=Enum.ScaleType.Slice;T.SliceCenter=Rect.new(8,8,8,8)U.Parent=T;U.BackgroundColor3=Color3.new(1,1,1)U.BackgroundTransparency=1;U.BorderSizePixel=0;U.Size=UDim2.new(1,0,1,1)U.CanvasSize=UDim2.new(0,0,0,0)U.ScrollBarThickness=4;V.Name="Source"V.Parent=U;V.BackgroundColor3=Color3.new(1,1,1)V.BackgroundTransparency=1;V.Position=UDim2.new(0,40,0,0)V.Size=UDim2.new(1,-40,0,10000)V.ZIndex=3;V.ClearTextOnFocus=false;V.Font=Enum.Font.Gotham;V.MultiLine=true;V.PlaceholderColor3=Color3.new(0.8,0.8,0.8)V.Text=""V.TextColor3=Color3.new(1,1,1)G_glow(V);V.TextSize=15;V.TextStrokeColor3=Color3.new(1,1,1)V.TextWrapped=true;V.TextXAlignment=Enum.TextXAlignment.Left;V.TextYAlignment=Enum.TextYAlignment.Top;W.Name="Comments"W.Parent=V;W.BackgroundColor3=Color3.new(1,1,1)W.BackgroundTransparency=1;W.Size=UDim2.new(1,0,1,0)W.ZIndex=5;W.Font=Enum.Font.Gotham;W.Text=""W.TextColor3=Color3.new(0.231373,0.784314,0.231373)G_glow(W);W.TextSize=15;W.TextXAlignment=Enum.TextXAlignment.Left;W.TextYAlignment=Enum.TextYAlignment.Top;X.Name="Globals"X.Parent=V;X.BackgroundColor3=Color3.new(1,1,1)X.BackgroundTransparency=1;X.Size=UDim2.new(1,0,1,0)X.ZIndex=5;X.Font=Enum.Font.Gotham;X.Text=""X.TextColor3=Color3.new(0.517647,0.839216,0.968628)G_glow(X);X.TextSize=15;X.TextXAlignment=Enum.TextXAlignment.Left;X.TextYAlignment=Enum.TextYAlignment.Top;Y.Name="Keywords"Y.Parent=V;Y.BackgroundColor3=Color3.new(1,1,1)Y.BackgroundTransparency=1;Y.Size=UDim2.new(1,0,1,0)Y.ZIndex=5;Y.Font=Enum.Font.Gotham;Y.Text=""Y.TextColor3=Color3.new(0.972549,0.427451,0.486275)G_glow(Y);Y.TextSize=15;Y.TextXAlignment=Enum.TextXAlignment.Left;Y.TextYAlignment=Enum.TextYAlignment.Top;Z.Name="RemoteHighlight"Z.Parent=V;Z.BackgroundColor3=Color3.new(1,1,1)Z.BackgroundTransparency=1;Z.Size=UDim2.new(1,0,1,0)Z.ZIndex=5;Z.Font=Enum.Font.Gotham;Z.Text=""Z.TextColor3=Color3.new(0,0.568627,1)G_glow(Z);Z.TextSize=15;Z.TextXAlignment=Enum.TextXAlignment.Left;Z.TextYAlignment=Enum.TextYAlignment.Top;_.Name="Strings"_.Parent=V;_.BackgroundColor3=Color3.new(1,1,1)_.BackgroundTransparency=1;_.Size=UDim2.new(1,0,1,0)_.ZIndex=5;_.Font=Enum.Font.Gotham;_.Text=""_.TextColor3=Color3.new(0.678431,0.945098,0.584314)G_glow(_);_.TextSize=15;_.TextXAlignment=Enum.TextXAlignment.Left;_.TextYAlignment=Enum.TextYAlignment.Top;a0.Name="Tokens"a0.Parent=V;a0.BackgroundColor3=Color3.new(1,1,1)a0.BackgroundTransparency=1;a0.Size=UDim2.new(1,0,1,0)a0.ZIndex=5;a0.Font=Enum.Font.Gotham;a0.Text=""a0.TextColor3=Color3.new(1,1,1)G_glow(a0);a0.TextSize=15;a0.TextXAlignment=Enum.TextXAlignment.Left;a0.TextYAlignment=Enum.TextYAlignment.Top;a1.Name="Numbers"a1.Parent=V;a1.BackgroundColor3=Color3.new(1,1,1)a1.BackgroundTransparency=1;a1.Size=UDim2.new(1,0,1,0)a1.ZIndex=4;a1.Font=Enum.Font.Gotham;a1.Text=""a1.TextColor3=Color3.new(1,0.776471,0)G_glow(a1);a1.TextSize=15;a1.TextXAlignment=Enum.TextXAlignment.Left;a1.TextYAlignment=Enum.TextYAlignment.Top;a2.Name="Info"a2.Parent=V;a2.BackgroundColor3=Color3.new(1,1,1)a2.BackgroundTransparency=1;a2.Size=UDim2.new(1,0,1,0)a2.ZIndex=5;a2.Font=Enum.Font.Gotham;a2.Text=""a2.TextColor3=Color3.new(0,0.635294,1)G_glow(a2);a2.TextSize=15;a2.TextXAlignment=Enum.TextXAlignment.Left;a2.TextYAlignment=Enum.TextYAlignment.Top;a3.Name="Lines"a3.Parent=U;a3.BackgroundColor3=Color3.new(1,1,1)a3.BackgroundTransparency=1;a3.BorderSizePixel=0;a3.Size=UDim2.new(0,40,0,10000)a3.ZIndex=4;a3.Font=Enum.Font.Gotham;a3.Text="1\n"a3.TextColor3=Color3.new(1,1,1)G_glow(a3);a3.TextSize=15;a3.TextWrapped=true;a3.TextYAlignment=Enum.TextYAlignment.Top;a4.Name="ColorPicker"a4.Parent=c;a4.BackgroundColor3=Color3.new(1,1,1)a4.BackgroundTransparency=1;a4.Size=UDim2.new(0,180,0,110)a4.Image="rbxassetid://2851929490"a4.ImageColor3=Color3.fromRGB(32,32,38)a4.ScaleType=Enum.ScaleType.Slice;a4.SliceCenter=Rect.new(4,4,4,4)a5.Name="Palette"a5.Parent=a4;a5.BackgroundColor3=Color3.new(1,1,1)a5.BackgroundTransparency=1;a5.Position=UDim2.new(0.0500000007,0,0.0500000007,0)a5.Size=UDim2.new(0,100,0,100)a5.Image="rbxassetid://698052001"a5.ScaleType=Enum.ScaleType.Slice;a5.SliceCenter=Rect.new(4,4,4,4)a6.Name="Indicator"a6.Parent=a5;a6.BackgroundColor3=Color3.new(1,1,1)a6.BackgroundTransparency=1;a6.Size=UDim2.new(0,5,0,5)a6.ZIndex=2;a6.Image="rbxassetid://2851926732"a6.ImageColor3=Color3.new(0,0,0)a6.ScaleType=Enum.ScaleType.Slice;a6.SliceCenter=Rect.new(12,12,12,12)a7.Name="Sample"a7.Parent=a4;a7.BackgroundColor3=Color3.new(1,1,1)a7.BackgroundTransparency=1;a7.Position=UDim2.new(0.800000012,0,0.0500000007,0)a7.Size=UDim2.new(0,25,0,25)a7.Image="rbxassetid://2851929490"a7.ScaleType=Enum.ScaleType.Slice;a7.SliceCenter=Rect.new(4,4,4,4)a8.Name="Saturation"a8.Parent=a4;a8.BackgroundColor3=Color3.new(1,1,1)a8.Position=UDim2.new(0.649999976,0,0.0500000007,0)a8.Size=UDim2.new(0,15,0,100)a8.Image="rbxassetid://3641079629"a9.Name="Indicator"a9.Parent=a8;a9.BackgroundColor3=Color3.new(1,1,1)a9.BorderSizePixel=0;a9.Size=UDim2.new(0,20,0,2)a9.ZIndex=2;aa.Name="Switch"aa.Parent=c;aa.BackgroundColor3=Color3.new(1,1,1)aa.BackgroundTransparency=1;aa.BorderSizePixel=0;aa.Position=UDim2.new(0.229411766,0,0.20714286,0)aa.Size=UDim2.new(0,20,0,20)aa.ZIndex=2;aa.Font=Enum.Font.SourceSans;aa.Text=""aa.TextColor3=Color3.new(1,1,1)G_glow(aa);aa.TextSize=14;ab.Name="TextButton_Roundify_4px"ab.Parent=aa;ab.BackgroundColor3=Color3.new(1,1,1)ab.BackgroundTransparency=1;ab.Size=UDim2.new(1,0,1,0)ab.Image="rbxassetid://2851929490"ab.ImageColor3=Color3.fromRGB(218,184,92)ab.ImageTransparency=0.5;ab.ScaleType=Enum.ScaleType.Slice;ab.SliceCenter=Rect.new(4,4,4,4)ac.Name="Title"ac.Parent=aa;ac.BackgroundColor3=Color3.new(1,1,1)ac.BackgroundTransparency=1;ac.Position=UDim2.new(1.20000005,0,0,0)ac.Size=UDim2.new(0,20,0,20)ac.Font=Enum.Font.Gotham;ac.Text="Switch"ac.TextColor3=Color3.fromRGB(225,225,230)G_glow(ac);ac.TextSize=14;ac.TextXAlignment=Enum.TextXAlignment.Left;ad.Name="Button"ad.Parent=c;ad.BackgroundColor3=Color3.fromRGB(218,184,92)ad.BackgroundTransparency=1;ad.BorderSizePixel=0;ad.Size=UDim2.new(0,91,0,20)ad.ZIndex=2;ad.Font=Enum.Font.Gotham;ad.TextColor3=Color3.new(1,1,1)G_glow(ad);ad.TextSize=14;ae.Name="TextButton_Roundify_4px"ae.Parent=ad;ae.BackgroundColor3=Color3.new(1,1,1)ae.BackgroundTransparency=1;ae.Size=UDim2.new(1,0,1,0)ae.Image="rbxassetid://2851929490"ae.ImageColor3=Color3.fromRGB(218,184,92)ae.ScaleType=Enum.ScaleType.Slice;ae.SliceCenter=Rect.new(4,4,4,4)af.Name="DropdownButton"af.Parent=c;af.BackgroundColor3=Color3.fromRGB(18,18,21)af.BorderSizePixel=0;af.Size=UDim2.new(1,0,0,20)af.ZIndex=3;af.Font=Enum.Font.Gotham;af.Text="      Button"af.TextColor3=Color3.fromRGB(225,225,230)G_glow(af);af.TextSize=14;af.TextXAlignment=Enum.TextXAlignment.Left;ag.Name="Keybind"ag.Parent=c;ag.BackgroundColor3=Color3.new(1,1,1)ag.BackgroundTransparency=1;ag.Size=UDim2.new(0,200,0,20)ag.Image="rbxassetid://2851929490"ag.ImageColor3=Color3.fromRGB(32,32,38)ag.ScaleType=Enum.ScaleType.Slice;ag.SliceCenter=Rect.new(4,4,4,4)ah.Name="Title"ah.Parent=ag;ah.BackgroundColor3=Color3.new(1,1,1)ah.BackgroundTransparency=1;ah.Size=UDim2.new(0,0,1,0)ah.Font=Enum.Font.Gotham;ah.Text="Keybind"ah.TextColor3=Color3.fromRGB(225,225,230)G_glow(ah);ah.TextSize=14;ah.TextXAlignment=Enum.TextXAlignment.Left;ai.Name="Input"ai.Parent=ag;ai.BackgroundColor3=Color3.new(1,1,1)ai.BackgroundTransparency=1;ai.BorderSizePixel=0;ai.Position=UDim2.new(1,-85,0,2)ai.Size=UDim2.new(0,80,1,-4)ai.ZIndex=2;ai.Font=Enum.Font.Gotham;ai.Text="RShift"ai.TextColor3=Color3.fromRGB(225,225,230)G_glow(ai);ai.TextSize=12;ai.TextWrapped=true;aj.Name="Input_Roundify_4px"aj.Parent=ai;aj.BackgroundColor3=Color3.new(1,1,1)aj.BackgroundTransparency=1;aj.Size=UDim2.new(1,0,1,0)aj.Image="rbxassetid://2851929490"aj.ImageColor3=Color3.fromRGB(28,25,17)aj.ScaleType=Enum.ScaleType.Slice;aj.SliceCenter=Rect.new(4,4,4,4)ak.Name="Windows"ak.Parent=b;ak.BackgroundColor3=Color3.new(1,1,1)ak.BackgroundTransparency=1;ak.Position=UDim2.new(0,20,0,20)ak.Size=UDim2.new(1,20,1,-20)local guiRoot = b
+b.Parent = guiParent; c.Name="Prefabs"c.Parent=b;c.BackgroundColor3=Color3.new(1,1,1)c.Size=UDim2.new(0,100,0,100)c.Visible=false;d.Name="Label"d.Parent=c;d.BackgroundColor3=Color3.new(1,1,1)d.BackgroundTransparency=1;d.Size=UDim2.new(0,200,0,20)d.Font=Enum.Font.Gotham;d.Text="Hello, world 123"d.TextColor3=Color3.new(1,1,1)G_glow(d);d.TextSize=16;d.TextXAlignment=Enum.TextXAlignment.Left;e.Name="Window"e.Parent=c;e.Active=true;e.BackgroundColor3=Color3.new(1,1,1)e.BackgroundTransparency=1;e.ClipsDescendants=true;e.Position=UDim2.new(0,20,0,20)e.Selectable=true;e.Size=UDim2.new(0,200,0,200)e.Image="rbxassetid://2851926732"e.ImageColor3=Color3.fromRGB(24,24,28)e.ScaleType=Enum.ScaleType.Slice;e.SliceCenter=Rect.new(12,12,12,12)local techStroke=Instance.new("UIStroke")techStroke.Parent=e;techStroke.Thickness=1;techStroke.Transparency=0.45;techStroke.ApplyStrokeMode=Enum.ApplyStrokeMode.Border;local techCorner=Instance.new("UICorner");techCorner.CornerRadius=UDim.new(0,12);techCorner.Parent=e;local techStrokeGrad=Instance.new("UIGradient")techStrokeGrad.Parent=techStroke;techStrokeGrad.Color=ColorSequence.new({ColorSequenceKeypoint.new(0,Color3.fromRGB(70,70,78)),ColorSequenceKeypoint.new(0.5,Color3.fromRGB(95,95,105)),ColorSequenceKeypoint.new(1,Color3.fromRGB(70,70,78))})f.Name="Resizer"f.Parent=e;f.Active=true;f.BackgroundColor3=Color3.new(1,1,1)f.BackgroundTransparency=1;f.BorderSizePixel=0;f.Position=UDim2.new(1,-20,1,-20)f.Size=UDim2.new(0,20,0,20)g.Name="Bar"g.Parent=e;local barCorner=Instance.new("UICorner");barCorner.CornerRadius=UDim.new(0,8);barCorner.Parent=g;g.BackgroundColor3=Color3.fromRGB(32,32,36)g.BorderSizePixel=0;g.Position=UDim2.new(0,0,0,0)g.Size=UDim2.new(1,0,0,40)local techBarGrad=Instance.new("UIGradient")techBarGrad.Parent=g;techBarGrad.Color=ColorSequence.new({ColorSequenceKeypoint.new(0,Color3.fromRGB(32,32,36)),ColorSequenceKeypoint.new(0.5,Color3.fromRGB(42,42,48)),ColorSequenceKeypoint.new(1,Color3.fromRGB(32,32,36))})h.Name="Toggle"h.Parent=g;h.BackgroundColor3=Color3.new(1,1,1)h.BackgroundTransparency=1;h.Position=UDim2.new(0,5,0,-2)h.Rotation=0;h.Size=UDim2.new(0,20,0,20)h.ZIndex=2;h.Image="https://www.roblox.com/Thumbs/Asset.ashx?width=420&height=420&assetId=117051021868712"i.Name="Base"i.Parent=g;i.BackgroundColor3=Color3.new(1,1,1)i.BorderSizePixel=0;i.Position=UDim2.new(0,0,0.800000012,0)i.Size=UDim2.new(1,0,0,10)i.Image="rbxassetid://2851926732"i.ImageColor3=Color3.new(1,1,1)i.ScaleType=Enum.ScaleType.Slice;i.SliceCenter=Rect.new(12,12,12,12)j.Name="Top"j.Parent=g;j.BackgroundColor3=Color3.new(1,1,1)j.BackgroundTransparency=1;j.Position=UDim2.new(0,0,0,-5)j.Size=UDim2.new(1,0,0,10)j.Image="rbxassetid://2851926732"j.ImageColor3=Color3.new(1,1,1)j.ScaleType=Enum.ScaleType.Slice;j.SliceCenter=Rect.new(12,12,12,12)k.Name="Tabs"k.Parent=e;k.BackgroundColor3=Color3.new(1,1,1)k.BackgroundTransparency=1;k.Position=UDim2.new(0,156,0,32)k.Size=UDim2.new(1,-168,1,-44)k.ClipsDescendants=true;l.Name="Title"l.Parent=e;l.BackgroundColor3=Color3.new(1,1,1)l.BackgroundTransparency=1;l.Position=UDim2.new(0,30,0,10)l.Size=UDim2.new(1,-190,0,20);l.TextTruncate=Enum.TextTruncate.Nonel.Font=Enum.Font.Gotham;l.Text="Gamer Time"l.TextColor3=Color3.new(1,1,1)G_glow(l);l.TextSize=14;l.TextXAlignment=Enum.TextXAlignment.Left
+-- TITLE FIX: use the available top-bar width and shrink text only when needed.
+local function fitWindowTitle(label)
+    if not label or not label:IsA("TextLabel") then return end
+    local maxSize = 14
+    local minSize = 9
+    label.TextTruncate = Enum.TextTruncate.None
+    label.TextWrapped = false
+    label.TextXAlignment = Enum.TextXAlignment.Left
+
+    local function fit()
+        local size = maxSize
+        label.TextSize = size
+        while size > minSize and label.TextBounds.X > math.max(40, label.AbsoluteSize.X - 8) do
+            size = size - 1
+            label.TextSize = size
+        end
+    end
+
+    fit()
+    label:GetPropertyChangedSignal("Text"):Connect(fit)
+    label:GetPropertyChangedSignal("AbsoluteSize"):Connect(fit)
+end
+fitWindowTitle(l);m.Name="TabSelection"m.Parent=e;m.BackgroundColor3=Color3.new(1,1,1)m.BackgroundTransparency=1;m.Position=UDim2.new(0,15,0,50)m.Size=UDim2.new(0,120,1,-65)m.Visible=true;m.Image="rbxassetid://2851929490"m.ImageColor3=Color3.fromRGB(30,30,36)m.ScaleType=Enum.ScaleType.Slice;m.SliceCenter=Rect.new(4,4,4,4)n.Name="TabScrolling"n.Parent=m;n.BackgroundTransparency=1;n.BorderSizePixel=0;n.Size=UDim2.new(1,0,1,0)n.CanvasSize=UDim2.new(0,0,0,0)n.ScrollBarThickness=0;n.ScrollingDirection=Enum.ScrollingDirection.Y;o.Name="TabButtons"o.Parent=n;o.BackgroundColor3=Color3.new(1,1,1)o.BackgroundTransparency=1;o.Size=UDim2.new(1,0,0,0)o.ClipsDescendants=true;p.Parent=o;p.FillDirection=Enum.FillDirection.Vertical;p.SortOrder=Enum.SortOrder.LayoutOrder;p.Padding=UDim.new(0,4)q.Parent=m;q.BackgroundColor3=Color3.new(1,1,1)q.BorderColor3=Color3.fromRGB(70,70,78)q.BorderSizePixel=0;q.Position=UDim2.new(1,-1,0,0)q.Size=UDim2.new(0,1,1,0)r.Name="Tab"r.Parent=c;r.BackgroundColor3=Color3.new(1,1,1)r.BackgroundTransparency=1;r.Size=UDim2.new(1,0,1,0)r.Visible=false;s.Parent=r;s.SortOrder=Enum.SortOrder.LayoutOrder;s.Padding=UDim.new(0,5)t.Parent=c;t.BackgroundColor3=Color3.new(1,1,1)t.BackgroundTransparency=1;t.BorderSizePixel=0;t.Size=UDim2.new(1,0,0,20)t.ZIndex=2;t.Font=Enum.Font.Gotham;t.PlaceholderColor3=Color3.fromRGB(150,150,160)t.PlaceholderText="Input Text"t.Text=""t.TextColor3=Color3.fromRGB(225,225,230)G_glow(t);t.TextSize=14;u.Name="TextBox_Roundify_4px"u.Parent=t;u.BackgroundColor3=Color3.new(1,1,1)u.BackgroundTransparency=1;u.Size=UDim2.new(1,0,1,0)u.Image="rbxassetid://2851929490"u.ImageColor3=Color3.fromRGB(32,32,38)u.ScaleType=Enum.ScaleType.Slice;u.SliceCenter=Rect.new(4,4,4,4)v.Name="Slider"v.Parent=c;v.BackgroundColor3=Color3.new(1,1,1)v.BackgroundTransparency=1;v.Position=UDim2.new(0,0,0.178571433,0)v.Size=UDim2.new(1,0,0,20)v.Image="rbxassetid://2851929490"v.ImageColor3=Color3.fromRGB(30,30,36)v.ScaleType=Enum.ScaleType.Slice;v.SliceCenter=Rect.new(4,4,4,4)w.Name="Title"w.Parent=v;w.BackgroundColor3=Color3.new(1,1,1)w.BackgroundTransparency=1;w.Position=UDim2.new(0.5,0,0.5,-10)w.Size=UDim2.new(0,0,0,20)w.ZIndex=2;w.Font=Enum.Font.Gotham;w.Text="Slider"w.TextColor3=Color3.fromRGB(225,225,230)G_glow(w);w.TextSize=14;x.Name="Indicator"x.Parent=v;x.BackgroundColor3=Color3.new(1,1,1)x.BackgroundTransparency=1;x.Size=UDim2.new(0,0,0,20)x.Image="rbxassetid://2851929490"x.ImageColor3=Color3.fromRGB(218,184,92)x.ScaleType=Enum.ScaleType.Slice;x.SliceCenter=Rect.new(4,4,4,4)y.Name="Value"y.Parent=v;y.BackgroundColor3=Color3.new(1,1,1)y.BackgroundTransparency=1;y.Position=UDim2.new(1,-55,0.5,-10)y.Size=UDim2.new(0,50,0,20)y.Font=Enum.Font.Gotham;y.Text="0%"y.TextColor3=Color3.fromRGB(225,225,230)G_glow(y);y.TextSize=14;z.Parent=v;z.BackgroundColor3=Color3.new(1,1,1)z.BackgroundTransparency=1;z.Position=UDim2.new(1,-20,-0.75,0)z.Size=UDim2.new(0,26,0,50)z.Font=Enum.Font.Gotham;z.Text="]"z.TextColor3=Color3.new(0.627451,0.627451,0.627451)G_glow(z);z.TextSize=14;A.Parent=v;A.BackgroundColor3=Color3.new(1,1,1)A.BackgroundTransparency=1;A.Position=UDim2.new(1,-65,-0.75,0)A.Size=UDim2.new(0,26,0,50)A.Font=Enum.Font.Gotham;A.Text="["A.TextColor3=Color3.new(0.627451,0.627451,0.627451)G_glow(A);A.TextSize=14;B.Name="Circle"B.Parent=c;B.BackgroundColor3=Color3.new(1,1,1)B.BackgroundTransparency=1;B.Image="rbxassetid://266543268"B.ImageTransparency=0.5;C.Parent=c;C.FillDirection=Enum.FillDirection.Horizontal;C.SortOrder=Enum.SortOrder.LayoutOrder;C.Padding=UDim.new(0,20)D.Name="Dropdown"D.Parent=c;D.BackgroundColor3=Color3.new(1,1,1)D.BackgroundTransparency=1;D.BorderSizePixel=0;D.Position=UDim2.new(-0.055555556,0,0.0833333284,0)D.Size=UDim2.new(0,200,0,20)D.ZIndex=2;D.Font=Enum.Font.Gotham;D.Text="      Dropdown"D.TextColor3=Color3.fromRGB(225,225,230)G_glow(D);D.TextSize=14;D.TextXAlignment=Enum.TextXAlignment.Left;E.Name="Indicator"E.Parent=D;E.BackgroundColor3=Color3.new(1,1,1)E.BackgroundTransparency=1;E.Position=UDim2.new(0.899999976,-10,0.100000001,0)E.Rotation=-90;E.Size=UDim2.new(0,15,0,15)E.ZIndex=2;E.Image="https://www.roblox.com/Thumbs/Asset.ashx?width=420&height=420&assetId=4744658743"F.Name="Box"F.Parent=D;F.BackgroundColor3=Color3.new(1,1,1)F.BackgroundTransparency=1;F.Position=UDim2.new(0,0,0,25)F.Size=UDim2.new(1,0,0,150)F.ZIndex=3;F.Image="rbxassetid://2851929490"F.ImageColor3=Color3.fromRGB(18,18,21)F.ScaleType=Enum.ScaleType.Slice;F.SliceCenter=Rect.new(4,4,4,4)G.Name="Objects"G.Parent=F;G.BackgroundColor3=Color3.new(1,1,1)G.BackgroundTransparency=1;G.BorderSizePixel=0;G.Size=UDim2.new(1,0,1,0)G.ZIndex=3;G.CanvasSize=UDim2.new(0,0,0,0)G.ScrollBarThickness=4;G.ScrollBarImageColor3=Color3.fromRGB(218,184,92)H.Parent=G;H.SortOrder=Enum.SortOrder.LayoutOrder;I.Name="TextButton_Roundify_4px"I.Parent=D;I.BackgroundColor3=Color3.new(1,1,1)I.BackgroundTransparency=1;I.Size=UDim2.new(1,0,1,0)I.Image="rbxassetid://2851929490"I.ImageColor3=Color3.fromRGB(32,32,38)I.ScaleType=Enum.ScaleType.Slice;I.SliceCenter=Rect.new(4,4,4,4)J.Name="TabButton"J.Parent=c;J.BackgroundColor3=Color3.fromRGB(218,184,92)J.BackgroundTransparency=1;J.BorderSizePixel=0;J.Position=UDim2.new(0,0,0,0)J.Size=UDim2.new(1,0,0,34)J.ZIndex=2;J.Font=Enum.Font.Gotham;J.Text="Test tab"J.TextColor3=Color3.fromRGB(225,225,230)J.TextXAlignment=Enum.TextXAlignment.Left;G_glow(J);J.TextSize=14;K.Name="TextButton_Roundify_4px"K.Parent=J;K.BackgroundColor3=Color3.new(1,1,1)K.BackgroundTransparency=1;K.Size=UDim2.new(1,0,1,0)K.Image="rbxassetid://2851929490"K.ImageColor3=Color3.fromRGB(32,32,38)K.ScaleType=Enum.ScaleType.Slice;K.SliceCenter=Rect.new(4,4,4,4)L.Name="Folder"L.Parent=c;L.BackgroundColor3=Color3.new(1,1,1)L.BackgroundTransparency=1;L.Position=UDim2.new(0,0,0,50)L.Size=UDim2.new(1,0,0,20)L.Image="rbxassetid://2851929490"L.ImageColor3=Color3.fromRGB(10,10,12)L.ScaleType=Enum.ScaleType.Slice;L.SliceCenter=Rect.new(4,4,4,4)M.Name="Button"M.Parent=L;M.BackgroundColor3=Color3.fromRGB(218,184,92)M.BackgroundTransparency=1;M.BorderSizePixel=0;M.Size=UDim2.new(1,0,0,20)M.ZIndex=2;M.Font=Enum.Font.Gotham;M.Text="      Folder"M.TextColor3=Color3.new(1,1,1)G_glow(M);M.TextSize=14;M.TextXAlignment=Enum.TextXAlignment.Left;N.Name="TextButton_Roundify_4px"N.Parent=M;N.BackgroundColor3=Color3.new(1,1,1)N.BackgroundTransparency=1;N.Size=UDim2.new(1,0,1,0)N.Image="rbxassetid://2851929490"N.ImageColor3=Color3.fromRGB(218,184,92)N.ScaleType=Enum.ScaleType.Slice;N.SliceCenter=Rect.new(4,4,4,4)O.Name="Toggle"O.Parent=M;O.BackgroundColor3=Color3.new(1,1,1)O.BackgroundTransparency=1;O.Position=UDim2.new(0,5,0,0)O.Size=UDim2.new(0,20,0,20)O.Image="https://www.roblox.com/Thumbs/Asset.ashx?width=420&height=420&assetId=4731371541"P.Name="Objects"P.Parent=L;P.BackgroundColor3=Color3.new(1,1,1)P.BackgroundTransparency=1;P.Position=UDim2.new(0,10,0,25)P.Size=UDim2.new(1,-10,1,-25)P.Visible=false;Q.Parent=P;Q.SortOrder=Enum.SortOrder.LayoutOrder;Q.Padding=UDim.new(0,5)R.Name="HorizontalAlignment"R.Parent=c;R.BackgroundColor3=Color3.new(1,1,1)R.BackgroundTransparency=1;R.Size=UDim2.new(1,0,0,20)S.Parent=R;S.FillDirection=Enum.FillDirection.Horizontal;S.SortOrder=Enum.SortOrder.LayoutOrder;S.Padding=UDim.new(0,5)T.Name="Console"T.Parent=c;T.BackgroundColor3=Color3.new(1,1,1)T.BackgroundTransparency=1;T.Size=UDim2.new(1,0,0,200)T.Image="rbxassetid://2851928141"T.ImageColor3=Color3.fromRGB(18,18,21)T.ScaleType=Enum.ScaleType.Slice;T.SliceCenter=Rect.new(8,8,8,8)U.Parent=T;U.BackgroundColor3=Color3.new(1,1,1)U.BackgroundTransparency=1;U.BorderSizePixel=0;U.Size=UDim2.new(1,0,1,1)U.CanvasSize=UDim2.new(0,0,0,0)U.ScrollBarThickness=4;V.Name="Source"V.Parent=U;V.BackgroundColor3=Color3.new(1,1,1)V.BackgroundTransparency=1;V.Position=UDim2.new(0,40,0,0)V.Size=UDim2.new(1,-40,0,10000)V.ZIndex=3;V.ClearTextOnFocus=false;V.Font=Enum.Font.Gotham;V.MultiLine=true;V.PlaceholderColor3=Color3.new(0.8,0.8,0.8)V.Text=""V.TextColor3=Color3.new(1,1,1)G_glow(V);V.TextSize=15;V.TextStrokeColor3=Color3.new(1,1,1)V.TextWrapped=true;V.TextXAlignment=Enum.TextXAlignment.Left;V.TextYAlignment=Enum.TextYAlignment.Top;W.Name="Comments"W.Parent=V;W.BackgroundColor3=Color3.new(1,1,1)W.BackgroundTransparency=1;W.Size=UDim2.new(1,0,1,0)W.ZIndex=5;W.Font=Enum.Font.Gotham;W.Text=""W.TextColor3=Color3.new(0.231373,0.784314,0.231373)G_glow(W);W.TextSize=15;W.TextXAlignment=Enum.TextXAlignment.Left;W.TextYAlignment=Enum.TextYAlignment.Top;X.Name="Globals"X.Parent=V;X.BackgroundColor3=Color3.new(1,1,1)X.BackgroundTransparency=1;X.Size=UDim2.new(1,0,1,0)X.ZIndex=5;X.Font=Enum.Font.Gotham;X.Text=""X.TextColor3=Color3.new(0.517647,0.839216,0.968628)G_glow(X);X.TextSize=15;X.TextXAlignment=Enum.TextXAlignment.Left;X.TextYAlignment=Enum.TextYAlignment.Top;Y.Name="Keywords"Y.Parent=V;Y.BackgroundColor3=Color3.new(1,1,1)Y.BackgroundTransparency=1;Y.Size=UDim2.new(1,0,1,0)Y.ZIndex=5;Y.Font=Enum.Font.Gotham;Y.Text=""Y.TextColor3=Color3.new(0.972549,0.427451,0.486275)G_glow(Y);Y.TextSize=15;Y.TextXAlignment=Enum.TextXAlignment.Left;Y.TextYAlignment=Enum.TextYAlignment.Top;Z.Name="RemoteHighlight"Z.Parent=V;Z.BackgroundColor3=Color3.new(1,1,1)Z.BackgroundTransparency=1;Z.Size=UDim2.new(1,0,1,0)Z.ZIndex=5;Z.Font=Enum.Font.Gotham;Z.Text=""Z.TextColor3=Color3.new(0,0.568627,1)G_glow(Z);Z.TextSize=15;Z.TextXAlignment=Enum.TextXAlignment.Left;Z.TextYAlignment=Enum.TextYAlignment.Top;_.Name="Strings"_.Parent=V;_.BackgroundColor3=Color3.new(1,1,1)_.BackgroundTransparency=1;_.Size=UDim2.new(1,0,1,0)_.ZIndex=5;_.Font=Enum.Font.Gotham;_.Text=""_.TextColor3=Color3.new(0.678431,0.945098,0.584314)G_glow(_);_.TextSize=15;_.TextXAlignment=Enum.TextXAlignment.Left;_.TextYAlignment=Enum.TextYAlignment.Top;a0.Name="Tokens"a0.Parent=V;a0.BackgroundColor3=Color3.new(1,1,1)a0.BackgroundTransparency=1;a0.Size=UDim2.new(1,0,1,0)a0.ZIndex=5;a0.Font=Enum.Font.Gotham;a0.Text=""a0.TextColor3=Color3.new(1,1,1)G_glow(a0);a0.TextSize=15;a0.TextXAlignment=Enum.TextXAlignment.Left;a0.TextYAlignment=Enum.TextYAlignment.Top;a1.Name="Numbers"a1.Parent=V;a1.BackgroundColor3=Color3.new(1,1,1)a1.BackgroundTransparency=1;a1.Size=UDim2.new(1,0,1,0)a1.ZIndex=4;a1.Font=Enum.Font.Gotham;a1.Text=""a1.TextColor3=Color3.new(1,0.776471,0)G_glow(a1);a1.TextSize=15;a1.TextXAlignment=Enum.TextXAlignment.Left;a1.TextYAlignment=Enum.TextYAlignment.Top;a2.Name="Info"a2.Parent=V;a2.BackgroundColor3=Color3.new(1,1,1)a2.BackgroundTransparency=1;a2.Size=UDim2.new(1,0,1,0)a2.ZIndex=5;a2.Font=Enum.Font.Gotham;a2.Text=""a2.TextColor3=Color3.new(0,0.635294,1)G_glow(a2);a2.TextSize=15;a2.TextXAlignment=Enum.TextXAlignment.Left;a2.TextYAlignment=Enum.TextYAlignment.Top;a3.Name="Lines"a3.Parent=U;a3.BackgroundColor3=Color3.new(1,1,1)a3.BackgroundTransparency=1;a3.BorderSizePixel=0;a3.Size=UDim2.new(0,40,0,10000)a3.ZIndex=4;a3.Font=Enum.Font.Gotham;a3.Text="1\n"a3.TextColor3=Color3.new(1,1,1)G_glow(a3);a3.TextSize=15;a3.TextWrapped=true;a3.TextYAlignment=Enum.TextYAlignment.Top;a4.Name="ColorPicker"a4.Parent=c;a4.BackgroundColor3=Color3.new(1,1,1)a4.BackgroundTransparency=1;a4.Size=UDim2.new(0,180,0,110)a4.Image="rbxassetid://2851929490"a4.ImageColor3=Color3.fromRGB(32,32,38)a4.ScaleType=Enum.ScaleType.Slice;a4.SliceCenter=Rect.new(4,4,4,4)a5.Name="Palette"a5.Parent=a4;a5.BackgroundColor3=Color3.new(1,1,1)a5.BackgroundTransparency=1;a5.Position=UDim2.new(0.0500000007,0,0.0500000007,0)a5.Size=UDim2.new(0,100,0,100)a5.Image="rbxassetid://698052001"a5.ScaleType=Enum.ScaleType.Slice;a5.SliceCenter=Rect.new(4,4,4,4)a6.Name="Indicator"a6.Parent=a5;a6.BackgroundColor3=Color3.new(1,1,1)a6.BackgroundTransparency=1;a6.Size=UDim2.new(0,5,0,5)a6.ZIndex=2;a6.Image="rbxassetid://2851926732"a6.ImageColor3=Color3.new(0,0,0)a6.ScaleType=Enum.ScaleType.Slice;a6.SliceCenter=Rect.new(12,12,12,12)a7.Name="Sample"a7.Parent=a4;a7.BackgroundColor3=Color3.new(1,1,1)a7.BackgroundTransparency=1;a7.Position=UDim2.new(0.800000012,0,0.0500000007,0)a7.Size=UDim2.new(0,25,0,25)a7.Image="rbxassetid://2851929490"a7.ScaleType=Enum.ScaleType.Slice;a7.SliceCenter=Rect.new(4,4,4,4)a8.Name="Saturation"a8.Parent=a4;a8.BackgroundColor3=Color3.new(1,1,1)a8.Position=UDim2.new(0.649999976,0,0.0500000007,0)a8.Size=UDim2.new(0,15,0,100)a8.Image="rbxassetid://3641079629"a9.Name="Indicator"a9.Parent=a8;a9.BackgroundColor3=Color3.new(1,1,1)a9.BorderSizePixel=0;a9.Size=UDim2.new(0,20,0,2)a9.ZIndex=2;aa.Name="Switch"aa.Parent=c;aa.BackgroundColor3=Color3.new(1,1,1)aa.BackgroundTransparency=1;aa.BorderSizePixel=0;aa.Position=UDim2.new(0.229411766,0,0.20714286,0)aa.Size=UDim2.new(0,20,0,20)aa.ZIndex=2;aa.Font=Enum.Font.SourceSans;aa.Text=""aa.TextColor3=Color3.new(1,1,1)G_glow(aa);aa.TextSize=14;ab.Name="TextButton_Roundify_4px"ab.Parent=aa;ab.BackgroundColor3=Color3.new(1,1,1)ab.BackgroundTransparency=1;ab.Size=UDim2.new(1,0,1,0)ab.Image="rbxassetid://2851929490"ab.ImageColor3=Color3.fromRGB(218,184,92)ab.ImageTransparency=0.5;ab.ScaleType=Enum.ScaleType.Slice;ab.SliceCenter=Rect.new(4,4,4,4)ac.Name="Title"ac.Parent=aa;ac.BackgroundColor3=Color3.new(1,1,1)ac.BackgroundTransparency=1;ac.Position=UDim2.new(1.20000005,0,0,0)ac.Size=UDim2.new(0,20,0,20)ac.Font=Enum.Font.Gotham;ac.Text="Switch"ac.TextColor3=Color3.fromRGB(225,225,230)G_glow(ac);ac.TextSize=14;ac.TextXAlignment=Enum.TextXAlignment.Left;ad.Name="Button"ad.Parent=c;ad.BackgroundColor3=Color3.fromRGB(218,184,92)ad.BackgroundTransparency=1;ad.BorderSizePixel=0;ad.Size=UDim2.new(0,91,0,20)ad.ZIndex=2;ad.Font=Enum.Font.Gotham;ad.TextColor3=Color3.new(1,1,1)G_glow(ad);ad.TextSize=14;ae.Name="TextButton_Roundify_4px"ae.Parent=ad;ae.BackgroundColor3=Color3.new(1,1,1)ae.BackgroundTransparency=1;ae.Size=UDim2.new(1,0,1,0)ae.Image="rbxassetid://2851929490"ae.ImageColor3=Color3.fromRGB(218,184,92)ae.ScaleType=Enum.ScaleType.Slice;ae.SliceCenter=Rect.new(4,4,4,4)af.Name="DropdownButton"af.Parent=c;af.BackgroundColor3=Color3.fromRGB(18,18,21)af.BorderSizePixel=0;af.Size=UDim2.new(1,0,0,20)af.ZIndex=3;af.Font=Enum.Font.Gotham;af.Text="      Button"af.TextColor3=Color3.fromRGB(225,225,230)G_glow(af);af.TextSize=14;af.TextXAlignment=Enum.TextXAlignment.Left;ag.Name="Keybind"ag.Parent=c;ag.BackgroundColor3=Color3.new(1,1,1)ag.BackgroundTransparency=1;ag.Size=UDim2.new(0,200,0,20)ag.Image="rbxassetid://2851929490"ag.ImageColor3=Color3.fromRGB(32,32,38)ag.ScaleType=Enum.ScaleType.Slice;ag.SliceCenter=Rect.new(4,4,4,4)ah.Name="Title"ah.Parent=ag;ah.BackgroundColor3=Color3.new(1,1,1)ah.BackgroundTransparency=1;ah.Size=UDim2.new(0,0,1,0)ah.Font=Enum.Font.Gotham;ah.Text="Keybind"ah.TextColor3=Color3.fromRGB(225,225,230)G_glow(ah);ah.TextSize=14;ah.TextXAlignment=Enum.TextXAlignment.Left;ai.Name="Input"ai.Parent=ag;ai.BackgroundColor3=Color3.new(1,1,1)ai.BackgroundTransparency=1;ai.BorderSizePixel=0;ai.Position=UDim2.new(1,-85,0,2)ai.Size=UDim2.new(0,80,1,-4)ai.ZIndex=2;ai.Font=Enum.Font.Gotham;ai.Text="RShift"ai.TextColor3=Color3.fromRGB(225,225,230)G_glow(ai);ai.TextSize=12;ai.TextWrapped=true;aj.Name="Input_Roundify_4px"aj.Parent=ai;aj.BackgroundColor3=Color3.new(1,1,1)aj.BackgroundTransparency=1;aj.Size=UDim2.new(1,0,1,0)aj.Image="rbxassetid://2851929490"aj.ImageColor3=Color3.fromRGB(28,25,17)aj.ScaleType=Enum.ScaleType.Slice;aj.SliceCenter=Rect.new(4,4,4,4)ak.Name="Windows"ak.Parent=b;ak.BackgroundColor3=Color3.new(1,1,1)ak.BackgroundTransparency=1;ak.Position=UDim2.new(0,20,0,20)ak.Size=UDim2.new(1,20,1,-20)local guiRoot = b
 local al=game:GetService("UserInputService")local am=game:GetService("TweenService")local an=game:GetService("RunService")local ao=game:GetService("Players")local ap=ao.LocalPlayer;local aq=ap:GetMouse()local c=guiRoot:WaitForChild("Prefabs")local ak=guiRoot:FindFirstChild("Windows")local ar={binding=false}local as={}local function at(au)table.insert(as,au)return au end;local function av()for aw,au in ipairs(as)do if au.Connected then au:Disconnect()end end;as={}end;at(al.InputBegan:Connect(function(ax,ay)if ax.KeyCode==(typeof(a.toggle_key)=="EnumItem"and a.toggle_key or Enum.KeyCode.RightShift)then if guiRoot and not ar.binding then guiRoot.Enabled=not guiRoot.Enabled end end end))local function az(aA,aB,aC)aC=aC or 0.1;if aC==0 then for aD,aE in pairs(aB)do aA[aD]=aE end;return end;local aF=TweenInfo.new(aC,Enum.EasingStyle.Quad,Enum.EasingDirection.Out)local aG=am:Create(aA,aF,aB)aG:Play()return aG end;local function aH(aI,aJ,aK)local aL=aI:FindFirstChild("UIGradient")if aL then aL:Destroy()end;if typeof(aJ)=="Color3"then aJ={aJ}end;if not aJ or#aJ==0 then return end;if#aJ==1 then if aI:IsA("ImageLabel")or aI:IsA("ImageButton")then aI.ImageColor3=aJ[1]else aI.BackgroundColor3=aJ[1]end;return end;local aM=Instance.new("UIGradient")aM.Parent=aI;aM.Rotation=aK or 0;local aN={}if#aJ==2 then aN={ColorSequenceKeypoint.new(0,aJ[1]),ColorSequenceKeypoint.new(1,aJ[2])}elseif#aJ>=3 then aN={ColorSequenceKeypoint.new(0,aJ[1]),ColorSequenceKeypoint.new(0.5,aJ[2]),ColorSequenceKeypoint.new(1,aJ[3])}end;aM.Color=ColorSequence.new(aN)if aI:IsA("ImageLabel")or aI:IsA("ImageButton")then aI.ImageColor3=Color3.new(1,1,1)else aI.BackgroundColor3=Color3.new(1,1,1)end end;local function aO(aP,aQ,aR)aP,aQ,aR=aP/255,aQ/255,aR/255;local aS,aT=math.max(aP,aQ,aR),math.min(aP,aQ,aR)local aU,aV,aW=0,0,aS;local aX=aS-aT;aV=aS==0 and 0 or aX/aS;if aS==aT then aU=0 else if aS==aP then aU=(aQ-aR)/aX+(aQ<aR and 6 or 0)elseif aS==aQ then aU=(aR-aP)/aX+2 elseif aS==aR then aU=(aP-aQ)/aX+4 end;aU=aU/6 end;return aU,aV,aW end;local function aY(aZ,aD)local a_,b0=pcall(function()return aZ[tostring(aD)]end)return a_ and b0 end;local function b1(b2)return b2.TextBounds.X+15 end;local function b3()return Vector2.new(al:GetMouseLocation().X+1,al:GetMouseLocation().Y-35)end;local function b4(b5,b6,b7)task.spawn(function()b5.ClipsDescendants=true;local b8=c:FindFirstChild("Circle"):Clone()b8.Parent=b5;b8.ZIndex=1000;local b9=b6-b8.AbsolutePosition.X;local ba=b7-b8.AbsolutePosition.Y;b8.Position=UDim2.new(0,b9,0,ba)local bb=math.max(b5.AbsoluteSize.X,b5.AbsoluteSize.Y)*1.5;b8:TweenSizeAndPosition(UDim2.new(0,bb,0,bb),UDim2.new(0.5,-bb/2,0.5,-bb/2),Enum.EasingDirection.Out,Enum.EasingStyle.Quad,0.5,false)az(b8,{ImageTransparency=1},0.5)task.wait(0.5)b8:Destroy()end)end;local bc=0;local bd={}local function be()local bf=c:FindFirstChild("UIListLayout"):Clone()bf.Parent=ak;local bg={}for aw,aW in ipairs(ak:GetChildren())do if not aW:IsA("UIListLayout")then bg[aW]=aW.AbsolutePosition end end;bf:Destroy()for bh,aW in pairs(bg)do bh.Position=UDim2.new(0,aW.X,0,aW.Y)end end;function bd:FormatWindows()be()end;function bd:AddWindow(bi,bj)bc=bc+1;local bk=false;bi=tostring(bi or"New Window")bj=typeof(bj)=="table"and bj or a;bj.tween_time=bj.tween_time or 0.1;bj.title_bar=bj.title_bar or{Color3.fromRGB(40,145,225),Color3.fromRGB(45,45,52)}if typeof(bj.title_bar)=="Color3"then bj.title_bar={bj.title_bar}end;bj.title_bar_transparency=bj.title_bar_transparency or 0;bj.background=bj.background or{Color3.fromRGB(14,14,18)}if typeof(bj.background)=="Color3"then bj.background={bj.background}end;bj.background_transparency=bj.background_transparency or 0.04;if not bj.main_color then bj.main_color=bj.title_bar[1]end;local e=c:FindFirstChild("Window"):Clone()e.Parent=ak;
         -- Responsive sizing keeps the window usable on different screen sizes.
         pcall(function() bd:SetResponsiveWindow(e) end)
@@ -12010,3 +12033,507 @@ pcall(function()
         print("=========================================")
     end)
 end)
+
+
+--[[ =========================================================
+     SERAPH / TRAYECTOO - VISUAL PREMIUM PASS
+     Solo visual: no cambia AddWindow/AddTab/AddFolder ni callbacks.
+     ========================================================= ]]
+task.defer(function()
+    local TweenService = game:GetService("TweenService")
+    local RunService = game:GetService("RunService")
+
+    local GOLD = Color3.fromRGB(218,184,92)
+    local GOLD_SOFT = Color3.fromRGB(245,211,120)
+    local BG = Color3.fromRGB(9,10,13)
+    local PANEL = Color3.fromRGB(18,19,24)
+    local PANEL_2 = Color3.fromRGB(24,25,31)
+    local TEXT = Color3.fromRGB(242,242,246)
+    local MUTED = Color3.fromRGB(150,153,163)
+    local HOVER = Color3.fromRGB(36,37,45)
+
+    local function corner(obj, radius)
+        if not obj or not obj:IsA("GuiObject") then return end
+        local c = obj:FindFirstChild("SERAPH_Corner")
+        if not c then
+            c = Instance.new("UICorner")
+            c.Name = "SERAPH_Corner"
+            c.Parent = obj
+        end
+        c.CornerRadius = UDim.new(0, radius or 8)
+    end
+
+    local function stroke(obj, color, transparency, thickness)
+        if not obj or not obj:IsA("GuiObject") then return end
+        local s = obj:FindFirstChild("SERAPH_Stroke")
+        if not s then
+            s = Instance.new("UIStroke")
+            s.Name = "SERAPH_Stroke"
+            s.Parent = obj
+        end
+        s.Color = color or GOLD
+        s.Transparency = transparency == nil and 0.78 or transparency
+        s.Thickness = thickness or 1
+    end
+
+    local function gradient(obj, c1, c2, rotation)
+        if not obj or not obj:IsA("GuiObject") then return end
+        local g = obj:FindFirstChild("SERAPH_Gradient")
+        if not g then
+            g = Instance.new("UIGradient")
+            g.Name = "SERAPH_Gradient"
+            g.Parent = obj
+        end
+        g.Rotation = rotation or 90
+        g.Color = ColorSequence.new(c1, c2)
+    end
+
+    local function hover(button, normal, active)
+        if not button or not button:IsA("GuiButton") then return end
+        if button:GetAttribute("SERAPH_Hover") then return end
+        button:SetAttribute("SERAPH_Hover", true)
+        local scale = button:FindFirstChild("SERAPH_Scale")
+        if not scale then
+            scale = Instance.new("UIScale")
+            scale.Name = "SERAPH_Scale"
+            scale.Scale = 1
+            scale.Parent = button
+        end
+        button.AutoButtonColor = false
+        button.MouseEnter:Connect(function()
+            if button.BackgroundTransparency < 1 then
+                TweenService:Create(button, TweenInfo.new(0.12), {
+                    BackgroundColor3 = active or HOVER
+                }):Play()
+            end
+            TweenService:Create(scale, TweenInfo.new(0.10), {Scale = 1.015}):Play()
+        end)
+        button.MouseLeave:Connect(function()
+            if button.BackgroundTransparency < 1 then
+                TweenService:Create(button, TweenInfo.new(0.12), {
+                    BackgroundColor3 = normal or PANEL_2
+                }):Play()
+            end
+            TweenService:Create(scale, TweenInfo.new(0.10), {Scale = 1}):Play()
+        end)
+        button.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1
+                or input.UserInputType == Enum.UserInputType.Touch then
+                TweenService:Create(scale, TweenInfo.new(0.07), {Scale = 0.975}):Play()
+            end
+        end)
+        button.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1
+                or input.UserInputType == Enum.UserInputType.Touch then
+                TweenService:Create(scale, TweenInfo.new(0.07), {Scale = 1.015}):Play()
+            end
+        end)
+    end
+
+    local function styleWindow(win)
+        if not win or not win:IsA("GuiObject") then return end
+
+        -- Main shell
+        win.BackgroundColor3 = BG
+        win.BackgroundTransparency = 0.02
+        corner(win, 14)
+        stroke(win, GOLD, 0.55, 1.2)
+
+        -- Top bar
+        local bar = win:FindFirstChild("Bar", true)
+        if bar and bar:IsA("GuiObject") then
+            bar.BackgroundColor3 = PANEL
+            bar.BackgroundTransparency = 0
+            corner(bar, 12)
+            gradient(bar, Color3.fromRGB(28,29,35), Color3.fromRGB(12,13,17), 0)
+
+            local titleObj = win:FindFirstChild("Title", true)
+            if titleObj and titleObj:IsA("TextLabel") then
+                titleObj.TextColor3 = TEXT
+                titleObj.Font = Enum.Font.GothamBold
+                titleObj.TextSize = 14
+                titleObj.TextTruncate = Enum.TextTruncate.None
+                titleObj.TextXAlignment = Enum.TextXAlignment.Left
+            end
+
+            -- Gold status line below the title bar.
+            local line = bar:FindFirstChild("SERAPH_StatusLine")
+            if not line then
+                line = Instance.new("Frame")
+                line.Name = "SERAPH_StatusLine"
+                line.BorderSizePixel = 0
+                line.BackgroundColor3 = GOLD
+                line.BackgroundTransparency = 0.15
+                line.Position = UDim2.new(0, 18, 1, -2)
+                line.Size = UDim2.new(1, -36, 0, 2)
+                line.ZIndex = 100
+                line.Parent = bar
+                corner(line, 2)
+            end
+        end
+
+        -- Left navigation
+        local tabSelection = win:FindFirstChild("TabSelection", true)
+        if tabSelection and tabSelection:IsA("GuiObject") then
+            tabSelection.BackgroundColor3 = PANEL
+            tabSelection.BackgroundTransparency = 0
+            corner(tabSelection, 11)
+            stroke(tabSelection, Color3.fromRGB(55,56,66), 0.45, 1)
+
+            local scroll = tabSelection:FindFirstChild("TabScrolling", true)
+            if scroll then
+                scroll.ScrollBarThickness = 2
+                scroll.ScrollBarImageColor3 = GOLD
+                scroll.ScrollBarImageTransparency = 0.35
+            end
+        end
+
+        -- Main content
+        local tabs = win:FindFirstChild("Tabs", true)
+        if tabs and tabs:IsA("GuiObject") then
+            tabs.BackgroundTransparency = 1
+        end
+
+        -- Style every generated control without changing its callback.
+        for _, obj in ipairs(win:GetDescendants()) do
+            if obj:IsA("TextButton") then
+                local isTab = obj.Parent and (
+                    obj.Parent.Name == "TabButtons"
+                    or obj.Name == "Tab"
+                    or obj:GetAttribute("SERAPH_Tab") == true
+                )
+                if not isTab then
+                    obj.BackgroundColor3 = PANEL_2
+                    obj.BackgroundTransparency = math.min(obj.BackgroundTransparency, 0.08)
+                    obj.TextColor3 = TEXT
+                    obj.Font = Enum.Font.GothamMedium
+                    obj.TextSize = math.max(11, math.min(obj.TextSize, 13))
+                    corner(obj, 7)
+                    stroke(obj, Color3.fromRGB(60,61,72), 0.72, 1)
+                    hover(obj, PANEL_2, HOVER)
+                end
+            elseif obj:IsA("TextBox") then
+                obj.BackgroundColor3 = Color3.fromRGB(14,15,19)
+                obj.TextColor3 = TEXT
+                obj.PlaceholderColor3 = MUTED
+                corner(obj, 7)
+                stroke(obj, Color3.fromRGB(64,65,76), 0.58, 1)
+            elseif obj:IsA("TextLabel") then
+                if obj.Name ~= "Title" then
+                    obj.TextColor3 = obj.TextColor3 == Color3.new(1,1,1) and TEXT or obj.TextColor3
+                end
+            elseif obj:IsA("ScrollingFrame") then
+                obj.ScrollBarImageColor3 = GOLD
+                obj.ScrollBarImageTransparency = 0.35
+                obj.ScrollBarThickness = math.min(obj.ScrollBarThickness, 4)
+            end
+        end
+
+        -- Make tab buttons feel like a real navigation rail.
+        local scrolling = win:FindFirstChild("TabScrolling", true)
+        if scrolling then
+            for _, obj in ipairs(scrolling:GetDescendants()) do
+                if obj:IsA("TextButton") then
+                    obj.BackgroundTransparency = 1
+                    obj.TextColor3 = MUTED
+                    obj.Font = Enum.Font.GothamMedium
+                    obj.TextSize = 12
+                    corner(obj, 7)
+
+                    if not obj:GetAttribute("SERAPH_TabStyled") then
+                        obj:SetAttribute("SERAPH_TabStyled", true)
+                        local indicator = Instance.new("Frame")
+                        indicator.Name = "SERAPH_ActiveIndicator"
+                        indicator.AnchorPoint = Vector2.new(0, 0.5)
+                        indicator.Position = UDim2.new(0, 3, 0.5, 0)
+                        indicator.Size = UDim2.new(0, 3, 0, 20)
+                        indicator.BackgroundColor3 = GOLD
+                        indicator.BackgroundTransparency = 1
+                        indicator.BorderSizePixel = 0
+                        indicator.ZIndex = obj.ZIndex + 5
+                        corner(indicator, 3)
+                        indicator.Parent = obj
+
+                        obj.MouseEnter:Connect(function()
+                            if indicator.BackgroundTransparency > 0.5 then
+                                TweenService:Create(obj, TweenInfo.new(0.12), {
+                                    TextColor3 = TEXT
+                                }):Play()
+                            end
+                        end)
+                        obj.MouseLeave:Connect(function()
+                            if indicator.BackgroundTransparency > 0.5 then
+                                TweenService:Create(obj, TweenInfo.new(0.12), {
+                                    TextColor3 = MUTED
+                                }):Play()
+                            end
+                        end)
+                    end
+                end
+            end
+        end
+    end
+
+    -- Apply now and again shortly after, because tabs/folders are created dynamically.
+    for _, win in ipairs(library:GetWindows()) do
+        styleWindow(win)
+    end
+
+    for pass = 1, 4 do
+        task.delay(pass * 0.35, function()
+            for _, win in ipairs(library:GetWindows()) do
+                styleWindow(win)
+            end
+        end)
+    end
+
+    -- Reapply lightweight styling when the window is resized.
+    for _, win in ipairs(library:GetWindows()) do
+        win:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
+            task.defer(function()
+                if win and win.Parent then styleWindow(win) end
+            end)
+        end)
+    end
+end)
+
+
+-- ============================================================
+-- SERAPH HUB VISUAL MAX
+-- Visual-only layer: dashboard, premium cards, status accents,
+-- mobile-friendly navigation and console polish.
+-- ============================================================
+task.defer(function()
+    local TweenService = game:GetService("TweenService")
+
+    local C = {
+        bg = Color3.fromRGB(7, 8, 11),
+        panel = Color3.fromRGB(15, 16, 21),
+        panel2 = Color3.fromRGB(21, 22, 29),
+        panel3 = Color3.fromRGB(28, 29, 37),
+        text = Color3.fromRGB(244, 244, 248),
+        muted = Color3.fromRGB(145, 148, 160),
+        gold = Color3.fromRGB(224, 187, 84),
+        gold2 = Color3.fromRGB(255, 218, 122),
+        green = Color3.fromRGB(86, 220, 139),
+        red = Color3.fromRGB(235, 92, 102),
+        blue = Color3.fromRGB(92, 155, 255)
+    }
+
+    local function makeCorner(parent, radius)
+        if not parent or not parent:IsA("GuiObject") then return end
+        local c = parent:FindFirstChild("SERAPH_MAX_CORNER")
+        if not c then
+            c = Instance.new("UICorner")
+            c.Name = "SERAPH_MAX_CORNER"
+            c.CornerRadius = UDim.new(0, radius or 10)
+            c.Parent = parent
+        end
+        return c
+    end
+
+    local function makeStroke(parent, color, transparency)
+        if not parent or not parent:IsA("GuiObject") then return end
+        local s = parent:FindFirstChild("SERAPH_MAX_STROKE")
+        if not s then
+            s = Instance.new("UIStroke")
+            s.Name = "SERAPH_MAX_STROKE"
+            s.Parent = parent
+        end
+        s.Color = color or C.gold
+        s.Transparency = transparency == nil and 0.78 or transparency
+        s.Thickness = 1
+        return s
+    end
+
+    local function addGradient(parent, a, b, rotation)
+        local g = parent:FindFirstChild("SERAPH_MAX_GRADIENT")
+        if not g then
+            g = Instance.new("UIGradient")
+            g.Name = "SERAPH_MAX_GRADIENT"
+            g.Parent = parent
+        end
+        g.Color = ColorSequence.new(a, b)
+        g.Rotation = rotation or 90
+    end
+
+    local function text(parent, value, size, color, font)
+        local x = Instance.new("TextLabel")
+        x.BackgroundTransparency = 1
+        x.Text = value
+        x.TextColor3 = color or C.text
+        x.Font = font or Enum.Font.GothamMedium
+        x.TextSize = size or 12
+        x.TextXAlignment = Enum.TextXAlignment.Left
+        x.TextYAlignment = Enum.TextYAlignment.Center
+        x.Parent = parent
+        return x
+    end
+
+    local function card(parent, title, subtitle)
+        local f = Instance.new("Frame")
+        f.BackgroundColor3 = C.panel2
+        f.BorderSizePixel = 0
+        makeCorner(f, 10)
+        makeStroke(f, Color3.fromRGB(64, 65, 76), 0.68)
+        addGradient(f, C.panel3, C.panel2, 90)
+        f.Parent = parent
+
+        local t = text(f, title, 13, C.text, Enum.Font.GothamBold)
+        t.Position = UDim2.new(0, 14, 0, 7)
+        t.Size = UDim2.new(1, -28, 0, 22)
+
+        if subtitle then
+            local s = text(f, subtitle, 10, C.muted, Enum.Font.Gotham)
+            s.Position = UDim2.new(0, 14, 0, 29)
+            s.Size = UDim2.new(1, -28, 0, 18)
+        end
+        return f
+    end
+
+    local function pill(parent, value, color)
+        local p = Instance.new("Frame")
+        p.BackgroundColor3 = color
+        p.BackgroundTransparency = 0.82
+        p.BorderSizePixel = 0
+        makeCorner(p, 20)
+        p.Parent = parent
+
+        local l = text(p, "● "..value, 10, color, Enum.Font.GothamBold)
+        l.Size = UDim2.new(1, -16, 1, 0)
+        l.Position = UDim2.new(0, 8, 0, 0)
+        return p
+    end
+
+    local function addHover(btn)
+        if not btn or not btn:IsA("GuiButton") or btn:GetAttribute("SERAPH_MAX_HOVER") then return end
+        btn:SetAttribute("SERAPH_MAX_HOVER", true)
+        btn.AutoButtonColor = false
+        local sc = Instance.new("UIScale")
+        sc.Name = "SERAPH_MAX_SCALE"
+        sc.Parent = btn
+
+        local normal = btn.BackgroundColor3
+        btn.MouseEnter:Connect(function()
+            TweenService:Create(btn, TweenInfo.new(.12), {BackgroundColor3 = C.panel3}):Play()
+            TweenService:Create(sc, TweenInfo.new(.1), {Scale = 1.02}):Play()
+        end)
+        btn.MouseLeave:Connect(function()
+            TweenService:Create(btn, TweenInfo.new(.12), {BackgroundColor3 = normal}):Play()
+            TweenService:Create(sc, TweenInfo.new(.1), {Scale = 1}):Play()
+        end)
+    end
+
+    local function style(win)
+        if not win or not win:IsA("GuiObject") then return end
+
+        win.BackgroundColor3 = C.bg
+        win.BackgroundTransparency = 0
+        makeCorner(win, 15)
+        makeStroke(win, C.gold, .55)
+
+        -- Existing controls
+        for _, o in ipairs(win:GetDescendants()) do
+            if o:IsA("TextButton") then
+                o.BackgroundColor3 = C.panel2
+                o.TextColor3 = C.text
+                o.Font = Enum.Font.GothamMedium
+                makeCorner(o, 7)
+                makeStroke(o, Color3.fromRGB(60,61,72), .76)
+                addHover(o)
+            elseif o:IsA("TextBox") then
+                o.BackgroundColor3 = Color3.fromRGB(11,12,16)
+                o.TextColor3 = C.text
+                o.PlaceholderColor3 = C.muted
+                makeCorner(o, 7)
+                makeStroke(o, Color3.fromRGB(65,66,78), .55)
+            elseif o:IsA("ScrollingFrame") then
+                o.ScrollBarThickness = 3
+                o.ScrollBarImageColor3 = C.gold
+                o.ScrollBarImageTransparency = .35
+            end
+        end
+
+        -- Top bar
+        local bar = win:FindFirstChild("Bar", true)
+        if bar and bar:IsA("GuiObject") then
+            bar.BackgroundColor3 = C.panel
+            makeCorner(bar, 13)
+            addGradient(bar, Color3.fromRGB(27,28,35), C.panel, 0)
+
+            local titleObj = win:FindFirstChild("Title", true)
+            if titleObj and titleObj:IsA("TextLabel") then
+                titleObj.TextColor3 = C.text
+                titleObj.Font = Enum.Font.GothamBold
+                titleObj.TextSize = 14
+                titleObj.TextTruncate = Enum.TextTruncate.None
+            end
+
+            if not bar:FindFirstChild("SERAPH_MAX_STATUS") then
+                local st = pill(bar, "ONLINE", C.green)
+                st.Name = "SERAPH_MAX_STATUS"
+                st.AnchorPoint = Vector2.new(1, .5)
+                st.Position = UDim2.new(1, -55, .5, 0)
+                st.Size = UDim2.new(0, 78, 0, 24)
+                st.ZIndex = 100
+            end
+
+            if not bar:FindFirstChild("SERAPH_MAX_LINE") then
+                local line = Instance.new("Frame")
+                line.Name = "SERAPH_MAX_LINE"
+                line.BackgroundColor3 = C.gold
+                line.BorderSizePixel = 0
+                line.Position = UDim2.new(0, 18, 1, -2)
+                line.Size = UDim2.new(1, -36, 0, 2)
+                line.ZIndex = 100
+                makeCorner(line, 2)
+                line.Parent = bar
+            end
+        end
+
+        -- Navigation rail
+        local nav = win:FindFirstChild("TabSelection", true)
+        if nav and nav:IsA("GuiObject") then
+            nav.BackgroundColor3 = C.panel
+            nav.BackgroundTransparency = 0
+            makeCorner(nav, 11)
+            makeStroke(nav, Color3.fromRGB(52,53,64), .5)
+        end
+
+        -- Add subtle dividers to major containers.
+        for _, o in ipairs(win:GetChildren()) do
+            if o:IsA("GuiObject") and o ~= bar then
+                if o.Name ~= "SERAPH_MAX_DECOR" and o.Size.X.Scale > .2 then
+                    local d = o:FindFirstChild("SERAPH_MAX_DECOR")
+                    if not d then
+                        d = Instance.new("Frame")
+                        d.Name = "SERAPH_MAX_DECOR"
+                        d.BackgroundColor3 = Color3.fromRGB(45,46,56)
+                        d.BackgroundTransparency = .82
+                        d.BorderSizePixel = 0
+                        d.Position = UDim2.new(0, 12, 0, 0)
+                        d.Size = UDim2.new(1, -24, 0, 1)
+                        d.ZIndex = math.max(1, o.ZIndex + 1)
+                        d.Parent = o
+                    end
+                end
+            end
+        end
+    end
+
+    -- Use the existing library; no new window is created.
+    if library and library.GetWindows then
+        for _, w in ipairs(library:GetWindows()) do
+            style(w)
+        end
+
+        for i = 1, 6 do
+            task.delay(i * .35, function()
+                for _, w in ipairs(library:GetWindows()) do
+                    style(w)
+                end
+            end)
+        end
+    end
+end)
+
