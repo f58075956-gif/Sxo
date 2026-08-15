@@ -246,7 +246,7 @@ end
 function TrayectoManager:Safe(label, fn)
     local ok, result = pcall(fn)
     if not ok then
-        self.Stats.Errors += 1
+        self.Stats.Errors = self.Stats.Errors + 1
         if self.Config.Diagnostics then
             warn("[Trayecto][" .. tostring(label) .. "] " .. tostring(result))
         end
@@ -295,7 +295,7 @@ end
 
 player.CharacterAdded:Connect(function()
     if TrayectoManager.Config.AutoRecover then
-        TrayectoManager.Stats.Recoveries += 1
+        TrayectoManager.Stats.Recoveries = TrayectoManager.Stats.Recoveries + 1
         task.wait(0.25)
         TrayectoManager:Safe("Character recovery", function()
             TrayectoManager:GetCharacter()
@@ -1017,7 +1017,7 @@ function bd:GetDiagnostics()
         LastError = stats.LastError,
         Effects = self.EffectsEnabled ~= false,
         Theme = self.Theme,
-        StateKeys = (function() local n=0; for _ in pairs(self.State or {}) do n+=1 end; return n end)()
+        StateKeys = (function() local n=0; for _ in pairs(self.State or {}) do n = n + 1 end; return n end)()
     }
 end
 
@@ -1233,7 +1233,7 @@ function bd:FilterButtons(container, query)
             if obj.Name ~= "GP_Minimize" and obj.Name ~= "GP_Close" then
                 local show = query == "" or string.find(textValue, query, 1, true) ~= nil
                 obj.Visible = show
-                if show then visible += 1 end
+                if show then visible = visible + 1 end
             end
         end
     end
@@ -3981,7 +3981,7 @@ local function ScanPets()
         end
 
         for _, pet in ipairs(pets) do
-            total += 1
+            total = total + 1
 
             local level = GetPetLevel(pet)
             local exp = GetPetExp(pet)
@@ -3989,7 +3989,7 @@ local function ScanPets()
             local evolved = IsPetEvolved(pet)
 
             if isEquipped then
-                equipped += 1
+                equipped = equipped + 1
             end
 
             local data = {
@@ -5459,7 +5459,7 @@ local function fastRebirthEquipPet(petName, amount)
                 equipRemote:FireServer("equipPet", pet)
             end)
             if ok then
-                equipped += 1
+                equipped = equipped + 1
             end
             if equipped >= amount then
                 break
@@ -5804,7 +5804,7 @@ extraTab:AddButton("Equip Swift Samurai", function()
             for _, pet in pairs(folder:GetChildren()) do
                 if pet.Name == "Swift Samurai" then
                     ReplicatedStorage.rEvents.equipPetEvent:FireServer("equipPet", pet)
-                    equipped += 1
+                    equipped = equipped + 1
                     print("Equipado Swift Samurai #" .. equipped)
 
                     if equipped >= maxEquip then
@@ -6299,9 +6299,9 @@ local function updateItemCount()
 	local eggs, shakes = 0, 0
 	for _, item in ipairs(player.Backpack:GetChildren()) do
 		if item.Name == "Protein Egg" then
-			eggs += 1
+			eggs = eggs + 1
 		elseif item.Name == "Tropical Shake" then
-			shakes += 1
+			shakes = shakes + 1
 		end
 	end
 	proteinEggLabel.Text = "Protein Eggs: " .. eggs
@@ -6399,7 +6399,7 @@ local function countEquippedPets(plr, petName)
 	for _, entry in pairs(equippedPets:GetChildren()) do
 		local ref = entry:FindFirstChild("petReference")
 		if ref and ref.Value and ref.Value.Name == petName then
-			count += 1
+			count = count + 1
 		end
 	end
 	return count
@@ -7969,7 +7969,7 @@ local function trayectoAutomatico()
 
         if not ok then
             TrayectoCore.Diagnostics.LastError = "[TrayectoAutomatico] " .. tostring(err)
-            TrayectoCore.Diagnostics.ErrorCount += 1
+            TrayectoCore.Diagnostics.ErrorCount = TrayectoCore.Diagnostics.ErrorCount + 1
             warn(TrayectoCore.Diagnostics.LastError)
         end
     end)
@@ -8238,7 +8238,7 @@ do
 
     player.CharacterAdded:Connect(function()
         self = Core
-        Core.recoveries += 1
+        Core.recoveries = Core.recoveries + 1
         task.wait(0.5)
         print("[Trayectoo] Character recovery complete")
     end)
@@ -8340,13 +8340,13 @@ do
             m.Status = status
             m.LastChange = os.clock()
             if status == "RUNNING" then
-                m.Runs += 1
+                m.Runs = m.Runs + 1
             end
         end
 
         function U:Error(name, message)
             local m = self:Register(name)
-            m.Errors += 1
+            m.Errors = m.Errors + 1
             m.Status = "ERROR"
             self.Errors[#self.Errors + 1] = {
                 Time = os.clock(),
@@ -8416,7 +8416,7 @@ do
 
         function U:RestoreCharacter()
             if not self.Config.AutoRecover then return end
-            self.Recoveries += 1
+            self.Recoveries = self.Recoveries + 1
             self:SetStatus("System", "RECOVERING")
             task.wait(0.35)
             local ok = self:Check()
@@ -8587,7 +8587,7 @@ do
                 report.Modules[name] = module.Status
             end
 
-            self.Performance.Checks += 1
+            self.Performance.Checks = self.Performance.Checks + 1
             self.Performance.LastCheck = os.clock()
             self.Performance.Health = report.Health
             return report
@@ -8859,9 +8859,9 @@ do
             local good = 0
 
             for _, module in pairs(self.Modules) do
-                total += 1
+                total = total + 1
                 if module.Status ~= "ERROR" then
-                    good += 1
+                    good = good + 1
                 end
             end
 
@@ -8874,7 +8874,7 @@ do
 
         function U:Heartbeat()
             self.Maintenance.LastHeartbeat = os.clock()
-            self.Maintenance.Heartbeats += 1
+            self.Maintenance.Heartbeats = self.Maintenance.Heartbeats + 1
         end
     end
 end
@@ -9336,7 +9336,7 @@ pcall(function()
             local count = 0
 
             for name in pairs(plugins) do
-                count += 1
+                count = count + 1
                 print(name)
             end
 
@@ -9531,7 +9531,7 @@ do
 
         local favorites = 0
         for _ in pairs(V.Favorites) do
-            favorites += 1
+            favorites = favorites + 1
         end
         V.FavoritesCount = favorites
     end
@@ -9681,7 +9681,7 @@ do
             for name, callback in pairs(V.CleanupQueue) do
                 local ok = pcall(callback)
                 if ok then
-                    count += 1
+                    count = count + 1
                 end
                 V.CleanupQueue[name] = nil
             end
@@ -10189,7 +10189,7 @@ do
             local count = 0
             for _, object in ipairs(root:GetDescendants()) do
                 self:IndexObject(object)
-                count += 1
+                count = count + 1
             end
 
             return count
@@ -10383,13 +10383,13 @@ pcall(function()
             local fps = 1 / dt
             local ping = getPingSafe()
 
-            perfData.Samples += 1
-            perfData.FPSSum += fps
+            perfData.Samples = perfData.Samples + 1
+            perfData.FPSSum = perfData.FPSSum + fps
             perfData.FPSMin = math.min(perfData.FPSMin, fps)
             perfData.FPSMax = math.max(perfData.FPSMax, fps)
 
             if ping > 0 then
-                perfData.PingSum += ping
+                perfData.PingSum = perfData.PingSum + ping
                 perfData.PingMin = math.min(perfData.PingMin, ping)
                 perfData.PingMax = math.max(perfData.PingMax, ping)
             end
@@ -10709,7 +10709,7 @@ pcall(function()
 
         local total = 0
         for _, value in ipairs(dpsSamples) do
-            total += value
+            total = total + value
         end
         return total / #dpsSamples
     end
@@ -10941,7 +10941,7 @@ pcall(function()
 
         for _, obj in ipairs(workspace:GetDescendants()) do
             if string.lower(obj.Name) == string.lower(scanName) then
-                found += 1
+                found = found + 1
                 print(
                     string.format(
                         "#%d | %s | %s",
