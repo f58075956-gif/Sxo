@@ -4735,14 +4735,14 @@ task.spawn(function()
             end
         end
 
-        task.wait(0.05)
+        task.wait(0.04)
     end
 end)
 
 Folderfarming:AddLabel("")
 Folderfarming:AddLabel("Fast Farm (Recommended Speed: 20)").TextSize = 20
 
-local repsPerTick = 50
+local repsPerTick = 70
 local runFastRep = false
 
 local function getPing()
@@ -4761,7 +4761,7 @@ Folderfarming:AddTextBox("Rep Speed", function(value)
         repsPerTick = math.floor(num)
     end
 end, {
-    placeholder = "50",
+    placeholder = "70",
 })
 
 local function fastRepLoop()
@@ -4776,7 +4776,7 @@ local function fastRepLoop()
         task.wait()
 
         if getPing() >= 350 then
-            task.wait(0.25)
+            task.wait(0)
         end
     end
 end
